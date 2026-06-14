@@ -21,4 +21,16 @@ describe('date utils', () => {
   test('weekdayOf returns 0..6 (Sun..Sat)', () => {
     expect(weekdayOf('2026-06-14')).toBe(0); // Sunday
   });
+
+  test('daysBetween tolerates full ISO datetime inputs', () => {
+    expect(daysBetween('2026-06-01T23:00:00Z', '2026-06-14T05:00:00Z')).toBe(13);
+  });
+
+  test('daysBetween across a DST boundary stays correct (UTC anchored)', () => {
+    expect(daysBetween('2026-03-07', '2026-03-09')).toBe(2);
+  });
+
+  test('weekdayOf returns 6 for a Saturday', () => {
+    expect(weekdayOf('2026-06-13')).toBe(6);
+  });
 });

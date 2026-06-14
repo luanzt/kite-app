@@ -3,7 +3,9 @@ export function toISODate(d: Date): string {
 }
 
 export function daysBetween(fromISO: string, toISO: string): number {
-  const ms = Date.parse(`${toISO}T00:00:00Z`) - Date.parse(`${fromISO}T00:00:00Z`);
+  const ms =
+    Date.parse(`${toISO.slice(0, 10)}T00:00:00Z`) -
+    Date.parse(`${fromISO.slice(0, 10)}T00:00:00Z`);
   return Math.round(ms / 86_400_000);
 }
 
