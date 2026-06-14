@@ -16,6 +16,8 @@
       "@app-types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"],
       "@config/*": ["src/config/*"],
+      "@features/*": ["src/features/*"],
+      "@i18n/*": ["src/i18n/*"],
       "uniwind": ["node_modules/uniwind/dist/module/index.d.ts"],
       "uniwind/*": ["node_modules/uniwind/dist/*"]
     }

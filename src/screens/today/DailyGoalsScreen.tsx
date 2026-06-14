@@ -1,0 +1,44 @@
+import { FlatList, View } from 'react-native';
+import { Typography, Button } from 'heroui-native';
+import { useTranslation } from 'react-i18next';
+import { useTrackers, useLogEntry } from '@features/trackers/queries';
+import { toISODate, weekdayOf } from '@utils/date';
+import type { Tracker } from '@features/trackers/types';
+
+function isDueToday(t: Tracker, todayISO: string): boolean {
+  if (t.type === 'habit' && t.repeatDays && t.repeatDays.length) {
+    return t.repeatDays.includes(weekdayOf(todayISO));
+  }
+  return true;
+}
+
+export function DailyGoalsScreen() {
+  const { t } = useTranslation();
+  const today = toISODate(new Date());
+  const { data: trackers = [] } = useTrackers();
+  const log = useLogEntry();
+  const due = trackers.filter(tr => isDueToday(tr, today));
+
+  return (
+    <View className="flex-1 p-4">
+      <Typography className="text-xl font-bold">{t('today.title')}</Typography>
+      {due.length === 0 ? (
+        <Typography className="mt-4">{t('today.empty')}</Typography>
+      ) : (
+        <FlatList
+          data={due}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <View className="flex-row justify-between items-center py-2">
+              <Typography>{item.name}</Typography>
+              <Button variant="secondary"
+                onPress={() => log.mutate({ id: `${item.id}-${today}`, trackerId: item.id, date: today, value: 1, note: null })}>
+                <Button.Label>✓</Button.Label>
+              </Button>
+            </View>
+          )}
+        />
+      )}
+    </View>
+  );
+}

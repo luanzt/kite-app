@@ -1,0 +1,17 @@
+{
+  "tabs": { "today": "Hôm nay", "trackers": "Mục tiêu", "settings": "Cài đặt" },
+  "today": { "title": "Hôm nay", "summary": "Đã xong {{done}}/{{total}}", "empty": "Hôm nay chưa có gì" },
+  "quickStart": {
+    "heading": "Bắt đầu với một mục tiêu",
+    "items": { "water": "Uống nước", "exercise": "Tập thể dục", "save": "Tiết kiệm tiền", "read": "Đọc sách", "sleep": "Ngủ đủ giấc", "meditate": "Thiền", "steps": "Đi bộ", "weight": "Theo dõi cân nặng" }
+  },
+  "types": { "habit": "Thói quen", "target": "Mục tiêu", "average": "Trung bình", "project": "Dự án" },
+  "form": {
+    "name": "Tên", "unit": "Đơn vị", "targetValue": "Giá trị mục tiêu",
+    "startValue": "Giá trị bắt đầu", "deadline": "Hạn chót", "period": "Chu kỳ",
+    "accumulation": "Mỗi lần ghi là", "accSum": "Cộng vào tổng", "accLatest": "Giá trị hiện tại",
+    "save": "Lưu", "create": "Tạo mục tiêu"
+  },
+  "detail": { "onTrack": "Đúng nhịp", "behind": "Đang trễ", "ahead": "Vượt tiến độ", "streak": "Chuỗi ngày", "successRate": "Tỉ lệ thành công", "history": "Lịch sử" },
+  "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" }
+}

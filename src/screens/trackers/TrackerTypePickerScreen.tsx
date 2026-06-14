@@ -1,0 +1,20 @@
+import { View } from 'react-native';
+import { Button } from 'heroui-native';
+import { useTranslation } from 'react-i18next';
+import type { RootStackProps } from '@navigation/types';
+import type { TrackerType } from '@features/trackers/types';
+
+const TYPES: TrackerType[] = ['habit', 'target', 'average', 'project'];
+
+export function TrackerTypePickerScreen({ navigation }: RootStackProps<'TrackerTypePicker'>) {
+  const { t } = useTranslation();
+  return (
+    <View className="p-4 gap-3">
+      {TYPES.map(type => (
+        <Button key={type} variant="secondary" onPress={() => navigation.replace('TrackerForm', { type })}>
+          <Button.Label>{t(`types.${type}`)}</Button.Label>
+        </Button>
+      ))}
+    </View>
+  );
+}
