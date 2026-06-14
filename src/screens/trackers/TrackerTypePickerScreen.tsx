@@ -4,20 +4,21 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackProps } from '@navigation/types';
 import type { TrackerType } from '@features/trackers/types';
+import { Repeat, Target, ChartColumn, Puzzle, type LucideIcon } from 'lucide-react-native';
 import { Icons, hexA } from '@features/trackers/icons';
 
 type TypeMeta = {
   k: TrackerType;
-  emoji: string;
+  Icon: LucideIcon;
   color: string;
   tag: 'tagHabit' | 'tagTarget' | 'tagAverage' | 'tagProject';
 };
 
 const TYPES: TypeMeta[] = [
-  { k: 'habit', emoji: '🔁', color: '#8b5cf6', tag: 'tagHabit' },
-  { k: 'target', emoji: '🎯', color: '#2e7d5b', tag: 'tagTarget' },
-  { k: 'average', emoji: '📊', color: '#0d9488', tag: 'tagAverage' },
-  { k: 'project', emoji: '🧩', color: '#e0457a', tag: 'tagProject' },
+  { k: 'habit', Icon: Repeat, color: '#8b5cf6', tag: 'tagHabit' },
+  { k: 'target', Icon: Target, color: '#2e7d5b', tag: 'tagTarget' },
+  { k: 'average', Icon: ChartColumn, color: '#0d9488', tag: 'tagAverage' },
+  { k: 'project', Icon: Puzzle, color: '#e0457a', tag: 'tagProject' },
 ];
 
 export function TrackerTypePickerScreen({ navigation }: RootStackProps<'TrackerTypePicker'>) {
@@ -62,7 +63,7 @@ export function TrackerTypePickerScreen({ navigation }: RootStackProps<'TrackerT
                 className="items-center justify-center rounded-lg-k"
                 style={{ width: 56, height: 56, backgroundColor: hexA(ty.color, 0.14) }}
               >
-                <Typography style={{ fontSize: 30 }}>{ty.emoji}</Typography>
+                <ty.Icon size={28} color={ty.color} strokeWidth={2.2} />
               </View>
               <View className="flex-1">
                 <Typography className="text-lg font-extrabold text-ink">{t(`type.${ty.k}`)}</Typography>
