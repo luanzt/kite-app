@@ -26,4 +26,15 @@ describe('tracker row mapping', () => {
     const row = { ...trackerToRow(tracker), repeat_days: null };
     expect(rowToTracker(row).repeatDays).toBeNull();
   });
+
+  test('round-trips a tracker with all nullable fields null (e.g. a habit)', () => {
+    const habit: Tracker = {
+      id: 'h1', name: 'Meditate', type: 'habit', icon: 'lotus', color: 'blue',
+      unit: null, direction: 'good', targetValue: null, startValue: null,
+      accumulation: null, startDate: '2026-06-01', deadline: null,
+      period: 'daily', repeatDays: null, createdAt: '2026-06-01T00:00:00Z', archived: false,
+    };
+    const back = rowToTracker(trackerToRow(habit));
+    expect(back).toEqual(habit);
+  });
 });
