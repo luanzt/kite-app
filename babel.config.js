@@ -17,6 +17,8 @@ module.exports = {
           '@app-types': './src/types',
           '@utils': './src/utils',
           '@config': './src/config',
+          '@features': './src/features',
+          '@i18n': './src/i18n',
         },
       },
     ],
