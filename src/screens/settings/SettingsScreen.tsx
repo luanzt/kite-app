@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '@store/useAppStore';
 import { changeLanguage, type Language } from '@i18n/index';
 import { Icons, PACE_COLOR } from '@features/trackers/icons';
+import { KiteLogo } from '@features/trackers/components/KiteLogo';
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -61,8 +62,8 @@ export function SettingsScreen() {
       <ScrollView contentContainerStyle={{ padding: 20, gap: 24, paddingBottom: insets.bottom + 32 }}>
         {/* app header */}
         <View className="items-center" style={{ paddingTop: 8, paddingBottom: 4 }}>
-          <Typography style={{ fontSize: 40 }}>🪁</Typography>
-          <Typography className="text-xl font-extrabold text-ink" style={{ marginTop: 4 }}>
+          <KiteLogo size={56} />
+          <Typography className="text-xl font-extrabold text-ink" style={{ marginTop: 10 }}>
             Kite
           </Typography>
           <Typography className="text-sm text-ink-3" style={{ marginTop: 2 }}>
