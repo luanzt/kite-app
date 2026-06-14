@@ -24,12 +24,16 @@ export function calculateTarget(
   let paceStatus: TrackerProgress['paceStatus'] = 'none';
   if (tracker.deadline) {
     const total = daysBetween(tracker.startDate, tracker.deadline);
-    const elapsed = Math.max(0, Math.min(total, daysBetween(tracker.startDate, todayISO)));
-    const frac = total === 0 ? 1 : elapsed / total;
-    const expected = start + span * frac;
-    if (current >= expected + Math.abs(span) * AHEAD_MARGIN) paceStatus = 'ahead';
-    else if (current >= expected) paceStatus = 'on_track';
-    else paceStatus = 'behind';
+    if (total <= 0) {
+      paceStatus = 'none';
+    } else {
+      const elapsed = Math.max(0, Math.min(total, daysBetween(tracker.startDate, todayISO)));
+      const timeFrac = elapsed / total;
+      const madeFrac = span === 0 ? 1 : (current - start) / span;
+      if (madeFrac >= timeFrac + AHEAD_MARGIN) paceStatus = 'ahead';
+      else if (madeFrac >= timeFrac) paceStatus = 'on_track';
+      else paceStatus = 'behind';
+    }
   }
 
   return { current, goal, percent, paceStatus };

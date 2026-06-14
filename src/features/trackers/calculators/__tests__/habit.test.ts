@@ -30,4 +30,16 @@ describe('calculateHabit', () => {
     const p = calculateHabit(habit, [done('2026-06-14')], '2026-06-14');
     expect(p.paceStatus).toBe('none');
   });
+
+  test('today unlogged does not wipe the streak', () => {
+    // done 06-12 and 06-13, today 06-14 unlogged → streak stays 2
+    const p = calculateHabit(habit, [done('2026-06-12'), done('2026-06-13')], '2026-06-14');
+    expect(p.streak).toBe(2);
+  });
+
+  test('a missed PAST due day still breaks the streak', () => {
+    // 06-14 done, 06-13 missed (past due day) → streak 1
+    const p = calculateHabit(habit, [done('2026-06-12'), done('2026-06-14')], '2026-06-14');
+    expect(p.streak).toBe(1);
+  });
 });

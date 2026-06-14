@@ -29,8 +29,28 @@ describe('calculateTarget', () => {
     expect(p.paceStatus).toBe('behind');
   });
 
-  test('on_track when current meets expected pace', () => {
+  test('ahead when well above expected pace', () => {
     const p = calculateTarget(base, [entry('2026-07-01', 1100)], '2026-07-02');
+    expect(p.paceStatus).toBe('ahead');
+  });
+
+  test('decreasing-goal: gaining is behind', () => {
+    // weight loss 80 -> 65, latest mode; at mid-period current 90 means behind
+    const t = { ...base, accumulation: 'latest' as const, startValue: 80, targetValue: 65 };
+    const p = calculateTarget(t, [entry('2026-07-01', 90)], '2026-07-02');
+    expect(p.paceStatus).toBe('behind');
+  });
+
+  test('decreasing-goal: on a good trajectory is on track or ahead', () => {
+    const t = { ...base, accumulation: 'latest' as const, startValue: 80, targetValue: 65 };
+    // ~half year elapsed, expected ~72.5; current 70 is ahead of pace
+    const p = calculateTarget(t, [entry('2026-07-01', 70)], '2026-07-02');
     expect(['on_track', 'ahead']).toContain(p.paceStatus);
+  });
+
+  test('deadline equal to start date yields none', () => {
+    const t = { ...base, deadline: '2026-01-01' };
+    const p = calculateTarget(t, [entry('2026-01-01', 10)], '2026-01-01');
+    expect(p.paceStatus).toBe('none');
   });
 });

@@ -23,8 +23,13 @@ export function calculateHabit(
   let cursor = todayISO;
   while (true) {
     if (isDueOn(tracker, cursor)) {
-      if (doneDates.has(cursor)) streak += 1;
-      else break;
+      if (doneDates.has(cursor)) {
+        streak += 1;
+      } else if (cursor === todayISO) {
+        // today not logged yet is neutral — don't break the streak
+      } else {
+        break;
+      }
     }
     cursor = isoMinusDays(cursor, 1);
     if (daysBetween(tracker.startDate, cursor) < 0) break;
