@@ -22,7 +22,7 @@ An **offline-first goal & progress tracker** (inspired by Strides). Users create
   - Other available components: Avatar, Chip, Alert (uses `status` not `variant`), Accordion, Tabs, BottomSheet, Dialog, Popover, Toast, Switch, Checkbox, RadioGroup, Select, Separator, Surface, ListGroup, Spinner, Skeleton, ScrollShadow.
 - **Styling: Uniwind (Tailwind CSS v4 for RN).** Style with Tailwind `className`, NOT inline `style={{}}`. For ScrollView/FlatList container styling use the Uniwind-mapped prop `contentContainerClassName`. Inline `style` only for genuinely runtime-dynamic values (e.g. a computed percentage width).
 - **Charts: `react-native-gifted-charts`** (already installed, runs on `react-native-svg`). Use `LineChart` for history.
-- **Icons:** I do NOT have an icon set installed yet. Recommend ONE (e.g. `react-native-vector-icons` or `lucide-react-native`), tell me the install command, and use it consistently. If you'd rather use emoji as a placeholder, say so.
+- **Icons: use `lucide-react-native` (already installed).** Do NOT use any other icon set or emoji. Import PascalCase icon components and size/color them via the `size` and `color` props (e.g. `<Droplet size={20} color="#22c55e" />`). It runs on the already-installed `react-native-svg`. A tracker's `icon` field is a string key — map it to a lucide component via a small lookup.
 - **Light mode only** for now (dark mode comes later) — but use semantic color choices so a dark theme can be layered on later.
 - **Bilingual: English + Vietnamese** via i18next (`useTranslation()`, `t('key')`). All visible copy already comes from translation keys — keep using `t(...)`, don't hardcode strings. Design must tolerate Vietnamese being ~20-30% longer than English (no truncated/clipped labels).
 

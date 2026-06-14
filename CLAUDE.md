@@ -105,6 +105,21 @@ These rules are non-negotiable for all UI code in this project:
    <View style={{ flex: 1, padding: 16, gap: 16 }}>
    ```
 
+3. **Use icons ONLY from `lucide-react-native`.** Do not install or use any other
+   icon set (no react-native-vector-icons, no emoji as UI icons). Import the
+   specific PascalCase icon component and size/color it via the `size` and
+   `color` props (icons extend `SvgProps`). Prefer theme/status colors for
+   `color`; size with the numeric `size` prop, not `className`.
+   ```tsx
+   import { Droplet, Check } from 'lucide-react-native';
+   <Droplet size={20} color="#22c55e" />
+   <Check size={24} />
+   ```
+   `lucide-react-native` runs on the already-installed `react-native-svg` (no
+   extra native setup). A tracker's `icon` field is a string key — map it to a
+   lucide component (e.g. via a small `icon`-name → component lookup) rather than
+   rendering arbitrary strings.
+
 ## HeroUI Native — Compound Component Patterns
 
 HeroUI Native uses compound components, NOT flat props. This is critical:
