@@ -1882,7 +1882,11 @@ git commit -m "fix: device smoke-test adjustments"
 - Haptic feedback on habit tick (`react-native-haptic-feedback`).
 - Export/clear data actions in Settings.
 - Calendar heatmap for habits; Gantt for projects.
-- Dark-mode color tokens for PaceBar via Uniwind theme variables.
+- Dark-mode color tokens for PaceBar via Uniwind theme variables (currently hardcoded hex; `#e5e7eb` track looks wrong in dark mode).
+- Wire MilestoneList + useSaveMilestone into TrackerDetail (component built but not yet reachable).
+- Move `progressFor` out of components/TrackerCard.tsx into a domain module (e.g. calculators) — currently screens import a pure dispatcher from a component file.
+- Loading/error states for queries (TrackerDetail returns null on missing tracker; a real DB read failure is currently invisible).
+- TrackerList cards compute progress from empty entries/milestones (show 0% until opened) — load real per-tracker data or precompute progress in the list query.
 
 ---
 
