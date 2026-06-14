@@ -8,6 +8,8 @@
 
 **Tech Stack:** React Native CLI 0.85, HeroUI Native, Uniwind, op-sqlite, react-native-gifted-charts, @notifee/react-native, react-native-localize, i18next + react-i18next, react-hook-form + zod, TanStack Query, React Navigation v7.
 
+> **op-sqlite API note (verified against installed v16.2.1):** the DB's `execute()` is **async** (`Promise<QueryResult>`); the **synchronous** method is `executeSync()`. `QueryResult.rows` is a **plain array** (`Array<Record<string, Scalar>>`) — there is NO `rows._array` wrapper. Phase 3 code below was written against an `_array` assumption; the repository/schema as built use `executeSync()` + `res.rows`. Treat the executeSync form as canonical.
+
 **Reference spec:** `docs/superpowers/specs/2026-06-14-kite-goal-tracker-design.md`
 
 ---
