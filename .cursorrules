@@ -1,0 +1,49 @@
+You are working on a React Native CLI project (no Expo) using HeroUI Native as the UI library.
+
+# Key Rules
+
+## HeroUI Native uses COMPOUND COMPONENTS — not flat props
+
+WRONG:
+- `<Input label="Email" errorMessage="Required" isInvalid />`
+- `<Button isLoading={true}>Submit</Button>`
+- `<Alert variant="danger">Error</Alert>`
+- `<Avatar name="John" />`
+
+CORRECT:
+- `<TextField isInvalid><Label><Label.Text>Email</Label.Text></Label><Input .../><FieldError>Required</FieldError></TextField>`
+- `<Button isDisabled={loading}>{loading ? <Spinner /> : <Button.Label>Submit</Button.Label>}</Button>`
+- `<Alert status="danger"><Alert.Indicator /><Alert.Content><Alert.Description>Error</Alert.Description></Alert.Content></Alert>`
+- `<Avatar size="lg"><Avatar.Fallback>JD</Avatar.Fallback></Avatar>`
+
+## Imports
+
+Use path aliases: @api/, @components/, @hooks/, @navigation/, @screens/, @store/, @theme/, @utils/
+For types: use @app-types/ (NOT @types/ — conflicts with npm @types)
+
+## State Management
+
+- Zustand for client state (auth, preferences) — persisted via MMKV
+- TanStack Query for server/API state — handles cache, refetch, loading/error
+- DO NOT store API responses in Zustand — use TanStack Query
+
+## API Pattern
+
+- Axios client at src/api/client.ts (auto token + 401 refresh)
+- Endpoints at src/api/endpoints/<feature>.ts
+- Query hooks at src/api/queries/<feature>.ts using useQuery/useMutation
+- Types at src/api/types/<feature>.ts
+
+## Environment
+
+- Use `import Config from 'react-native-config'` for env vars
+- Base URL: Config.API_BASE_URL
+- Files: .env.development, .env.staging, .env.production
+
+## Conventions
+
+- Named exports (no default except App.tsx)
+- Screens in screens/<feature>/ folders
+- TypeScript strict mode
+- Zod for form validation (src/utils/validators.ts)
+- Dark/light theme via Uniwind.setTheme()
