@@ -25,7 +25,7 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
+    <ScrollView contentContainerClassName="p-4 gap-4">
       <TextField>
         <Label><Label.Text>{t('form.name')}</Label.Text></Label>
         <Input value={name} onChangeText={setName} placeholder={t(`types.${type}`)} />

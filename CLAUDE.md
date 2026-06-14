@@ -51,6 +51,32 @@ src/
 
 Use `@api/`, `@components/`, `@hooks/`, `@navigation/`, `@screens/`, `@store/`, `@theme/`, `@utils/` for imports. Types use `@app-types/` (not `@types/` — that conflicts with npm @types).
 
+## Styling & Text Conventions (MANDATORY)
+
+These rules are non-negotiable for all UI code in this project:
+
+1. **Use `<Typography>`, NEVER `<Text>`.** HeroUI Native's `Text` export is a
+   deprecated alias of `Typography` and will be removed in a future major
+   version. Always import and render `Typography` from `heroui-native`. Do not
+   import `Text` from `heroui-native` or from `react-native` for displaying text.
+   ```tsx
+   import { Typography } from 'heroui-native';
+   <Typography className="text-xl font-bold">{title}</Typography>
+   ```
+
+2. **Style with Tailwind `className`, NEVER inline `style={{…}}`.** This project
+   uses Uniwind (Tailwind v4 for RN). Use `className` for all styling — spacing,
+   layout (flex/gap), colors, sizing, borders. Reserve inline `style` only for
+   the rare truly-dynamic value Tailwind cannot express (e.g. a computed
+   percentage width bound to runtime state); even then prefer a Tailwind class
+   when a fixed scale fits.
+   ```tsx
+   // Good
+   <View className="flex-1 p-4 gap-4">
+   // Avoid
+   <View style={{ flex: 1, padding: 16, gap: 16 }}>
+   ```
+
 ## HeroUI Native — Compound Component Patterns
 
 HeroUI Native uses compound components, NOT flat props. This is critical:

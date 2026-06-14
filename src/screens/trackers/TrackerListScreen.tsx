@@ -34,7 +34,7 @@ export function TrackerListScreen() {
 
   if (trackers.length === 0) {
     return (
-      <View style={{ padding: 16, gap: 12 }}>
+      <View className="p-4 gap-3">
         <Typography className="text-lg font-semibold">{t('quickStart.heading')}</Typography>
         {QUICK_STARTS.map(qs => (
           <Button key={qs.key} variant="secondary" onPress={() => addQuickStart(qs)}>
@@ -49,7 +49,7 @@ export function TrackerListScreen() {
   }
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
+    <View className="flex-1 p-4">
       <FlatList
         data={trackers}
         keyExtractor={item => item.id}
@@ -57,7 +57,7 @@ export function TrackerListScreen() {
           <TrackerCard tracker={item} entries={[]} milestones={[]}
             onPress={() => nav.navigate('TrackerDetail', { trackerId: item.id })} />
         )}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+        ItemSeparatorComponent={() => <View className="h-2" />}
       />
       <Button variant="primary" onPress={() => nav.navigate('TrackerTypePicker')}>
         <Button.Label>{t('form.create')}</Button.Label>

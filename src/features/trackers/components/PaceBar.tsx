@@ -21,8 +21,9 @@ export function PaceBar({
   const pct = Math.max(0, Math.min(1, percent));
   return (
     <View>
-      <View style={{ height: 10, borderRadius: 5, backgroundColor: '#e5e7eb', overflow: 'hidden' }}>
-        <View style={{ width: `${pct * 100}%`, height: '100%', backgroundColor: COLOR[paceStatus] }} />
+      <View className="h-2.5 rounded-full bg-gray-200 overflow-hidden">
+        {/* width + status color are runtime-dynamic → inline style is the documented exception */}
+        <View className="h-full" style={{ width: `${pct * 100}%`, backgroundColor: COLOR[paceStatus] }} />
       </View>
       {label ? <Typography className="text-xs mt-1">{label}</Typography> : null}
     </View>

@@ -9,7 +9,7 @@ const TYPES: TrackerType[] = ['habit', 'target', 'average', 'project'];
 export function TrackerTypePickerScreen({ navigation }: RootStackProps<'TrackerTypePicker'>) {
   const { t } = useTranslation();
   return (
-    <View style={{ padding: 16, gap: 12 }}>
+    <View className="p-4 gap-3">
       {TYPES.map(type => (
         <Button key={type} variant="secondary" onPress={() => navigation.replace('TrackerForm', { type })}>
           <Button.Label>{t(`types.${type}`)}</Button.Label>

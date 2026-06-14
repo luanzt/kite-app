@@ -20,7 +20,7 @@ export function DailyGoalsScreen() {
   const due = trackers.filter(tr => isDueToday(tr, today));
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
+    <View className="flex-1 p-4">
       <Typography className="text-xl font-bold">{t('today.title')}</Typography>
       {due.length === 0 ? (
         <Typography className="mt-4">{t('today.empty')}</Typography>
@@ -29,7 +29,7 @@ export function DailyGoalsScreen() {
           data={due}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 }}>
+            <View className="flex-row justify-between items-center py-2">
               <Typography>{item.name}</Typography>
               <Button variant="secondary"
                 onPress={() => log.mutate({ id: `${item.id}-${today}`, trackerId: item.id, date: today, value: 1, note: null })}>

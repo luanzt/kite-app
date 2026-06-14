@@ -12,7 +12,7 @@ export function MilestoneList({
   return (
     <View>
       {milestones.map(m => (
-        <View key={m.id} style={{ marginVertical: 8 }}>
+        <View key={m.id} className="my-2">
           <Typography>{m.title}</Typography>
           <Slider
             value={m.progress}

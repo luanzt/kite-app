@@ -8,16 +8,19 @@ import { queryClient } from '@api/queryClient';
 import { RootNavigator } from '@navigation/RootNavigator';
 import { getDb } from '@features/trackers/db/schema';
 import { initI18n } from '@i18n/index';
-import { StyleSheet } from 'react-native';
 
 initI18n();
 
+// GestureHandlerRootView is the app root and must fill the screen. It's a
+// third-party host component; the gesture-handler docs use inline flex:1 here,
+// and Uniwind className patching isn't guaranteed on it — this is the
+// documented inline-style exception (see CLAUDE.md styling rules).
 export default function App() {
   useEffect(() => {
     getDb(); // open + migrate on launch
   }, []);
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <HeroUINativeProvider config={heroUIConfig}>
           <RootNavigator />
@@ -26,5 +29,3 @@ export default function App() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({ root: { flex: 1 } });

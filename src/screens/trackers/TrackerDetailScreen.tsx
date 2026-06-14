@@ -21,7 +21,7 @@ export function TrackerDetailScreen({ route }: RootStackProps<'TrackerDetail'>) 
     : p.paceStatus === 'on_track' ? t('detail.onTrack') : '';
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
+    <ScrollView contentContainerClassName="p-4 gap-4">
       <Typography className="text-xl font-bold">{tracker.name}</Typography>
       <PaceBar percent={p.percent} paceStatus={p.paceStatus} label={paceLabel} />
       {p.streak !== undefined ? <Typography>{t('detail.streak')}: {p.streak}</Typography> : null}

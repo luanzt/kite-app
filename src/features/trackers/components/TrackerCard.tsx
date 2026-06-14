@@ -42,7 +42,7 @@ export function TrackerCard({
     <Pressable onPress={onPress}>
       <Card>
         <Card.Body>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View className="flex-row justify-between">
             <Typography>{tracker.name}</Typography>
             <Typography className="text-xs">{Math.round(p.percent * 100)}%</Typography>
           </View>
