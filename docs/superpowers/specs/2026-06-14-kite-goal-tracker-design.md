@@ -83,6 +83,7 @@ SQLite (op-sqlite) — single source of truth, all data on-device
 | direction | TEXT | `good` \| `bad` (habit only) — nullable |
 | target_value | REAL | goal value (target/average) — nullable |
 | start_value | REAL | starting value (target — for pace line) — nullable |
+| accumulation | TEXT | `sum` \| `latest` (target only, default `sum`) — nullable |
 | start_date | TEXT (ISO) | start date |
 | deadline | TEXT (ISO) | due date (target/project) — nullable |
 | period | TEXT | `daily`\|`weekly`\|`monthly`\|`yearly` (average/habit) — nullable |
@@ -150,7 +151,11 @@ each unit-tested independently.
 
 ### 5.2 Target — reach a value before a deadline ⭐ (pace line)
 - e.g. "Save $2000" from `start_value=0` to `target_value=2000` by deadline.
-- `current` = latest entry value (default; cumulative configurable later).
+- **`accumulation` mode** (chosen per tracker in the form, default `sum`):
+  - `sum` — each entry is an amount added; `current = start_value + SUM(entries.value)`.
+    Fits accumulating goals (save money, run X km, read N books).
+  - `latest` — each entry is the current absolute value; `current = latest entry value`.
+    Fits state goals (lose weight to 65kg, reach 10k followers).
 - **Pace line formula:**
   ```
   total_days     = deadline - start_date
@@ -202,7 +207,11 @@ RootNavigator (native-stack)
   - Target/Average → quick number input / +/−.
   - Project → opens detail to drag milestone slider.
 - Header: today's date + summary ("3/5 done").
-- Empty state when nothing is due.
+- Empty state (no trackers yet): shows **6–8 quick-start suggestions** (Drink
+  water, Exercise, Save money, Read, Sleep, …). Tapping one opens TrackerForm
+  pre-filled with type + name + unit + sensible defaults. Reduces first-run
+  friction without a full template library. Suggestions are i18n strings, not
+  DB rows. Full searchable template library is post-MVP (§10).
 
 ### 6.2 TrackerListScreen (tab Trackers) — management
 - List of all trackers (group/filter by type or tag).
@@ -220,7 +229,7 @@ RootNavigator (native-stack)
 ### 6.4 TrackerFormScreen (pushed) — create/edit
 - Dynamic form by `type` (react-hook-form + zod).
   - Common: name, icon, color, unit, repeat_days, reminder.
-  - Target: start_value, target_value, deadline.
+  - Target: start_value, target_value, deadline, accumulation (sum/latest).
   - Average: target_value, period.
   - Project: add/edit milestone list.
 - Per-type zod schemas in `utils/validators.ts`.
@@ -288,4 +297,5 @@ Native component APIs. See root `CLAUDE.md`.
 - Gantt chart for Projects.
 - Apple Health / Google Fit.
 - Tags & area-of-life filtering (schema-ready via future `tags` table).
-- Tracker templates (Strides ships 150+).
+- Full searchable tracker template library by category (Strides ships 150+).
+  MVP only has the 6–8 quick-start suggestions at the empty state (§6.1).
