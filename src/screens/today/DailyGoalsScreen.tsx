@@ -8,6 +8,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { useTrackers, useLogEntry, useEntriesForDate } from '@features/trackers/queries';
 import { toISODate, weekdayOf } from '@utils/date';
 import { Icons, PACE_COLOR, hexA, iconEmoji, colorHex } from '@features/trackers/icons';
+import { KiteLogo } from '@features/trackers/components/KiteLogo';
 import type { RootStackParamList } from '@navigation/types';
 import type { Tracker, Entry } from '@features/trackers/types';
 
@@ -248,11 +249,8 @@ export function DailyGoalsScreen() {
           </Typography>
         </View>
         <View className="flex-1 items-center justify-center px-s6 gap-s3">
-          <View
-            className="items-center justify-center rounded-xl-k bg-brand-weak"
-            style={{ width: 96, height: 96, marginBottom: 8 }}
-          >
-            <Typography style={{ fontSize: 46 }}>🪁</Typography>
+          <View style={{ marginBottom: 8 }}>
+            <KiteLogo size={96} />
           </View>
           <Typography className="text-xl font-extrabold text-ink text-center">
             {t('today.empty')}
