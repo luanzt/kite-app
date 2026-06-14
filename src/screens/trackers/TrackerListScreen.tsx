@@ -7,8 +7,7 @@ import type { RootStackParamList } from '@navigation/types';
 import { useTrackers, useSaveTracker } from '@features/trackers/queries';
 import { QUICK_STARTS, type QuickStart } from '@features/trackers/quickStarts';
 import { TrackerCard } from '@features/trackers/components/TrackerCard';
-import { toISODate } from '@utils/date';
-import type { Tracker } from '@features/trackers/types';
+import { buildTracker } from '@features/trackers/factory';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -19,16 +18,18 @@ export function TrackerListScreen() {
   const save = useSaveTracker();
 
   const addQuickStart = (qs: QuickStart) => {
-    const tr: Tracker = {
-      id: `${qs.key}-${Date.now()}`, name: t(`quickStart.items.${qs.key}`), type: qs.type,
-      icon: qs.icon, color: qs.color, unit: qs.unit ?? null, direction: qs.type === 'habit' ? 'good' : null,
-      targetValue: qs.targetValue ?? null, startValue: qs.type === 'target' ? 0 : null,
-      accumulation: qs.accumulation ?? (qs.type === 'target' ? 'sum' : null),
-      startDate: toISODate(new Date()), deadline: null, period: qs.period ?? null,
-      repeatDays: qs.type === 'habit' ? [0, 1, 2, 3, 4, 5, 6] : null,
-      createdAt: new Date().toISOString(), archived: false,
-    };
-    save.mutate(tr);
+    save.mutate(
+      buildTracker({
+        name: t(`quickStart.items.${qs.key}`),
+        type: qs.type,
+        icon: qs.icon,
+        color: qs.color,
+        unit: qs.unit ?? null,
+        targetValue: qs.targetValue ?? null,
+        accumulation: qs.accumulation ?? null,
+        period: qs.period ?? null,
+      }),
+    );
   };
 
   if (trackers.length === 0) {

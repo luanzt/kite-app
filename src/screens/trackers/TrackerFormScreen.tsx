@@ -3,18 +3,8 @@ import { ScrollView } from 'react-native';
 import { Button, TextField, Label, Input } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import type { RootStackProps } from '@navigation/types';
-import type { Tracker } from '@features/trackers/types';
 import { useSaveTracker } from '@features/trackers/queries';
-import { toISODate } from '@utils/date';
-
-function uuid(): string {
-  return (
-    'xxxxxxxxyxxxx'.replace(/[xy]/g, c => {
-      const r = (Date.now() + Math.floor(Math.random() * 1e9)) % 16;
-      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-    }) + Date.now().toString(16)
-  );
-}
+import { buildTracker } from '@features/trackers/factory';
 
 export function TrackerFormScreen({ route, navigation }: RootStackProps<'TrackerForm'>) {
   const { type } = route.params;
@@ -25,17 +15,12 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
   const [unit, setUnit] = useState('');
 
   const onSave = () => {
-    const tracker: Tracker = {
-      id: uuid(), name: name.trim() || t(`types.${type}`), type,
-      icon: 'star', color: 'blue', unit: unit || null, direction: type === 'habit' ? 'good' : null,
+    const tracker = buildTracker({
+      name: name.trim() || t(`types.${type}`),
+      type,
+      unit: unit || null,
       targetValue: targetValue ? Number(targetValue) : null,
-      startValue: type === 'target' ? 0 : null,
-      accumulation: type === 'target' ? 'sum' : null,
-      startDate: toISODate(new Date()), deadline: null,
-      period: type === 'average' || type === 'habit' ? 'daily' : null,
-      repeatDays: type === 'habit' ? [0, 1, 2, 3, 4, 5, 6] : null,
-      createdAt: new Date().toISOString(), archived: false,
-    };
+    });
     save.mutate(tracker, { onSuccess: () => navigation.navigate('MainTabs') });
   };
 
