@@ -1,14 +1,22 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { useAuthStore } from '@store/useAuthStore';
-import { AuthNavigator } from '@navigation/AuthNavigator';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@navigation/types';
 import { MainNavigator } from '@navigation/MainNavigator';
+import { TrackerDetailScreen } from '@screens/trackers/TrackerDetailScreen';
+import { TrackerFormScreen } from '@screens/trackers/TrackerFormScreen';
+import { TrackerTypePickerScreen } from '@screens/trackers/TrackerTypePickerScreen';
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-
   return (
     <NavigationContainer>
-      {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
+      <Stack.Navigator>
+        <Stack.Screen name="MainTabs" component={MainNavigator} options={{ headerShown: false }} />
+        <Stack.Screen name="TrackerDetail" component={TrackerDetailScreen} />
+        <Stack.Screen name="TrackerForm" component={TrackerFormScreen} />
+        <Stack.Screen name="TrackerTypePicker" component={TrackerTypePickerScreen} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }

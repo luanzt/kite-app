@@ -1,18 +1,21 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-
-export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-};
+import type { TrackerType } from '@features/trackers/types';
 
 export type MainTabParamList = {
-  Home: undefined;
-  Profile: undefined;
+  Today: undefined;
+  Trackers: undefined;
+  Settings: undefined;
 };
 
-export type AuthScreenProps<T extends keyof AuthStackParamList> =
-  NativeStackScreenProps<AuthStackParamList, T>;
+export type RootStackParamList = {
+  MainTabs: undefined;
+  TrackerDetail: { trackerId: string };
+  TrackerForm: { trackerId?: string; type: TrackerType };
+  TrackerTypePicker: undefined;
+};
 
 export type MainTabProps<T extends keyof MainTabParamList> =
   BottomTabScreenProps<MainTabParamList, T>;
+export type RootStackProps<T extends keyof RootStackParamList> =
+  NativeStackScreenProps<RootStackParamList, T>;
