@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RootStackProps } from '@navigation/types';
 import { useTracker, useSaveTracker, useDeleteTracker } from '@features/trackers/queries';
 import { buildTracker } from '@features/trackers/factory';
-import { Icons } from '@features/trackers/icons';
+import { Icons, TYPE_ICON, TYPE_COLOR, hexA } from '@features/trackers/icons';
 import { useAppStore } from '@store/useAppStore';
 import type { Accumulation, HabitDirection, Period, Tracker } from '@features/trackers/types';
 
@@ -20,14 +20,6 @@ const ICONSET: Record<string, string[]> = {
 
 /** Tracker color palette (mirrors COLORS in data.js). */
 const COLORS = ['#2e7d5b', '#3d7dd8', '#e0564e', '#d98b2b', '#8b5cf6', '#0d9488', '#e0457a', '#6b7280'];
-
-/** Type chip emoji (mirrors typeEmoji in data.js). */
-const TYPE_EMOJI: Record<string, string> = {
-  habit: '🔁',
-  target: '🎯',
-  average: '📊',
-  project: '🧩',
-};
 
 function defaultIcon(type: string): string {
   return ({ habit: '🧘', target: '🎯', average: '💧', project: '🚀' } as Record<string, string>)[type] ?? '🎯';
@@ -181,9 +173,17 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
         <Typography className="flex-1 text-lg font-bold text-ink">
           {editing ? t('form.editTitle') : t('form.newTitle')}
         </Typography>
-        <View className="flex-row items-center gap-s1 rounded-full bg-brand-weak px-3 py-1">
-          <Typography style={{ fontSize: 14 }}>{TYPE_EMOJI[type]}</Typography>
-          <Typography className="text-sm font-bold text-brand-ink">{t(`type.${type}`)}</Typography>
+        <View
+          className="flex-row items-center gap-s1 rounded-full px-3 py-1"
+          style={{ backgroundColor: hexA(TYPE_COLOR[type], 0.14) }}
+        >
+          {(() => {
+            const TypeIcon = TYPE_ICON[type];
+            return <TypeIcon size={15} color={TYPE_COLOR[type]} strokeWidth={2.2} />;
+          })()}
+          <Typography className="text-sm font-bold" style={{ color: TYPE_COLOR[type] }}>
+            {t(`type.${type}`)}
+          </Typography>
         </View>
       </View>
 

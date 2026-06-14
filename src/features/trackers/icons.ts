@@ -13,8 +13,13 @@ import {
   Moon,
   Download,
   Zap,
+  Repeat,
+  Target,
+  ChartColumn,
+  Puzzle,
+  type LucideIcon,
 } from 'lucide-react-native';
-import type { PaceStatus } from '@features/trackers/types';
+import type { PaceStatus, TrackerType } from '@features/trackers/types';
 
 /**
  * Pace-status visual language (classic palette from theme.css).
@@ -74,6 +79,25 @@ export const Icons = {
 } as const;
 
 export type IconName = keyof typeof Icons;
+
+/**
+ * The 4 tracker types' brand icon + accent color — single source of truth so
+ * the TypePicker cards and the Form header chip stay in sync. Lucide icons
+ * (not emoji) for crisp, consistent rendering.
+ */
+export const TYPE_ICON: Record<TrackerType, LucideIcon> = {
+  habit: Repeat,
+  target: Target,
+  average: ChartColumn,
+  project: Puzzle,
+};
+
+export const TYPE_COLOR: Record<TrackerType, string> = {
+  habit: '#8b5cf6',
+  target: '#2e7d5b',
+  average: '#0d9488',
+  project: '#e0457a',
+};
 
 /**
  * Map a tracker's `icon` keyword (from quickStarts / buildTracker, e.g. "star",
