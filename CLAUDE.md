@@ -1,6 +1,10 @@
-# RnHeroUITemplate
+# CLAUDE.md
 
-React Native CLI base template with HeroUI Native UI library.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+# Kite
+
+Kite is an **offline-first goal & progress tracker** (inspired by Strides), built on React Native CLI with the HeroUI Native UI library. Users create long-term goals across four tracker types and track progress over time. The signature feature is the **pace line** — a green/red indicator showing whether a time-based goal is on track or behind. There is **no backend and no login**; all data lives on-device in SQLite.
 
 ## AI Tooling — HeroUI Native Agent Skill
 
@@ -19,37 +23,60 @@ skills it also installs were removed — this is a React Native–only project).
 Reinstall after cloning if symlinks break: re-run the `npx skills add` command,
 or recreate `.claude/skills/*` symlinks pointing at `.agents/skills/*`.
 
-## Tech Stack
+## Commands
 
-- **React Native CLI** (no Expo) — RN 0.85
-- **HeroUI Native** v1.0 — UI component library (37 components)
-- **Uniwind** — Tailwind CSS v4 for React Native (required by HeroUI Native)
-- **Zustand** + **MMKV** — state management with persistent storage
-- **Axios** — HTTP client with auth interceptors
-- **React Navigation v7** — stack + bottom tabs
-- **react-hook-form** + **zod** — form validation
-- **TanStack Query** — server state (cache, refetch, loading states)
-- **react-native-config** — environment variables (.env)
+Package manager is **yarn**. Scripts take an `ENVFILE` so each command targets an environment.
 
-## Project Structure
-
+```bash
+yarn ios                  # Run iOS (dev env: .env.development)
+yarn android              # Run Android (dev env)
+yarn ios:staging          # Run against .env.staging  (also :prod)
+yarn start                # Start Metro
+yarn start:reset          # Start Metro with cache reset
+yarn tsc                  # Type check (tsc --noEmit)
+yarn lint                 # ESLint
+yarn test                 # Run all Jest tests
+yarn test src/features/trackers/calculators/__tests__/target.test.ts   # Single test file
+yarn build:android:prod   # Release APK (also :staging)
 ```
-src/
-├── api/            # Axios client, endpoints, API types
-├── assets/         # Fonts, images
-├── components/     # ui/ (HeroUI wrappers), common/ (shared)
-├── hooks/          # Custom hooks (useAuth, useTheme, etc.)
-├── navigation/     # React Navigation navigators + param types
-├── screens/        # Feature-grouped screens
-├── store/          # Zustand stores (useAuthStore, useAppStore)
-├── theme/          # HeroUI provider config
-├── types/          # Global TypeScript types
-└── utils/          # Storage, validators, helpers
-```
+
+After adding a native dependency, run `cd ios && pod install`. op-sqlite, notifee,
+react-native-localize, and react-native-haptic-feedback all have native modules.
+
+## Architecture — offline-first, SQLite is the source of truth
+
+Data flows: **UI → TanStack Query hooks → repository functions → SQLite (op-sqlite)**.
+
+- **SQLite (op-sqlite)** holds all tracker data. App runs fully offline.
+- **TanStack Query** is reused as a *reactive cache over local SQLite* (not over an API). Query hooks call repository functions; mutations `invalidate` the relevant keys so the UI refreshes. See `src/features/trackers/queries/index.ts`.
+- **Zustand + MMKV** hold ONLY app settings (theme, language). **Never** store tracker data in Zustand — it goes in SQLite.
+
+Almost all domain code lives under **`src/features/trackers/`**:
+
+- `types.ts` — the domain model: `Tracker`, `Entry`, `Milestone`, `TrackerProgress`, and the unions `TrackerType` (`habit|target|average|project`), `PaceStatus` (`on_track|behind|ahead|none`), `Accumulation` (`sum|latest`), `Period`.
+- `db/schema.ts` — opens the DB and runs `migrate()` (3 tables: `trackers`, `entries`, `milestones` + index). `getDb()` is memoized and called once from `App.tsx` on launch.
+- `db/repository.ts` — SQL wrapper + pure row-mapping functions (`trackerToRow`/`rowToTracker`). **op-sqlite v16 API:** use `executeSync()` (its `execute()` is async) and read `res.rows` as a plain array — there is NO `rows._array` wrapper.
+- `calculators/` — pure functions, one per type (`calculateTarget`, `calculateHabit`, `calculateAverage`, `calculateProject`), each returning `TrackerProgress`. **This is the core engine and the most-tested code.** The pace-line math lives here; note `calculateTarget` handles decreasing goals (start > goal, e.g. weight loss) by comparing progress-toward-goal fraction vs. time fraction.
+- `queries/index.ts` — TanStack Query hooks over the repository.
+- `factory.ts` — `buildTracker(input)` is the single source of truth for constructing a `Tracker` (type-appropriate defaults + collision-resistant `uuid()`). Both the form and quick-starts use it; do not hand-build `Tracker` objects elsewhere.
+- `components/` — `TrackerCard` (and the `progressFor()` dispatcher), `PaceBar`, `HistoryChart`, `MilestoneList`.
+- `quickStarts.ts` — the 6–8 empty-state suggestions.
+
+### Testing strategy
+
+Pure logic is unit-tested (calculators, `date.ts`, repository row-mapping). **op-sqlite is unavailable in Jest** (native module), so it is mocked via `jest.config.js` `moduleNameMapper` → `jest/op-sqlite-mock.js`; DB-calling functions are NOT unit-tested — verify them on a device/simulator. Tests follow TDD: write the failing test first.
+
+### Navigation
+
+`src/navigation/`: `RootNavigator` (native-stack) wraps `MainNavigator` (bottom tabs: Today / Trackers / Settings) plus pushed stack screens (`TrackerDetail`, `TrackerForm`, `TrackerTypePicker`). There is no auth flow. Param types are in `navigation/types.ts`.
+
+### i18n (English + Vietnamese)
+
+`src/i18n/` uses i18next + react-i18next. On first launch the OS locale is detected via `react-native-localize` (`vi` → Vietnamese, else English); the choice persists in MMKV via `useAppStore` (`language` is nullable so "no choice yet" triggers OS detection). Use `const { t } = useTranslation()` and `t('key')` — never hardcode visible strings. Strings live in `locales/{en,vi}.json`; keep both files key-for-key in sync. **User-entered data (tracker names, notes) is stored verbatim, never translated.**
 
 ## Path Aliases
 
-Use `@api/`, `@components/`, `@hooks/`, `@navigation/`, `@screens/`, `@store/`, `@theme/`, `@utils/` for imports. Types use `@app-types/` (not `@types/` — that conflicts with npm @types).
+`@api/`, `@components/`, `@config/`, `@features/`, `@hooks/`, `@i18n/`, `@navigation/`, `@screens/`, `@store/`, `@theme/`, `@utils/`. Global types use `@app-types/` (not `@types/` — that conflicts with npm @types). Defined in `babel.config.js` and `tsconfig.json` — add new aliases to both.
 
 ## Styling & Text Conventions (MANDATORY)
 
@@ -66,10 +93,11 @@ These rules are non-negotiable for all UI code in this project:
 
 2. **Style with Tailwind `className`, NEVER inline `style={{…}}`.** This project
    uses Uniwind (Tailwind v4 for RN). Use `className` for all styling — spacing,
-   layout (flex/gap), colors, sizing, borders. Reserve inline `style` only for
-   the rare truly-dynamic value Tailwind cannot express (e.g. a computed
-   percentage width bound to runtime state); even then prefer a Tailwind class
-   when a fixed scale fits.
+   layout (flex/gap), colors, sizing, borders. For ScrollView/FlatList container
+   styling use the Uniwind-mapped prop `contentContainerClassName`. Reserve inline
+   `style` only for the rare truly-dynamic value Tailwind cannot express (e.g. a
+   computed percentage width bound to runtime state); even then prefer a Tailwind
+   class when a fixed scale fits.
    ```tsx
    // Good
    <View className="flex-1 p-4 gap-4">
@@ -102,6 +130,15 @@ HeroUI Native uses compound components, NOT flat props. This is critical:
 - NO `isLoading` prop — use `isDisabled` + conditional `<Spinner />`
 - Variants: primary, secondary, tertiary, outline, ghost, danger, danger-soft
 
+### Slider (compound)
+```tsx
+<Slider value={v} minValue={0} maxValue={1} step={0.05} onChange={onChange}>
+  <Slider.Track><Slider.Fill /><Slider.Thumb /></Slider.Track>
+</Slider>
+```
+- A bare `<Slider/>` renders nothing — the `Track/Fill/Thumb` children are required
+- `onChange` arg is `SliderValue = number | number[]` — narrow it
+
 ### Alert (uses status, not variant)
 ```tsx
 <Alert status="danger">
@@ -113,15 +150,6 @@ HeroUI Native uses compound components, NOT flat props. This is critical:
 </Alert>
 ```
 - Prop is `status` not `variant`: default, accent, success, warning, danger
-
-### Avatar (no name prop)
-```tsx
-<Avatar size="lg" color="accent">
-  <Avatar.Image source={{ uri: url }} />
-  <Avatar.Fallback>AB</Avatar.Fallback>
-</Avatar>
-```
-- NO `name` prop — pass initials as children of `Avatar.Fallback`
 
 ### Card
 ```tsx
@@ -135,45 +163,18 @@ HeroUI Native uses compound components, NOT flat props. This is critical:
 </Card>
 ```
 
-## State Management
-
-- **Zustand** for client state (auth, theme preferences) — persisted via MMKV
-- **TanStack Query** for server state (API data) — handles caching, refetching, loading/error
-- **DO NOT** use Zustand to cache API responses — use TanStack Query instead
-
-## API Layer
-
-- `src/api/client.ts` — Axios instance with auto token attach + 401 refresh
-- `src/api/endpoints/` — API functions grouped by feature
-- `src/api/types/` — Request/response types
-- `src/api/queries/` — TanStack Query hooks (useQuery/useMutation wrappers)
-- Base URL comes from `react-native-config` (Config.API_BASE_URL)
-
 ## Environment
 
-- `.env.development`, `.env.staging`, `.env.production`
-- Access via `import Config from 'react-native-config'`
-- Never commit `.env.*` files with secrets
-
-## Theme
-
-- Dark/light mode via Uniwind: `Uniwind.setTheme('dark' | 'light')`
-- Custom themes in `global.css` using CSS variables (`@variant`, `@layer theme`)
-- Theme preference persisted in MMKV via `useAppStore`
-
-## Commands
-
-```bash
-npx react-native run-ios          # Run iOS
-npx react-native run-android      # Run Android
-npx react-native start            # Start Metro
-npx tsc --noEmit                  # Type check
-```
+`.env.development`, `.env.staging`, `.env.production`. Access via `import Config from 'react-native-config'`. Never commit `.env.*` files with secrets.
 
 ## Conventions
 
-- Named exports for components and hooks (no default exports except App.tsx)
-- Screens in `screens/<feature>/` folders
-- One Zustand store per domain (auth, app, etc.)
-- Zod schemas in `utils/validators.ts`
-- TypeScript strict mode enabled
+- Named exports for components and hooks (no default exports except `App.tsx`).
+- Screens in `screens/<feature>/` folders; domain logic in `features/trackers/`.
+- Construct `Tracker` objects only via `buildTracker()` in `features/trackers/factory.ts`.
+- Zod schemas in `utils/validators.ts`.
+- TypeScript strict mode is enabled; `yarn tsc` must be clean before committing.
+
+## Known follow-ups (deferred, see `docs/superpowers/plans/`)
+
+Reminders (notifee installed, not wired), haptics, richer TrackerForm (deadline/period/accumulation/milestone editors), quick-log number entry on Today (currently logs value 1), dark-mode color tokens, and renaming the iOS/Android project from `RnHeroUITemplate` to `Kite` (bundle id is still the template's).
