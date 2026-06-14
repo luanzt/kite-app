@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, View } from 'react-native';
-import { Typography, Button } from 'heroui-native';
+import { Typography } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { useTrackers, useLogEntry, useEntriesForDate } from '@features/trackers/
 import { toISODate, weekdayOf } from '@utils/date';
 import { Icons, PACE_COLOR, hexA, iconEmoji, colorHex } from '@features/trackers/icons';
 import { KiteLogo } from '@features/trackers/components/KiteLogo';
+import { CreateButton } from '@features/trackers/components/CreateButton';
 import type { RootStackParamList } from '@navigation/types';
 import type { Tracker, Entry } from '@features/trackers/types';
 
@@ -258,9 +259,9 @@ export function DailyGoalsScreen() {
           <Typography className="text-base text-ink-2 text-center" style={{ maxWidth: 250 }}>
             {t('today.emptyBody')}
           </Typography>
-          <Button variant="primary" onPress={() => nav.navigate('TrackerTypePicker')} className="mt-s3">
-            <Button.Label>{t('list.create')}</Button.Label>
-          </Button>
+          <View className="mt-s3">
+            <CreateButton label={t('list.create')} onPress={() => nav.navigate('TrackerTypePicker')} />
+          </View>
         </View>
       </View>
     );

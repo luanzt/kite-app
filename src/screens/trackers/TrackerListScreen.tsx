@@ -1,5 +1,5 @@
 import { FlatList, Pressable, ScrollView, View } from 'react-native';
-import { Button, Typography } from 'heroui-native';
+import { Typography } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { useTrackers, useSaveTracker } from '@features/trackers/queries';
 import { QUICK_STARTS, type QuickStart } from '@features/trackers/quickStarts';
 import { TrackerCard } from '@features/trackers/components/TrackerCard';
 import { KiteLogo } from '@features/trackers/components/KiteLogo';
+import { CreateButton } from '@features/trackers/components/CreateButton';
 import { buildTracker } from '@features/trackers/factory';
 import { Icons, iconEmoji } from '@features/trackers/icons';
 
@@ -89,9 +90,7 @@ export function TrackerListScreen() {
           </View>
 
           <View className="px-s5" style={{ paddingTop: 20 }}>
-            <Button variant="primary" onPress={() => nav.navigate('TrackerTypePicker')}>
-              <Button.Label>{t('list.create')}</Button.Label>
-            </Button>
+            <CreateButton label={t('list.create')} onPress={() => nav.navigate('TrackerTypePicker')} block />
           </View>
         </ScrollView>
       </View>
