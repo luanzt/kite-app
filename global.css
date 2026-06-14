@@ -1,3 +1,68 @@
 @import 'tailwindcss';
 @import 'uniwind';
 @import 'heroui-native/styles';
+
+/* ============================================================
+   KITE — Design System tokens (from Claude Design handoff)
+   Direction = Calm (default), Accent = Classic. Light mode only.
+   Exposed as Tailwind utilities via @theme, e.g. bg-bg, text-brand,
+   text-pace-on, rounded-lg-k, p-s5. Kept under distinct names so they
+   compose with HeroUI's own --color-* tokens rather than clashing.
+   ============================================================ */
+@theme {
+  /* ---- surfaces & neutrals (calm) ---- */
+  --color-bg: #f4f5f1;
+  --color-surface: #ffffff;
+  --color-surface-2: #eeefe9;
+  --color-surface-3: #e6e8df;
+  --color-line: #e3e5dc;
+  --color-line-strong: #d2d5c8;
+
+  /* ---- text ---- */
+  --color-ink: #1b1e18;
+  --color-ink-2: #565a4f;
+  --color-ink-3: #8a8e80;
+  --color-on-accent: #ffffff;
+
+  /* ---- brand (calm forest) ---- */
+  --color-brand: #2e7d5b;
+  --color-brand-weak: #e4f1ea;
+  --color-brand-ink: #1d5740;
+
+  /* ---- pace palette (classic) — the soul of the app ---- */
+  --color-pace-on: #1f9d57;
+  --color-pace-on-weak: #e3f3ea;
+  --color-pace-behind: #e0564e;
+  --color-pace-behind-weak: #fbe7e5;
+  --color-pace-ahead: #3d7dd8;
+  --color-pace-ahead-weak: #e6eefb;
+  --color-pace-none: #a3a8a0;
+  --color-pace-none-weak: #eceee8;
+
+  /* ---- radius scale (r=6 baseline from the design) ---- */
+  --radius-xs-k: 6px;
+  --radius-sm-k: 10px;
+  --radius-md-k: 16px;
+  --radius-lg-k: 21px;
+  --radius-xl-k: 27px;
+
+  /* ---- spacing rhythm (4px base) ---- */
+  --spacing-s1: 4px;
+  --spacing-s2: 8px;
+  --spacing-s3: 12px;
+  --spacing-s4: 16px;
+  --spacing-s5: 20px;
+  --spacing-s6: 24px;
+  --spacing-s7: 32px;
+  --spacing-s8: 40px;
+  --spacing-s9: 56px;
+
+  /* ---- type scale ---- */
+  --text-display-k: 34px;
+  --text-title-k: 26px;
+  --text-h2-k: 21px;
+  --text-h3-k: 17px;
+  --text-body-k: 15px;
+  --text-sm-k: 13px;
+  --text-xs-k: 11.5px;
+}

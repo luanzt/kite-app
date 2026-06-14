@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kite — Goal Tracker</title>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<rect width="100" height="100" fill="#2e7d5b"/>
+<g transform="translate(50 46)">
+<path d="M0 -22 L18 0 L0 22 L-18 0 Z" fill="#fff"/>
+<path d="M0 -22 L0 22 M-18 0 L18 0" stroke="#2e7d5b" stroke-width="2"/>
+<path d="M0 22 L-4 34 M0 22 L4 32 M0 22 L0 36" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
+</svg>
+</template>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="screens.css">
+</head>
+<body data-direction="calm" data-accent="classic">
+<div id="stage">
+  <div class="phone">
+    <div class="statusbar">
+      <div class="notch"></div>
+      <span id="sb-time" class="tnum">9:41</span>
+      <span class="sb-right"><span id="sb-signal"></span><span id="sb-wifi"></span><span id="sb-batt"></span></span>
+    </div>
+    <div class="viewport" id="viewport"></div>
+    <div class="tabbar" id="tabbar"></div>
+  </div>
+</div>
+<div id="tweaks-root"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="render-main.js"></script>
+<script src="render-detail.js"></script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="tweaks-app.jsx"></script>
+</body>
+</html>
