@@ -77,6 +77,16 @@ export function listEntries(trackerId: string): Entry[] {
   }));
 }
 
+export function listEntriesForDate(date: string): Entry[] {
+  const res = getDb().executeSync(
+    `SELECT id,tracker_id,date,value,note FROM entries WHERE date = ?`,
+    [date.slice(0, 10)],
+  );
+  return (res.rows ?? []).map((r: Row) => ({
+    id: r.id, trackerId: r.tracker_id, date: r.date, value: r.value, note: r.note ?? null,
+  }));
+}
+
 export function listMilestones(trackerId: string): Milestone[] {
   const res = getDb().executeSync(
     `SELECT id,tracker_id,title,due_date,progress,order_index FROM milestones WHERE tracker_id = ? ORDER BY order_index ASC`,

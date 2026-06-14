@@ -10,7 +10,7 @@ import {
   calculateProject,
 } from '@features/trackers/calculators';
 import { toISODate } from '@utils/date';
-import { Icons, PACE_COLOR, hexA } from '@features/trackers/icons';
+import { Icons, PACE_COLOR, hexA, iconEmoji } from '@features/trackers/icons';
 import { PaceBar } from './PaceBar';
 
 export function progressFor(t: Tracker, entries: Entry[], milestones: Milestone[]): TrackerProgress {
@@ -146,7 +146,7 @@ export function TrackerCard({
           className="items-center justify-center rounded-md-k"
           style={{ width: 44, height: 44, backgroundColor: hexA(tracker.color, 0.14) }}
         >
-          <Typography style={{ fontSize: 22 }}>{tracker.icon}</Typography>
+          <Typography style={{ fontSize: 22 }}>{iconEmoji(tracker.icon)}</Typography>
         </View>
 
         {/* main column */}

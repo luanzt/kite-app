@@ -1,6 +1,27 @@
 {
   "tabs": { "today": "Today", "trackers": "Trackers", "settings": "Settings" },
-  "today": { "title": "Today", "summary": "{{done}}/{{total}} done", "empty": "Nothing due today" },
+  "today": {
+    "title": "Today",
+    "summary": "{{done}}/{{total}} done",
+    "summaryDone": "{{done}} of {{total}} done",
+    "summaryCap": "Keep your streaks alive today",
+    "greetMorning": "Good morning",
+    "greetAfternoon": "Good afternoon",
+    "greetEvening": "Good evening",
+    "dueToday": "Due today",
+    "completed": "Completed",
+    "allClear": "You're all caught up",
+    "allClearBody": "Nothing left to log today. Beautiful work.",
+    "empty": "No goals yet",
+    "emptyBody": "Create your first tracker to start building momentum."
+  },
+  "list": {
+    "title": "Trackers",
+    "empty": "Start something today",
+    "emptyBody": "Pick a quick-start goal, or build your own from scratch.",
+    "quickHint": "POPULAR GOALS",
+    "create": "Create tracker"
+  },
   "quickStart": {
     "heading": "Start with a goal",
     "items": { "water": "Drink water", "exercise": "Exercise", "save": "Save money", "read": "Read books", "sleep": "Sleep well", "meditate": "Meditate", "steps": "Walk", "weight": "Track weight" }
@@ -12,6 +33,11 @@
     "accumulation": "Each log is", "accSum": "Added to total", "accLatest": "Current value",
     "save": "Save", "create": "Create tracker"
   },
-  "detail": { "onTrack": "On track", "behind": "Behind", "ahead": "Ahead", "streak": "Streak", "successRate": "Success rate", "history": "History" },
+  "detail": {
+    "onTrack": "On track", "behind": "Behind", "ahead": "Ahead", "none": "No deadline",
+    "streak": "Streak", "successRate": "Success rate", "history": "History",
+    "days": "days", "success": "success", "target": "Target", "milestones": "Milestones"
+  },
+  "common": { "done": "Done", "today": "Today" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" }
 }

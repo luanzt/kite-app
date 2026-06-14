@@ -76,11 +76,63 @@ export const Icons = {
 export type IconName = keyof typeof Icons;
 
 /**
+ * Map a tracker's `icon` keyword (from quickStarts / buildTracker, e.g. "star",
+ * "drop", "book") to an emoji glyph for the design's tinted emoji tiles.
+ * Falls back to a target emoji for unknown keys. Values that already contain a
+ * non-ASCII glyph are assumed to be emoji already and are passed through.
+ */
+const ICON_EMOJI: Record<string, string> = {
+  star: '⭐',
+  drop: '💧',
+  dumbbell: '🏋️',
+  piggy: '💰',
+  book: '📚',
+  moon: '😴',
+  lotus: '🧘',
+  walk: '🚶',
+  scale: '⚖️',
+  rocket: '🚀',
+};
+
+export function iconEmoji(key: string | null | undefined): string {
+  if (!key) return '🎯';
+  if (key in ICON_EMOJI) return ICON_EMOJI[key];
+  // An ASCII-only keyword we don't recognise → fallback. Anything containing a
+  // non-ASCII glyph is assumed to already be an emoji and is passed through.
+  return /^[\x20-\x7e]+$/.test(key) ? '🎯' : key;
+}
+
+/**
+ * Resolve a tracker's `color` (a palette name like "cyan" / "blue", or a raw
+ * "#rrggbb" hex) to a hex string. Trackers store named colors (quickStarts /
+ * buildTracker), so tile tints and pace dots need this to produce valid hex.
+ */
+const COLOR_HEX: Record<string, string> = {
+  green: '#2e7d5b',
+  blue: '#3d7dd8',
+  red: '#e0564e',
+  orange: '#d98b2b',
+  purple: '#8b5cf6',
+  teal: '#0d9488',
+  pink: '#e0457a',
+  gray: '#6b7280',
+  cyan: '#0d9488',
+  indigo: '#6366f1',
+};
+
+export function colorHex(color: string | null | undefined): string {
+  if (!color) return COLOR_HEX.green;
+  if (color.startsWith('#')) return color;
+  return COLOR_HEX[color] ?? COLOR_HEX.green;
+}
+
+/**
  * Convert a hex color (#rrggbb) to an rgba() string at the given alpha.
  * Used for per-tracker tile tint backgrounds (color is runtime-dynamic).
+ * Accepts palette names too (resolved via colorHex).
  */
 export function hexA(hex: string, alpha: number): string {
-  const h = hex.replace('#', '');
+  const h = colorHex(hex).replace('#', '');
   const n = parseInt(h, 16);
   const r = (n >> 16) & 255;
   const g = (n >> 8) & 255;

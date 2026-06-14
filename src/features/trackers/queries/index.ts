@@ -6,6 +6,7 @@ const keys = {
   trackers: ['trackers'] as const,
   tracker: (id: string) => ['tracker', id] as const,
   entries: (id: string) => ['entries', id] as const,
+  entriesForDate: (date: string) => ['entries', 'date', date] as const,
   milestones: (id: string) => ['milestones', id] as const,
 };
 
@@ -20,6 +21,12 @@ export function useEntries(id: string) {
 }
 export function useMilestones(id: string) {
   return useQuery({ queryKey: keys.milestones(id), queryFn: () => repo.listMilestones(id) });
+}
+export function useEntriesForDate(date: string) {
+  return useQuery({
+    queryKey: keys.entriesForDate(date),
+    queryFn: () => repo.listEntriesForDate(date),
+  });
 }
 
 export function useSaveTracker() {
@@ -44,7 +51,9 @@ export function useLogEntry() {
   return useMutation({
     mutationFn: async (e: Entry) => repo.insertEntry(e),
     onSuccess: (_d, e) => {
+      // Invalidate the whole 'entries' tree: per-tracker AND per-date caches.
       qc.invalidateQueries({ queryKey: keys.entries(e.trackerId) });
+      qc.invalidateQueries({ queryKey: ['entries', 'date'] });
       qc.invalidateQueries({ queryKey: keys.trackers });
     },
   });

@@ -1,6 +1,27 @@
 {
   "tabs": { "today": "Hôm nay", "trackers": "Mục tiêu", "settings": "Cài đặt" },
-  "today": { "title": "Hôm nay", "summary": "Đã xong {{done}}/{{total}}", "empty": "Hôm nay chưa có gì" },
+  "today": {
+    "title": "Hôm nay",
+    "summary": "Đã xong {{done}}/{{total}}",
+    "summaryDone": "Hoàn thành {{done}}/{{total}}",
+    "summaryCap": "Giữ vững chuỗi ngày của bạn",
+    "greetMorning": "Chào buổi sáng",
+    "greetAfternoon": "Chào buổi chiều",
+    "greetEvening": "Chào buổi tối",
+    "dueToday": "Cần làm hôm nay",
+    "completed": "Đã hoàn thành",
+    "allClear": "Bạn đã hoàn tất",
+    "allClearBody": "Không còn gì để ghi hôm nay. Tuyệt vời!",
+    "empty": "Chưa có mục tiêu",
+    "emptyBody": "Tạo mục tiêu đầu tiên để bắt đầu tạo đà."
+  },
+  "list": {
+    "title": "Mục tiêu",
+    "empty": "Bắt đầu hôm nay",
+    "emptyBody": "Chọn một mục tiêu gợi ý, hoặc tự tạo từ đầu.",
+    "quickHint": "MỤC TIÊU PHỔ BIẾN",
+    "create": "Tạo mục tiêu"
+  },
   "quickStart": {
     "heading": "Bắt đầu với một mục tiêu",
     "items": { "water": "Uống nước", "exercise": "Tập thể dục", "save": "Tiết kiệm tiền", "read": "Đọc sách", "sleep": "Ngủ đủ giấc", "meditate": "Thiền", "steps": "Đi bộ", "weight": "Theo dõi cân nặng" }
@@ -12,6 +33,11 @@
     "accumulation": "Mỗi lần ghi là", "accSum": "Cộng vào tổng", "accLatest": "Giá trị hiện tại",
     "save": "Lưu", "create": "Tạo mục tiêu"
   },
-  "detail": { "onTrack": "Đúng nhịp", "behind": "Đang trễ", "ahead": "Vượt tiến độ", "streak": "Chuỗi ngày", "successRate": "Tỉ lệ thành công", "history": "Lịch sử" },
+  "detail": {
+    "onTrack": "Đúng nhịp", "behind": "Đang trễ", "ahead": "Vượt tiến độ", "none": "Không có hạn",
+    "streak": "Chuỗi ngày", "successRate": "Tỉ lệ thành công", "history": "Lịch sử",
+    "days": "ngày", "success": "tỷ lệ", "target": "Mục tiêu", "milestones": "Cột mốc"
+  },
+  "common": { "done": "Xong", "today": "Hôm nay" },
   "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" }
 }
