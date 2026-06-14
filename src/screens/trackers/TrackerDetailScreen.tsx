@@ -258,9 +258,7 @@ export function TrackerDetailScreen({ route }: RootStackProps<'TrackerDetail'>) 
         <Typography className="text-lg font-extrabold text-ink" style={{ marginBottom: 12 }}>
           {t('detail.history')}
         </Typography>
-        <View className="rounded-lg-k border border-line bg-surface p-s4">
-          <HistoryChart entries={entries} />
-        </View>
+        <HistoryChart entries={entries} tracker={tracker} paceStatus={p.paceStatus} />
       </View>
     );
 
