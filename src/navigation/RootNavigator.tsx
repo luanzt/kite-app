@@ -11,8 +11,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export function RootNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="MainTabs" component={MainNavigator} options={{ headerShown: false }} />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="MainTabs" component={MainNavigator} />
         <Stack.Screen name="TrackerDetail" component={TrackerDetailScreen} />
         <Stack.Screen name="TrackerForm" component={TrackerFormScreen} />
         <Stack.Screen name="TrackerTypePicker" component={TrackerTypePickerScreen} />

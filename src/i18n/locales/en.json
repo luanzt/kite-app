@@ -27,17 +27,48 @@
     "items": { "water": "Drink water", "exercise": "Exercise", "save": "Save money", "read": "Read books", "sleep": "Sleep well", "meditate": "Meditate", "steps": "Walk", "weight": "Track weight" }
   },
   "types": { "habit": "Habit", "target": "Target", "average": "Average", "project": "Project" },
+  "type": {
+    "title": "What do you want to track?",
+    "pick": "Choose a type to get started",
+    "habit": "Habit",
+    "habitDesc": "A yes/no action you repeat. Builds a streak and a success rate.",
+    "target": "Target",
+    "targetDesc": "Reach a number by a deadline. Shows the pace line so you always know if you're on track.",
+    "average": "Average",
+    "averageDesc": "Hold an average per day, week or month — like 8 glasses of water a day.",
+    "project": "Project",
+    "projectDesc": "Milestones with progress sliders and an overall pace toward done.",
+    "tagHabit": "Streaks · success rate",
+    "tagTarget": "Pace line · deadline",
+    "tagAverage": "Rolling average",
+    "tagProject": "Milestones · pace"
+  },
   "form": {
     "name": "Name", "unit": "Unit", "targetValue": "Target value",
     "startValue": "Start value", "deadline": "Deadline", "period": "Period",
     "accumulation": "Each log is", "accSum": "Added to total", "accLatest": "Current value",
-    "save": "Save", "create": "Create tracker"
+    "save": "Save", "create": "Create tracker",
+    "newTitle": "New tracker", "editTitle": "Edit tracker",
+    "namePh": "e.g. Read 24 books",
+    "icon": "Icon", "color": "Color", "target": "Target value", "unitPh": "books, kg, $…",
+    "mode": "Mode", "sum": "Accumulate", "latest": "Latest value",
+    "direction": "Direction", "higher": "Higher is better", "lower": "Lower is better",
+    "cancel": "Cancel", "delete": "Delete tracker"
   },
   "detail": {
-    "onTrack": "On track", "behind": "Behind", "ahead": "Ahead", "none": "No deadline",
+    "onTrack": "On track", "behind": "Behind", "ahead": "Ahead of pace", "none": "No deadline",
     "streak": "Streak", "successRate": "Success rate", "history": "History",
-    "days": "days", "success": "success", "target": "Target", "milestones": "Milestones"
+    "days": "days", "success": "success", "target": "Target", "milestones": "Milestones",
+    "shouldBe": "Pace target", "expected": "Expected by now", "remaining": "Left",
+    "best": "Best", "logToday": "Log today"
   },
-  "common": { "done": "Done", "today": "Today" },
+  "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save" },
+  "set": {
+    "appearance": "Appearance", "theme": "Dark mode", "themeSoon": "Coming soon", "language": "Language",
+    "data": "Data", "export": "Export data", "exportSub": "Save a JSON backup",
+    "clear": "Clear all data", "clearSub": "Delete every tracker & entry",
+    "about": "About", "version": "Version", "offline": "Works fully offline"
+  },
+  "toast": { "saved": "Tracker saved", "logged": "Logged", "deleted": "Tracker deleted" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" }
 }

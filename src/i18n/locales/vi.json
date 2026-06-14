@@ -27,17 +27,48 @@
     "items": { "water": "Uống nước", "exercise": "Tập thể dục", "save": "Tiết kiệm tiền", "read": "Đọc sách", "sleep": "Ngủ đủ giấc", "meditate": "Thiền", "steps": "Đi bộ", "weight": "Theo dõi cân nặng" }
   },
   "types": { "habit": "Thói quen", "target": "Mục tiêu", "average": "Trung bình", "project": "Dự án" },
+  "type": {
+    "title": "Bạn muốn theo dõi điều gì?",
+    "pick": "Chọn một loại để bắt đầu",
+    "habit": "Thói quen",
+    "habitDesc": "Hành động có/không lặp lại. Tạo chuỗi ngày và tỷ lệ thành công.",
+    "target": "Chỉ tiêu",
+    "targetDesc": "Đạt một con số trước hạn. Hiển thị đường tiến độ để bạn luôn biết mình có đúng tiến độ không.",
+    "average": "Trung bình",
+    "averageDesc": "Giữ mức trung bình theo ngày, tuần hay tháng — như 8 ly nước mỗi ngày.",
+    "project": "Dự án",
+    "projectDesc": "Các cột mốc với thanh tiến độ và nhịp độ tổng thể đến khi hoàn thành.",
+    "tagHabit": "Chuỗi ngày · tỷ lệ",
+    "tagTarget": "Đường tiến độ · hạn chót",
+    "tagAverage": "Trung bình động",
+    "tagProject": "Cột mốc · tiến độ"
+  },
   "form": {
     "name": "Tên", "unit": "Đơn vị", "targetValue": "Giá trị mục tiêu",
     "startValue": "Giá trị bắt đầu", "deadline": "Hạn chót", "period": "Chu kỳ",
     "accumulation": "Mỗi lần ghi là", "accSum": "Cộng vào tổng", "accLatest": "Giá trị hiện tại",
-    "save": "Lưu", "create": "Tạo mục tiêu"
+    "save": "Lưu", "create": "Tạo mục tiêu",
+    "newTitle": "Mục tiêu mới", "editTitle": "Sửa mục tiêu",
+    "namePh": "vd. Đọc 24 cuốn sách",
+    "icon": "Biểu tượng", "color": "Màu sắc", "target": "Giá trị mục tiêu", "unitPh": "cuốn, kg, $…",
+    "mode": "Chế độ", "sum": "Tích lũy", "latest": "Giá trị mới nhất",
+    "direction": "Hướng", "higher": "Càng cao càng tốt", "lower": "Càng thấp càng tốt",
+    "cancel": "Hủy", "delete": "Xóa mục tiêu"
   },
   "detail": {
-    "onTrack": "Đúng nhịp", "behind": "Đang trễ", "ahead": "Vượt tiến độ", "none": "Không có hạn",
+    "onTrack": "Đúng tiến độ", "behind": "Đang chậm", "ahead": "Vượt tiến độ", "none": "Không có hạn",
     "streak": "Chuỗi ngày", "successRate": "Tỉ lệ thành công", "history": "Lịch sử",
-    "days": "ngày", "success": "tỷ lệ", "target": "Mục tiêu", "milestones": "Cột mốc"
+    "days": "ngày", "success": "tỷ lệ", "target": "Mục tiêu", "milestones": "Cột mốc",
+    "shouldBe": "Mốc tiến độ", "expected": "Dự kiến tới giờ", "remaining": "Còn lại",
+    "best": "Kỷ lục", "logToday": "Ghi hôm nay"
   },
-  "common": { "done": "Xong", "today": "Hôm nay" },
+  "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu" },
+  "set": {
+    "appearance": "Giao diện", "theme": "Chế độ tối", "themeSoon": "Sắp có", "language": "Ngôn ngữ",
+    "data": "Dữ liệu", "export": "Xuất dữ liệu", "exportSub": "Lưu bản sao JSON",
+    "clear": "Xóa toàn bộ", "clearSub": "Xóa mọi mục tiêu & dữ liệu",
+    "about": "Giới thiệu", "version": "Phiên bản", "offline": "Hoạt động hoàn toàn ngoại tuyến"
+  },
+  "toast": { "saved": "Đã lưu mục tiêu", "logged": "Đã ghi", "deleted": "Đã xóa mục tiêu" },
   "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" }
 }
