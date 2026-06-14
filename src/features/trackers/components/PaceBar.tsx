@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { Text } from 'heroui-native';
+import { Typography } from 'heroui-native';
 import type { PaceStatus } from '@features/trackers/types';
 
 const COLOR: Record<PaceStatus, string> = {
@@ -24,7 +24,7 @@ export function PaceBar({
       <View style={{ height: 10, borderRadius: 5, backgroundColor: '#e5e7eb', overflow: 'hidden' }}>
         <View style={{ width: `${pct * 100}%`, height: '100%', backgroundColor: COLOR[paceStatus] }} />
       </View>
-      {label ? <Text className="text-xs mt-1">{label}</Text> : null}
+      {label ? <Typography className="text-xs mt-1">{label}</Typography> : null}
     </View>
   );
 }

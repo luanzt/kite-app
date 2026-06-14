@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { Text, Slider } from 'heroui-native';
+import { Typography, Slider } from 'heroui-native';
 import type { Milestone } from '@features/trackers/types';
 
 export function MilestoneList({
@@ -13,7 +13,7 @@ export function MilestoneList({
     <View>
       {milestones.map(m => (
         <View key={m.id} style={{ marginVertical: 8 }}>
-          <Text>{m.title}</Text>
+          <Typography>{m.title}</Typography>
           <Slider
             value={m.progress}
             minValue={0}

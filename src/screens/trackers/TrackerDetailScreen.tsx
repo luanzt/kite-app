@@ -1,5 +1,5 @@
 import { ScrollView } from 'react-native';
-import { Text } from 'heroui-native';
+import { Typography } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import type { RootStackProps } from '@navigation/types';
 import { useTracker, useEntries, useMilestones } from '@features/trackers/queries';
@@ -22,11 +22,11 @@ export function TrackerDetailScreen({ route }: RootStackProps<'TrackerDetail'>) 
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
-      <Text className="text-xl font-bold">{tracker.name}</Text>
+      <Typography className="text-xl font-bold">{tracker.name}</Typography>
       <PaceBar percent={p.percent} paceStatus={p.paceStatus} label={paceLabel} />
-      {p.streak !== undefined ? <Text>{t('detail.streak')}: {p.streak}</Text> : null}
-      {p.successRate !== undefined ? <Text>{t('detail.successRate')}: {Math.round(p.successRate * 100)}%</Text> : null}
-      <Text className="font-semibold">{t('detail.history')}</Text>
+      {p.streak !== undefined ? <Typography>{t('detail.streak')}: {p.streak}</Typography> : null}
+      {p.successRate !== undefined ? <Typography>{t('detail.successRate')}: {Math.round(p.successRate * 100)}%</Typography> : null}
+      <Typography className="font-semibold">{t('detail.history')}</Typography>
       <HistoryChart entries={entries} />
     </ScrollView>
   );

@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { Card, Text } from 'heroui-native';
+import { Card, Typography } from 'heroui-native';
 import type { Tracker, Entry, Milestone, TrackerProgress } from '@features/trackers/types';
 import {
   calculateHabit,
@@ -43,8 +43,8 @@ export function TrackerCard({
       <Card>
         <Card.Body>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text>{tracker.name}</Text>
-            <Text className="text-xs">{Math.round(p.percent * 100)}%</Text>
+            <Typography>{tracker.name}</Typography>
+            <Typography className="text-xs">{Math.round(p.percent * 100)}%</Typography>
           </View>
           <PaceBar percent={p.percent} paceStatus={p.paceStatus} />
         </Card.Body>

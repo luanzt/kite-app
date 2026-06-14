@@ -1,5 +1,5 @@
 import { FlatList, View } from 'react-native';
-import { Text, Button } from 'heroui-native';
+import { Typography, Button } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import { useTrackers, useLogEntry } from '@features/trackers/queries';
 import { toISODate, weekdayOf } from '@utils/date';
@@ -21,16 +21,16 @@ export function DailyGoalsScreen() {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <Text className="text-xl font-bold">{t('today.title')}</Text>
+      <Typography className="text-xl font-bold">{t('today.title')}</Typography>
       {due.length === 0 ? (
-        <Text className="mt-4">{t('today.empty')}</Text>
+        <Typography className="mt-4">{t('today.empty')}</Typography>
       ) : (
         <FlatList
           data={due}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 }}>
-              <Text>{item.name}</Text>
+              <Typography>{item.name}</Typography>
               <Button variant="secondary"
                 onPress={() => log.mutate({ id: `${item.id}-${today}`, trackerId: item.id, date: today, value: 1, note: null })}>
                 <Button.Label>✓</Button.Label>

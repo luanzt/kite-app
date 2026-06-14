@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { Button, Text } from 'heroui-native';
+import { Button, Typography } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@store/useAppStore';
 import { changeLanguage } from '@i18n/index';
@@ -12,13 +12,13 @@ export function SettingsScreen() {
 
   return (
     <View style={{ padding: 16, gap: 16 }}>
-      <Text className="text-xl font-bold">{t('tabs.settings')}</Text>
+      <Typography className="text-xl font-bold">{t('tabs.settings')}</Typography>
       <View style={{ gap: 8 }}>
-        <Text>{t('settings.theme')}: {themeMode}</Text>
+        <Typography>{t('settings.theme')}: {themeMode}</Typography>
         <Button variant="secondary" onPress={toggleTheme}><Button.Label>{t('settings.theme')}</Button.Label></Button>
       </View>
       <View style={{ gap: 8 }}>
-        <Text>{t('settings.language')}: {language ?? 'auto'}</Text>
+        <Typography>{t('settings.language')}: {language ?? 'auto'}</Typography>
         <Button variant={language === 'en' ? 'primary' : 'secondary'} onPress={() => changeLanguage('en')}>
           <Button.Label>{t('settings.english')}</Button.Label>
         </Button>

@@ -1,5 +1,5 @@
 import { FlatList, View } from 'react-native';
-import { Button, Text } from 'heroui-native';
+import { Button, Typography } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -35,7 +35,7 @@ export function TrackerListScreen() {
   if (trackers.length === 0) {
     return (
       <View style={{ padding: 16, gap: 12 }}>
-        <Text className="text-lg font-semibold">{t('quickStart.heading')}</Text>
+        <Typography className="text-lg font-semibold">{t('quickStart.heading')}</Typography>
         {QUICK_STARTS.map(qs => (
           <Button key={qs.key} variant="secondary" onPress={() => addQuickStart(qs)}>
             <Button.Label>{t(`quickStart.items.${qs.key}`)}</Button.Label>
