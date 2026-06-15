@@ -53,6 +53,11 @@
     "icon": "Biểu tượng", "color": "Màu sắc", "target": "Giá trị mục tiêu", "unitPh": "cuốn, kg, $…",
     "mode": "Chế độ", "sum": "Tích lũy", "latest": "Giá trị mới nhất",
     "direction": "Hướng", "higher": "Càng cao càng tốt", "lower": "Càng thấp càng tốt",
+    "goal": "Số lần", "timePeriod": "Chu kỳ", "startDate": "Ngày bắt đầu", "due": "Lặp lại",
+    "routine": "Thời điểm", "routineAny": "Bất kỳ", "routineMorning": "Sáng",
+    "routineAfternoon": "Chiều", "routineEvening": "Tối",
+    "reminders": "Nhắc nhở", "alert": "Giờ nhắc",
+    "wd": { "mon": "T2", "tue": "T3", "wed": "T4", "thu": "T5", "fri": "T6", "sat": "T7", "sun": "CN" },
     "cancel": "Hủy", "delete": "Xóa mục tiêu"
   },
   "detail": {

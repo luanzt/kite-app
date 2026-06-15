@@ -3,6 +3,8 @@ export type HabitDirection = 'good' | 'bad';
 export type Period = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type Accumulation = 'sum' | 'latest';
 export type PaceStatus = 'on_track' | 'behind' | 'ahead' | 'none';
+/** Time-of-day grouping for a habit (Strides-style "Routine"). */
+export type Routine = 'any' | 'morning' | 'afternoon' | 'evening';
 
 export type Tracker = {
   id: string;
@@ -19,6 +21,8 @@ export type Tracker = {
   deadline: string | null; // ISO date
   period: Period | null;
   repeatDays: number[] | null; // 0=Sun..6=Sat
+  routine: Routine | null; // time-of-day grouping (habit)
+  reminderTime: string | null; // "HH:MM" 24h, null = reminders off
   createdAt: string; // ISO datetime
   archived: boolean;
 };

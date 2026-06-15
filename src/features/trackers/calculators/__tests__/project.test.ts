@@ -5,7 +5,7 @@ const proj: Tracker = {
   id: 'p1', name: 'Launch app', type: 'project', icon: 'rocket', color: 'purple',
   unit: null, direction: null, targetValue: null, startValue: null,
   accumulation: null, startDate: '2026-01-01', deadline: '2026-12-31',
-  period: null, repeatDays: null, createdAt: '2026-01-01T00:00:00Z', archived: false,
+  period: null, repeatDays: null, routine: null, reminderTime: null, createdAt: '2026-01-01T00:00:00Z', archived: false,
 };
 const m = (id: string, progress: number): Milestone =>
   ({ id, trackerId: 'p1', title: id, dueDate: null, progress, orderIndex: 0 });

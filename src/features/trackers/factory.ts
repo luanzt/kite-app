@@ -1,4 +1,4 @@
-import type { Tracker, TrackerType, Accumulation, Period } from '@features/trackers/types';
+import type { Tracker, TrackerType, Accumulation, Period, Routine } from '@features/trackers/types';
 import { toISODate } from '@utils/date';
 
 export function uuid(): string {
@@ -19,6 +19,10 @@ export type BuildTrackerInput = {
   targetValue?: number | null;
   accumulation?: Accumulation | null;
   period?: Period | null;
+  startDate?: string;
+  repeatDays?: number[] | null;
+  routine?: Routine | null;
+  reminderTime?: string | null;
 };
 
 /**
@@ -28,6 +32,7 @@ export type BuildTrackerInput = {
  */
 export function buildTracker(input: BuildTrackerInput): Tracker {
   const { type } = input;
+  const isHabit = type === 'habit';
   return {
     id: uuid(),
     name: input.name,
@@ -35,15 +40,17 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     icon: input.icon ?? 'star',
     color: input.color ?? 'blue',
     unit: input.unit ?? null,
-    direction: type === 'habit' ? 'good' : null,
+    direction: isHabit ? 'good' : null,
     targetValue: input.targetValue ?? null,
     startValue: type === 'target' ? 0 : null,
     accumulation:
       type === 'target' ? input.accumulation ?? 'sum' : null,
-    startDate: toISODate(new Date()),
+    startDate: input.startDate ?? toISODate(new Date()),
     deadline: null,
-    period: input.period ?? (type === 'average' || type === 'habit' ? 'daily' : null),
-    repeatDays: type === 'habit' ? [0, 1, 2, 3, 4, 5, 6] : null,
+    period: input.period ?? (type === 'average' || isHabit ? 'daily' : null),
+    repeatDays: input.repeatDays ?? (isHabit ? [0, 1, 2, 3, 4, 5, 6] : null),
+    routine: isHabit ? input.routine ?? 'any' : null,
+    reminderTime: isHabit ? input.reminderTime ?? null : null,
     createdAt: new Date().toISOString(),
     archived: false,
   };

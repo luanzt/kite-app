@@ -35,6 +35,8 @@ export function migrate(database: DB): void {
       deadline TEXT,
       period TEXT,
       repeat_days TEXT,
+      routine TEXT,
+      reminder_time TEXT,
       created_at TEXT NOT NULL,
       archived INTEGER NOT NULL DEFAULT 0
     );

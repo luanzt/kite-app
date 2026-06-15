@@ -53,6 +53,11 @@
     "icon": "Icon", "color": "Color", "target": "Target value", "unitPh": "books, kg, $…",
     "mode": "Mode", "sum": "Accumulate", "latest": "Latest value",
     "direction": "Direction", "higher": "Higher is better", "lower": "Lower is better",
+    "goal": "Goal", "timePeriod": "Time Period", "startDate": "Start Date", "due": "Due",
+    "routine": "Routine", "routineAny": "Any", "routineMorning": "Morning",
+    "routineAfternoon": "Afternoon", "routineEvening": "Evening",
+    "reminders": "Reminders", "alert": "Alert",
+    "wd": { "mon": "M", "tue": "T", "wed": "W", "thu": "Th", "fri": "F", "sat": "S", "sun": "Su" },
     "cancel": "Cancel", "delete": "Delete tracker"
   },
   "detail": {

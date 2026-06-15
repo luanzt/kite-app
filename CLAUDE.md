@@ -92,17 +92,45 @@ These rules are non-negotiable for all UI code in this project:
    ```
 
 2. **Style with Tailwind `className`, NEVER inline `style={{…}}`.** This project
-   uses Uniwind (Tailwind v4 for RN). Use `className` for all styling — spacing,
-   layout (flex/gap), colors, sizing, borders. For ScrollView/FlatList container
-   styling use the Uniwind-mapped prop `contentContainerClassName`. Reserve inline
-   `style` only for the rare truly-dynamic value Tailwind cannot express (e.g. a
-   computed percentage width bound to runtime state); even then prefer a Tailwind
-   class when a fixed scale fits.
+   uses Uniwind (Tailwind v4 for RN). Use `className` for ALL styling — spacing,
+   layout (flex/gap), colors, **sizing (width/height)**, borders. For
+   ScrollView/FlatList container styling use the Uniwind-mapped prop
+   `contentContainerClassName`. A fixed value that isn't on the spacing scale is
+   NOT an excuse for inline `style` — use a Tailwind **arbitrary value**:
+   `h-[52px]`, `w-[38px]`, `p-[3px]`, `ml-[20px]`. A value that depends on a
+   boolean/enum is NOT dynamic — branch the class instead: `${on ? 'ml-[20px]' :
+   'ml-0'}`.
    ```tsx
    // Good
    <View className="flex-1 p-4 gap-4">
+   <Pressable className="h-[52px] w-[52px] rounded-full" />
    // Avoid
    <View style={{ flex: 1, padding: 16, gap: 16 }}>
+   <Pressable style={{ height: 52, width: 52 }} />   // use h-[52px] w-[52px]
+   ```
+   **The `style` prop is allowed ONLY when truly unavoidable:**
+   - A value computed at runtime that no class can express — e.g. safe-area
+     insets (`paddingBottom: insets.bottom + 12`), or a percentage width bound to
+     live state.
+   - A third-party/native host component that doesn't accept `className` (e.g.
+     `GestureHandlerRootView style={{ flex: 1 }}` in `App.tsx`). Note most HeroUI
+     Native and Uniwind-patched components DO accept `className` — try it first.
+
+   When you must use `style`, **define it via `StyleSheet.create()`, NEVER as an
+   inline object literal `style={{…}}`** — inline objects allocate a new object
+   every render and trip `react-native/no-inline-styles`. Put a module-level
+   `const styles = StyleSheet.create({ … })` and reference `style={styles.x}`.
+   The only inline-object exception is a value that is genuinely per-render
+   dynamic (it changes with state/props each render, e.g. `insets.bottom + 12`);
+   in that case leave a one-line comment saying why.
+   ```tsx
+   // Good — unavoidable static style via StyleSheet
+   const styles = StyleSheet.create({ root: { flex: 1 } });
+   <GestureHandlerRootView style={styles.root}>
+   // Good — genuinely dynamic, inline with a why-comment
+   <View style={{ paddingBottom: insets.bottom + 12 }}>  // safe-area, runtime
+   // Avoid — static inline object literal
+   <GestureHandlerRootView style={{ flex: 1 }}>
    ```
 
 3. **Use icons ONLY from `lucide-react-native`.** Do not install or use any other

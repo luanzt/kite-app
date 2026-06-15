@@ -5,7 +5,7 @@ const base: Tracker = {
   id: 't1', name: 'Save', type: 'target', icon: 'piggy', color: 'green',
   unit: '$', direction: null, targetValue: 2000, startValue: 0,
   accumulation: 'sum', startDate: '2026-01-01', deadline: '2026-12-31',
-  period: null, repeatDays: null, createdAt: '2026-01-01T00:00:00Z', archived: false,
+  period: null, repeatDays: null, routine: null, reminderTime: null, createdAt: '2026-01-01T00:00:00Z', archived: false,
 };
 const entry = (date: string, value: number): Entry =>
   ({ id: date, trackerId: 't1', date, value, note: null });
