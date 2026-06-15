@@ -17,7 +17,23 @@ export function calculateHabit(
   entries: Entry[],
   todayISO: string,
 ): TrackerProgress {
-  const doneDates = new Set(entries.filter(e => e.value > 0).map(e => e.date.slice(0, 10)));
+  // A day's Goal: how many times the habit must be logged that day to count as
+  // done. Only the per-day cadence maps cleanly to a daily threshold; for
+  // weekly/monthly cadences a single log marks the day done (threshold 1).
+  const perDayGoal =
+    tracker.period == null || tracker.period === 'daily'
+      ? Math.max(1, tracker.targetValue ?? 1)
+      : 1;
+
+  // Sum each date's logged value, then a date is "done" when it meets the goal.
+  const dayTotals = new Map<string, number>();
+  for (const e of entries) {
+    const day = e.date.slice(0, 10);
+    dayTotals.set(day, (dayTotals.get(day) ?? 0) + e.value);
+  }
+  const doneDates = new Set(
+    [...dayTotals].filter(([, total]) => total >= perDayGoal).map(([day]) => day),
+  );
 
   let streak = 0;
   let cursor = todayISO;

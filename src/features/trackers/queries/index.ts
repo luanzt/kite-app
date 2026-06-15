@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as repo from '@features/trackers/db/repository';
+import { cancelTrackerReminders, scheduleTrackerReminders } from '@features/trackers/notifications';
 import type { Tracker, Entry, Milestone } from '@features/trackers/types';
 
 const keys = {
@@ -32,7 +33,10 @@ export function useEntriesForDate(date: string) {
 export function useSaveTracker() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (t: Tracker) => repo.insertTracker(t),
+    mutationFn: async (t: Tracker) => {
+      repo.insertTracker(t);
+      await scheduleTrackerReminders(t);
+    },
     onSuccess: (_d, t) => {
       qc.invalidateQueries({ queryKey: keys.trackers });
       qc.invalidateQueries({ queryKey: keys.tracker(t.id) });
@@ -42,7 +46,10 @@ export function useSaveTracker() {
 export function useDeleteTracker() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => repo.deleteTracker(id),
+    mutationFn: async (id: string) => {
+      repo.deleteTracker(id);
+      await cancelTrackerReminders(id);
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.trackers }),
   });
 }

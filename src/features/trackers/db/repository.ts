@@ -10,6 +10,7 @@ export function trackerToRow(t: Tracker): Row {
     start_value: t.startValue, accumulation: t.accumulation, start_date: t.startDate,
     deadline: t.deadline, period: t.period,
     repeat_days: t.repeatDays ? JSON.stringify(t.repeatDays) : null,
+    routine: t.routine, reminder_time: t.reminderTime,
     created_at: t.createdAt, archived: t.archived ? 1 : 0,
   };
 }
@@ -22,11 +23,12 @@ export function rowToTracker(r: Row): Tracker {
     accumulation: r.accumulation ?? null, startDate: r.start_date,
     deadline: r.deadline ?? null, period: r.period ?? null,
     repeatDays: r.repeat_days ? JSON.parse(r.repeat_days) : null,
+    routine: r.routine ?? null, reminderTime: r.reminder_time ?? null,
     createdAt: r.created_at, archived: r.archived === 1,
   };
 }
 
-const COLS = 'id,name,type,icon,color,unit,direction,target_value,start_value,accumulation,start_date,deadline,period,repeat_days,created_at,archived';
+const COLS = 'id,name,type,icon,color,unit,direction,target_value,start_value,accumulation,start_date,deadline,period,repeat_days,routine,reminder_time,created_at,archived';
 const PLACEHOLDERS = COLS.split(',').map(() => '?').join(',');
 
 // NOTE: This op-sqlite version exposes the SYNCHRONOUS query method as

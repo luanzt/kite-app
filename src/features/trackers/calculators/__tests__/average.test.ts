@@ -5,7 +5,7 @@ const avg: Tracker = {
   id: 'a1', name: 'Water', type: 'average', icon: 'drop', color: 'cyan',
   unit: 'glasses', direction: null, targetValue: 8, startValue: null,
   accumulation: null, startDate: '2026-06-01', deadline: null,
-  period: 'daily', repeatDays: null, createdAt: '2026-06-01T00:00:00Z', archived: false,
+  period: 'daily', repeatDays: null, routine: null, reminderTime: null, createdAt: '2026-06-01T00:00:00Z', archived: false,
 };
 const e = (date: string, value: number): Entry => ({ id: date, trackerId: 'a1', date, value, note: null });
 

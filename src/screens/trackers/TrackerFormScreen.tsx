@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { Typography } from 'heroui-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,8 +7,17 @@ import type { RootStackProps } from '@navigation/types';
 import { useTracker, useSaveTracker, useDeleteTracker } from '@features/trackers/queries';
 import { buildTracker } from '@features/trackers/factory';
 import { Icons, TYPE_ICON, TYPE_COLOR, hexA } from '@features/trackers/icons';
+import {
+  FieldLabel,
+  FormInput,
+  Segmented,
+  SelectField,
+  Toggle,
+  WeekdayPicker,
+} from '@components/ui';
 import { useAppStore } from '@store/useAppStore';
-import type { Accumulation, HabitDirection, Period, Tracker } from '@features/trackers/types';
+import { toISODate } from '@utils/date';
+import type { Accumulation, HabitDirection, Period, Routine, Tracker } from '@features/trackers/types';
 
 /** Per-type emoji set (mirrors ICONSET in data.js). */
 const ICONSET: Record<string, string[]> = {
@@ -23,61 +32,6 @@ const COLORS = ['#2e7d5b', '#3d7dd8', '#e0564e', '#d98b2b', '#8b5cf6', '#0d9488'
 
 function defaultIcon(type: string): string {
   return ({ habit: '🧘', target: '🎯', average: '💧', project: '🚀' } as Record<string, string>)[type] ?? '🎯';
-}
-
-/** A styled text field matching the design's `.input` (52px, bordered). */
-function FormInput(props: {
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  keyboardType?: 'default' | 'decimal-pad';
-}) {
-  return (
-    <TextInput
-      value={props.value}
-      onChangeText={props.onChangeText}
-      placeholder={props.placeholder}
-      placeholderTextColor="#8a8e80"
-      keyboardType={props.keyboardType ?? 'default'}
-      className="rounded-md-k border border-line bg-surface px-s4 text-base text-ink"
-      style={{ height: 52 }}
-    />
-  );
-}
-
-/** Segmented control matching `.seg`. */
-function Segmented<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <View className="flex-row gap-s1 rounded-md-k bg-surface-2" style={{ padding: 4 }}>
-      {options.map(opt => {
-        const on = opt.value === value;
-        return (
-          <Pressable
-            key={opt.value}
-            onPress={() => onChange(opt.value)}
-            className={`flex-1 items-center justify-center rounded-sm-k ${on ? 'bg-surface shadow-sm' : ''}`}
-            style={{ height: 40 }}
-          >
-            <Typography className={`text-sm font-bold ${on ? 'text-ink' : 'text-ink-2'}`}>
-              {opt.label}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function FieldLabel({ children }: { children: string }) {
-  return <Typography className="text-sm font-bold text-ink">{children}</Typography>;
 }
 
 export function TrackerFormScreen({ route, navigation }: RootStackProps<'TrackerForm'>) {
@@ -108,6 +62,12 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
   const [dir, setDir] = useState<HabitDirection>(editing?.direction ?? 'good');
   const [period, setPeriod] = useState<Period>(editing?.period ?? 'daily');
   const [deadline, setDeadline] = useState(editing?.deadline ?? '');
+  // Habit-specific fields (Strides-style schedule + reminders).
+  const [startDate, setStartDate] = useState(editing?.startDate ?? toISODate(new Date()));
+  const [repeatDays, setRepeatDays] = useState<number[]>(editing?.repeatDays ?? [0, 1, 2, 3, 4, 5, 6]);
+  const [routine, setRoutine] = useState<Routine>(editing?.routine ?? 'any');
+  const [reminderOn, setReminderOn] = useState(!!editing?.reminderTime);
+  const [reminderTime, setReminderTime] = useState(editing?.reminderTime ?? '18:00');
 
   // `useTracker` resolves after first render (async query), so the useState
   // initialisers can't see the editing tracker. Hydrate fields once it arrives.
@@ -124,11 +84,17 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
     setDir(editing.direction ?? 'good');
     setPeriod(editing.period ?? 'daily');
     setDeadline(editing.deadline ?? '');
+    setStartDate(editing.startDate);
+    setRepeatDays(editing.repeatDays ?? [0, 1, 2, 3, 4, 5, 6]);
+    setRoutine(editing.routine ?? 'any');
+    setReminderOn(!!editing.reminderTime);
+    setReminderTime(editing.reminderTime ?? '18:00');
   }, [editing]);
 
   const icons = ICONSET[type] ?? ICONSET.target;
 
   const onSave = () => {
+    const isHabit = type === 'habit';
     const base = buildTracker({
       name: name.trim() || t(`type.${type}`),
       type,
@@ -137,15 +103,19 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
       unit: unit.trim() || null,
       targetValue: target ? Number(target) : null,
       accumulation: type === 'target' ? accum : undefined,
-      period: type === 'average' || type === 'habit' ? period : undefined,
+      period: type === 'average' || isHabit ? period : undefined,
+      startDate: isHabit ? startDate.trim() || undefined : undefined,
+      repeatDays: isHabit ? repeatDays : undefined,
+      routine: isHabit ? routine : undefined,
+      reminderTime: isHabit && reminderOn ? reminderTime.trim() || null : null,
     });
     const tracker: Tracker = {
       ...base,
       // Preserve identity & origin date when editing.
       id: editing?.id ?? base.id,
       createdAt: editing?.createdAt ?? base.createdAt,
-      startDate: editing?.startDate ?? base.startDate,
-      direction: type === 'target' || type === 'habit' ? dir : base.direction,
+      startDate: isHabit ? base.startDate : editing?.startDate ?? base.startDate,
+      direction: type === 'target' || isHabit ? dir : base.direction,
       deadline: deadline.trim() ? deadline.trim() : null,
     };
     save.mutate(tracker, { onSuccess: () => navigation.navigate('MainTabs') });
@@ -161,12 +131,11 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
       {/* appbar */}
       <View
         className="flex-row items-center gap-s3 bg-surface px-s4 pb-s3"
-        style={{ paddingTop: insets.top + 8 }}
+        style={{ paddingTop: insets.top + 8 }} // safe-area top, runtime
       >
         <Pressable
           onPress={() => navigation.goBack()}
-          className="items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80"
-          style={{ width: 40, height: 40 }}
+          className="h-10 w-10 items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80"
         >
           <Icons.Back size={22} color="#1b1e18" />
         </Pressable>
@@ -175,19 +144,20 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
         </Typography>
         <View
           className="flex-row items-center gap-s1 rounded-full px-3 py-1"
-          style={{ backgroundColor: hexA(TYPE_COLOR[type], 0.14) }}
+          style={{ backgroundColor: hexA(TYPE_COLOR[type], 0.14) }} // per-type tint, runtime
         >
           {(() => {
             const TypeIcon = TYPE_ICON[type];
             return <TypeIcon size={15} color={TYPE_COLOR[type]} strokeWidth={2.2} />;
           })()}
+          {/* per-type color is runtime-dynamic → inline style */}
           <Typography className="text-sm font-bold" style={{ color: TYPE_COLOR[type] }}>
             {t(`type.${type}`)}
           </Typography>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+      <ScrollView contentContainerClassName="p-s5 gap-s5">
         {/* name */}
         <View className="gap-s2">
           <FieldLabel>{t('form.name')}</FieldLabel>
@@ -204,12 +174,11 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
                 <Pressable
                   key={ic}
                   onPress={() => setIcon(ic)}
-                  className={`items-center justify-center rounded-md-k border ${
+                  className={`h-[46px] w-[46px] items-center justify-center rounded-md-k border ${
                     sel ? 'border-brand bg-brand-weak' : 'border-line bg-surface'
                   }`}
-                  style={{ width: 46, height: 46 }}
                 >
-                  <Typography style={{ fontSize: 22 }}>{ic}</Typography>
+                  <Typography className="text-[22px]">{ic}</Typography>
                 </Pressable>
               );
             })}
@@ -219,21 +188,15 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
         {/* color picker */}
         <View className="gap-s2">
           <FieldLabel>{t('form.color')}</FieldLabel>
-          <View className="flex-row flex-wrap" style={{ gap: 10 }}>
+          <View className="flex-row flex-wrap gap-[10px]">
             {COLORS.map(c => {
               const sel = c === color;
               return (
                 <Pressable
                   key={c}
                   onPress={() => setColor(c)}
-                  className="rounded-full"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    backgroundColor: c,
-                    borderWidth: 2,
-                    borderColor: sel ? '#1b1e18' : 'transparent',
-                  }}
+                  className={`h-9 w-9 rounded-full border-2 ${sel ? 'border-ink' : 'border-transparent'}`}
+                  style={{ backgroundColor: c }} // palette swatch color, runtime
                 />
               );
             })}
@@ -244,11 +207,11 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
         {type === 'target' ? (
           <>
             <View className="flex-row gap-s3">
-              <View className="gap-s2" style={{ flex: 2 }}>
+              <View className="flex-[2] gap-s2">
                 <FieldLabel>{t('form.target')}</FieldLabel>
                 <FormInput value={target} onChangeText={setTarget} placeholder="2000" keyboardType="decimal-pad" />
               </View>
-              <View className="gap-s2" style={{ flex: 1 }}>
+              <View className="flex-1 gap-s2">
                 <FieldLabel>{t('form.unit')}</FieldLabel>
                 <FormInput value={unit} onChangeText={setUnit} placeholder={t('form.unitPh')} />
               </View>
@@ -286,11 +249,11 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
         {type === 'average' ? (
           <>
             <View className="flex-row gap-s3">
-              <View className="gap-s2" style={{ flex: 2 }}>
+              <View className="flex-[2] gap-s2">
                 <FieldLabel>{`${t('form.target')} / ${t('form.period').toLowerCase()}`}</FieldLabel>
                 <FormInput value={target} onChangeText={setTarget} placeholder="8" keyboardType="decimal-pad" />
               </View>
-              <View className="gap-s2" style={{ flex: 1 }}>
+              <View className="flex-1 gap-s2">
                 <FieldLabel>{t('form.unit')}</FieldLabel>
                 <FormInput value={unit} onChangeText={setUnit} placeholder={t('form.unitPh')} />
               </View>
@@ -312,19 +275,81 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
 
         {/* habit-specific */}
         {type === 'habit' ? (
-          <View className="gap-s2">
-            <FieldLabel>{t('form.period')}</FieldLabel>
-            <Segmented<Period>
-              value={period}
-              onChange={setPeriod}
-              options={[
-                { value: 'daily', label: periodLabels.daily },
-                { value: 'weekly', label: periodLabels.weekly },
-                { value: 'monthly', label: periodLabels.monthly },
-              ]}
-            />
-            <Typography className="text-xs text-ink-3">{t('today.summaryCap')}</Typography>
-          </View>
+          <>
+            {/* goal + time period */}
+            <View className="flex-row gap-s3">
+              <View className="flex-1 gap-s2">
+                <FieldLabel>{t('form.goal')}</FieldLabel>
+                <FormInput value={target} onChangeText={setTarget} placeholder="1" keyboardType="decimal-pad" />
+              </View>
+              <View className="flex-[2] gap-s2">
+                <FieldLabel>{t('form.timePeriod')}</FieldLabel>
+                <SelectField<Period>
+                  label={t('form.timePeriod')}
+                  value={period}
+                  onChange={setPeriod}
+                  options={[
+                    { value: 'daily', label: periodLabels.daily },
+                    { value: 'weekly', label: periodLabels.weekly },
+                    { value: 'monthly', label: periodLabels.monthly },
+                    { value: 'yearly', label: periodLabels.yearly },
+                  ]}
+                />
+              </View>
+            </View>
+
+            {/* start date */}
+            <View className="gap-s2">
+              <FieldLabel>{t('form.startDate')}</FieldLabel>
+              <FormInput value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" />
+            </View>
+
+            {/* due / repeat days */}
+            <View className="gap-s2">
+              <FieldLabel>{t('form.due')}</FieldLabel>
+              <WeekdayPicker
+                value={repeatDays}
+                onChange={setRepeatDays}
+                labels={{
+                  mon: t('form.wd.mon'), tue: t('form.wd.tue'), wed: t('form.wd.wed'),
+                  thu: t('form.wd.thu'), fri: t('form.wd.fri'), sat: t('form.wd.sat'), sun: t('form.wd.sun'),
+                }}
+              />
+            </View>
+
+            {/* routine */}
+            <View className="gap-s2">
+              <FieldLabel>{t('form.routine')}</FieldLabel>
+              <SelectField<Routine>
+                label={t('form.routine')}
+                value={routine}
+                onChange={setRoutine}
+                options={[
+                  { value: 'any', label: t('form.routineAny') },
+                  { value: 'morning', label: t('form.routineMorning') },
+                  { value: 'afternoon', label: t('form.routineAfternoon') },
+                  { value: 'evening', label: t('form.routineEvening') },
+                ]}
+              />
+            </View>
+
+            {/* reminders */}
+            <View className="gap-s2">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-s2">
+                  <Icons.Bell size={18} color={TYPE_COLOR.habit} />
+                  <FieldLabel>{t('form.reminders')}</FieldLabel>
+                </View>
+                <Toggle value={reminderOn} onChange={setReminderOn} />
+              </View>
+              {reminderOn ? (
+                <View className="gap-s2">
+                  <FieldLabel>{t('form.alert')}</FieldLabel>
+                  <FormInput value={reminderTime} onChangeText={setReminderTime} placeholder="18:00" />
+                </View>
+              ) : null}
+            </View>
+          </>
         ) : null}
 
         {/* project-specific */}
@@ -340,29 +365,26 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
       {/* sticky footer */}
       <View
         className="flex-row gap-s3 border-t border-line bg-surface px-s5 pt-s4"
-        style={{ paddingBottom: insets.bottom + 16 }}
+        style={{ paddingBottom: insets.bottom + 16 }} // safe-area bottom, runtime
       >
         {editing ? (
           <Pressable
             onPress={onDelete}
-            className="items-center justify-center rounded-md-k bg-pace-behind-weak active:opacity-80"
-            style={{ height: 52, width: 52 }}
+            className="h-[52px] w-[52px] items-center justify-center rounded-md-k bg-pace-behind-weak active:opacity-80"
           >
             <Icons.Trash size={20} color="#e0564e" />
           </Pressable>
         ) : null}
         <Pressable
           onPress={() => navigation.goBack()}
-          className="flex-1 items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80"
-          style={{ height: 52 }}
+          className="h-[52px] flex-1 items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80"
         >
           <Typography className="text-base font-bold text-ink">{t('form.cancel')}</Typography>
         </Pressable>
         <Pressable
           onPress={onSave}
           disabled={save.isPending}
-          className="flex-1 items-center justify-center rounded-md-k bg-brand active:opacity-90"
-          style={{ height: 52, opacity: save.isPending ? 0.6 : 1 }}
+          className={`h-[52px] flex-1 items-center justify-center rounded-md-k bg-brand active:opacity-90 ${save.isPending ? 'opacity-60' : 'opacity-100'}`}
         >
           <Typography className="text-base font-bold text-on-accent">{t('form.save')}</Typography>
         </Pressable>

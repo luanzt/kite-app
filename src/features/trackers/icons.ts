@@ -17,6 +17,9 @@ import {
   Target,
   ChartColumn,
   Puzzle,
+  Bell,
+  Calendar,
+  Clock,
   type LucideIcon,
 } from 'lucide-react-native';
 import type { PaceStatus, TrackerType } from '@features/trackers/types';
@@ -76,6 +79,9 @@ export const Icons = {
   Moon,
   Download,
   Bolt: Zap,
+  Bell,
+  Calendar,
+  Clock,
 } as const;
 
 export type IconName = keyof typeof Icons;
