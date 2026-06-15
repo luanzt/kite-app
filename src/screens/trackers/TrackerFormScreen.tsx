@@ -8,10 +8,12 @@ import { useTracker, useSaveTracker, useDeleteTracker } from '@features/trackers
 import { buildTracker } from '@features/trackers/factory';
 import { Icons, TYPE_ICON, TYPE_COLOR, hexA } from '@features/trackers/icons';
 import {
+  DateField,
   FieldLabel,
   FormInput,
   Segmented,
   SelectField,
+  TimeField,
   Toggle,
   WeekdayPicker,
 } from '@components/ui';
@@ -240,7 +242,7 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
             </View>
             <View className="gap-s2">
               <FieldLabel>{t('form.deadline')}</FieldLabel>
-              <FormInput value={deadline} onChangeText={setDeadline} placeholder="YYYY-MM-DD" />
+              <DateField value={deadline} onChange={setDeadline} />
             </View>
           </>
         ) : null}
@@ -301,7 +303,7 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
             {/* start date */}
             <View className="gap-s2">
               <FieldLabel>{t('form.startDate')}</FieldLabel>
-              <FormInput value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" />
+              <DateField value={startDate} onChange={setStartDate} />
             </View>
 
             {/* due / repeat days */}
@@ -345,7 +347,7 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
               {reminderOn ? (
                 <View className="gap-s2">
                   <FieldLabel>{t('form.alert')}</FieldLabel>
-                  <FormInput value={reminderTime} onChangeText={setReminderTime} placeholder="18:00" />
+                  <TimeField value={reminderTime} onChange={setReminderTime} placeholder="18:00" />
                 </View>
               ) : null}
             </View>
@@ -356,7 +358,7 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
         {type === 'project' ? (
           <View className="gap-s2">
             <FieldLabel>{t('form.deadline')}</FieldLabel>
-            <FormInput value={deadline} onChangeText={setDeadline} placeholder="YYYY-MM-DD" />
+            <DateField value={deadline} onChange={setDeadline} />
             <Typography className="text-xs text-ink-3">{t('type.projectDesc')}</Typography>
           </View>
         ) : null}
