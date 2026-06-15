@@ -1,0 +1,19 @@
+diff --git a/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js b/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js
+index f9ea035..9cd67a4 100644
+--- a/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js
++++ b/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js
+@@ -72,6 +72,14 @@ export function BottomSheetContentContainer({
+       // Only snap to initial index when transitioning from closed to open
+       isPanActivated.set(false);
+       snapToIndex(initialIndex);
++      // PATCH: on the very first open after mount, gorhom's layout isn't ready
++      // yet, so this synchronous snapToIndex is silently ignored (animatedIndex
++      // stays at -1) and the sheet only opens on the ~3rd tap. Re-issue the snap
++      // on the next frames, once the content/handle layout has been measured.
++      requestAnimationFrame(() => {
++        snapToIndex(initialIndex);
++        requestAnimationFrame(() => snapToIndex(initialIndex));
++      });
+     } else if (!isOpen && wasOpen) {
+       // Close when transitioning from open to closed
+       close();
