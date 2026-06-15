@@ -1,0 +1,120 @@
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { Typography, BottomSheet, Button, useBottomSheet } from 'heroui-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Clock } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import DateTimePicker, {
+  useDefaultStyles,
+  type DateType,
+} from 'react-native-ui-datepicker';
+
+/**
+ * A field that opens a bottom sheet with a scrollable time wheel to pick an
+ * `HH:mm` time. The trigger looks like the design's `.input` (showing the
+ * chosen time); tapping it slides up the wheel, and "Done" confirms.
+ *
+ * `value`/`onChange` are plain `HH:mm` strings (what SQLite stores for
+ * `reminderTime`), so this is a drop-in replacement for the old free-text
+ * `18:00` input.
+ *
+ * Unlike `DateField` (where picking a day closes the sheet), a time wheel
+ * scrolls continuously, so we keep a draft in local state and commit it on
+ * "Done" rather than on every scroll tick.
+ */
+export function TimeField({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (hhmm: string) => void;
+  placeholder?: string;
+}) {
+  const insets = useSafeAreaInsets();
+  const display = value ? value : placeholder ?? 'HH:mm';
+  return (
+    <BottomSheet>
+      <BottomSheet.Trigger asChild>
+        <Pressable className="h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80">
+          <Typography
+            className={`text-base ${value ? 'text-ink' : 'text-ink-3'}`}
+          >
+            {display}
+          </Typography>
+          <Clock size={20} color="#8a8e80" />
+        </Pressable>
+      </BottomSheet.Trigger>
+      <BottomSheet.Portal>
+        {/* Explicit scrim — see SelectField for why the token override didn't work. */}
+        <BottomSheet.Overlay className="bg-black/60" />
+        <BottomSheet.Content>
+          <View className="px-s5" style={{ paddingBottom: insets.bottom }}>
+            <TimeSheet value={value} onChange={onChange} />
+          </View>
+        </BottomSheet.Content>
+      </BottomSheet.Portal>
+    </BottomSheet>
+  );
+}
+
+/** `HH:mm` from the hours/minutes of a Date. */
+function toHHMM(d: Date): string {
+  const h = `${d.getHours()}`.padStart(2, '0');
+  const m = `${d.getMinutes()}`.padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+/** A `Date` carrying the given `HH:mm` (today's date; only time is used). */
+function fromHHMM(hhmm: string): Date {
+  const [h, m] = hhmm.slice(0, 5).split(':').map(Number);
+  const d = new Date();
+  d.setHours(Number.isFinite(h) ? h : 18, Number.isFinite(m) ? m : 0, 0, 0);
+  return d;
+}
+
+/**
+ * The time wheel, rendered inside `BottomSheet.Content` so it can call
+ * `useBottomSheet()` to close the sheet. The wheel writes to a local draft;
+ * "Done" commits it to the parent and closes.
+ */
+function TimeSheet({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (hhmm: string) => void;
+}) {
+  const { t } = useTranslation();
+  const { onOpenChange } = useBottomSheet();
+  const defaultStyles = useDefaultStyles();
+  const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'));
+
+  const confirm = () => {
+    onChange(toHHMM(draft));
+    onOpenChange(false);
+  };
+
+  return (
+    <View className="gap-s3">
+      <DateTimePicker
+        mode="single"
+        date={draft}
+        onChange={({ date }: { date: DateType }) => {
+          if (date instanceof Date) setDraft(date);
+        }}
+        timePicker
+        initialView="time"
+        hideHeader
+        styles={{
+          ...defaultStyles,
+          selected: { backgroundColor: '#2e7d5b' },
+          selected_label: { color: '#ffffff' },
+        }}
+      />
+      <Button variant="primary" feedbackVariant="none" onPress={confirm}>
+        <Button.Label>{t('common.done')}</Button.Label>
+      </Button>
+    </View>
+  );
+}
