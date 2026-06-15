@@ -53,12 +53,13 @@
     "icon": "Icon", "color": "Color", "target": "Target value", "unitPh": "books, kg, $…",
     "mode": "Mode", "sum": "Accumulate", "latest": "Latest value",
     "direction": "Direction", "higher": "Higher is better", "lower": "Lower is better",
-    "goal": "Goal", "timePeriod": "Time Period", "startDate": "Start Date", "due": "Due",
+    "goal": "Goal", "goalPh": "5 times", "timePeriod": "Time Period", "startDate": "Start Date", "due": "Due",
     "routine": "Routine", "routineAny": "Any", "routineMorning": "Morning",
     "routineAfternoon": "Afternoon", "routineEvening": "Evening",
     "reminders": "Reminders", "alert": "Alert",
     "wd": { "mon": "M", "tue": "T", "wed": "W", "thu": "Th", "fri": "F", "sat": "S", "sun": "Su" },
-    "cancel": "Cancel", "delete": "Delete tracker"
+    "cancel": "Cancel", "delete": "Delete tracker",
+    "errTitle": "Missing info", "errGoal": "Please enter a goal greater than 0", "errDue": "Please select at least one day"
   },
   "detail": {
     "onTrack": "On track", "behind": "Behind", "ahead": "Ahead of pace", "none": "No deadline",
@@ -67,7 +68,7 @@
     "shouldBe": "Pace target", "expected": "Expected by now", "remaining": "Left",
     "best": "Best", "logToday": "Log today"
   },
-  "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save" },
+  "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close" },
   "set": {
     "appearance": "Appearance", "theme": "Dark mode", "themeSoon": "Coming soon", "language": "Language",
     "data": "Data", "export": "Export data", "exportSub": "Save a JSON backup",

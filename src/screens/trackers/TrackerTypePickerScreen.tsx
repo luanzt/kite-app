@@ -31,8 +31,7 @@ export function TrackerTypePickerScreen({ navigation }: RootStackProps<'TrackerT
       >
         <Pressable
           onPress={() => navigation.goBack()}
-          className="items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80"
-          style={{ width: 40, height: 40 }}
+          className="h-10 w-10 items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80"
         >
           <Icons.Back size={22} color="#1b1e18" />
         </Pressable>
@@ -41,9 +40,9 @@ export function TrackerTypePickerScreen({ navigation }: RootStackProps<'TrackerT
 
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
         {/* heading */}
-        <View className="px-s5" style={{ paddingTop: 24, paddingBottom: 12 }}>
+        <View className="px-s5 pt-s6 pb-s3">
           <Typography className="text-2xl font-extrabold text-ink">{t('type.title')}</Typography>
-          <Typography className="text-base text-ink-2" style={{ marginTop: 6 }}>
+          <Typography className="mt-[6px] text-base text-ink-2">
             {t('type.pick')}
           </Typography>
         </View>
@@ -60,21 +59,20 @@ export function TrackerTypePickerScreen({ navigation }: RootStackProps<'TrackerT
               className="flex-row items-start gap-s4 rounded-xl-k border border-line bg-surface p-s5 shadow-sm active:opacity-90"
             >
               <View
-                className="items-center justify-center rounded-lg-k"
-                style={{ width: 56, height: 56, backgroundColor: hexA(color, 0.14) }}
+                className="h-[56px] w-[56px] items-center justify-center rounded-lg-k"
+                style={{ backgroundColor: hexA(color, 0.14) }} // per-type tint, runtime
               >
                 <TypeIcon size={28} color={color} strokeWidth={2.2} />
               </View>
               <View className="flex-1">
                 <Typography className="text-lg font-extrabold text-ink">{t(`type.${ty.k}`)}</Typography>
                 <Typography
-                  className="text-sm text-ink-2"
-                  style={{ marginTop: 4, lineHeight: 20 }}
+                  className="mt-s1 text-sm leading-[20px] text-ink-2"
                   numberOfLines={2}
                 >
                   {t(`type.${ty.k}Desc`)}
                 </Typography>
-                <View className="flex-row items-center gap-s1" style={{ marginTop: 8 }}>
+                <View className="mt-s2 flex-row items-center gap-s1">
                   <Icons.Bolt size={14} color={color} />
                   <Typography className="text-xs font-bold" style={{ color }}>
                     {t(`type.${ty.tag}`)}

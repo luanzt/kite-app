@@ -53,12 +53,13 @@
     "icon": "Biểu tượng", "color": "Màu sắc", "target": "Giá trị mục tiêu", "unitPh": "cuốn, kg, $…",
     "mode": "Chế độ", "sum": "Tích lũy", "latest": "Giá trị mới nhất",
     "direction": "Hướng", "higher": "Càng cao càng tốt", "lower": "Càng thấp càng tốt",
-    "goal": "Số lần", "timePeriod": "Chu kỳ", "startDate": "Ngày bắt đầu", "due": "Lặp lại",
+    "goal": "Số lần", "goalPh": "5 lần", "timePeriod": "Chu kỳ", "startDate": "Ngày bắt đầu", "due": "Lặp lại",
     "routine": "Thời điểm", "routineAny": "Bất kỳ", "routineMorning": "Sáng",
     "routineAfternoon": "Chiều", "routineEvening": "Tối",
     "reminders": "Nhắc nhở", "alert": "Giờ nhắc",
     "wd": { "mon": "T2", "tue": "T3", "wed": "T4", "thu": "T5", "fri": "T6", "sat": "T7", "sun": "CN" },
-    "cancel": "Hủy", "delete": "Xóa mục tiêu"
+    "cancel": "Hủy", "delete": "Xóa mục tiêu",
+    "errTitle": "Thiếu thông tin", "errGoal": "Vui lòng nhập số lần lớn hơn 0", "errDue": "Vui lòng chọn ít nhất một ngày"
   },
   "detail": {
     "onTrack": "Đúng tiến độ", "behind": "Đang chậm", "ahead": "Vượt tiến độ", "none": "Không có hạn",
@@ -67,7 +68,7 @@
     "shouldBe": "Mốc tiến độ", "expected": "Dự kiến tới giờ", "remaining": "Còn lại",
     "best": "Kỷ lục", "logToday": "Ghi hôm nay"
   },
-  "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu" },
+  "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu", "ok": "OK", "close": "Đóng" },
   "set": {
     "appearance": "Giao diện", "theme": "Chế độ tối", "themeSoon": "Sắp có", "language": "Ngôn ngữ",
     "data": "Dữ liệu", "export": "Xuất dữ liệu", "exportSub": "Lưu bản sao JSON",

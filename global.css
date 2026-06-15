@@ -2,6 +2,14 @@
 @import 'uniwind';
 @import 'heroui-native/styles';
 
+/* Register heroui-native as a scanned source so Tailwind generates every class
+   its components reference (e.g. bg-overlay, rounded-3xl, shadow-overlay on
+   Dialog/Toast). Without this, overlay components render unstyled. This is the
+   official setup — heroui-native's example global.css ships
+   `@source '../src'` for dev with the note: "In your app, use
+   @source './node_modules/heroui-native/lib'". */
+@source './node_modules/heroui-native/lib';
+
 /* ============================================================
    KITE — Design System tokens (from Claude Design handoff)
    Direction = Calm (default), Accent = Classic. Light mode only.
