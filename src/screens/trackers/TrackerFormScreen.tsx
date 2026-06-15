@@ -15,6 +15,7 @@ import {
   SelectField,
   TimeField,
   Toggle,
+  useAlert,
   WeekdayPicker,
 } from '@components/ui';
 import { useAppStore } from '@store/useAppStore';
@@ -39,6 +40,7 @@ function defaultIcon(type: string): string {
 export function TrackerFormScreen({ route, navigation }: RootStackProps<'TrackerForm'>) {
   const { type, trackerId } = route.params;
   const { t } = useTranslation();
+  const alert = useAlert();
   const insets = useSafeAreaInsets();
   const save = useSaveTracker();
   const del = useDeleteTracker();
@@ -97,6 +99,19 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
 
   const onSave = () => {
     const isHabit = type === 'habit';
+
+    // Habit-only required fields: a goal count > 0 and at least one Due day.
+    if (isHabit) {
+      const goalNum = Number(target);
+      const problems: string[] = [];
+      if (!target.trim() || !Number.isFinite(goalNum) || goalNum <= 0) problems.push(t('form.errGoal'));
+      if (repeatDays.length === 0) problems.push(t('form.errDue'));
+      if (problems.length) {
+        alert({ title: t('form.errTitle'), message: problems.join('\n'), variant: 'danger' });
+        return;
+      }
+    }
+
     const base = buildTracker({
       name: name.trim() || t(`type.${type}`),
       type,
@@ -282,7 +297,7 @@ export function TrackerFormScreen({ route, navigation }: RootStackProps<'Tracker
             <View className="flex-row gap-s3">
               <View className="flex-1 gap-s2">
                 <FieldLabel>{t('form.goal')}</FieldLabel>
-                <FormInput value={target} onChangeText={setTarget} placeholder="1" keyboardType="decimal-pad" />
+                <FormInput value={target} onChangeText={setTarget} placeholder={t('form.goalPh')} keyboardType="decimal-pad" />
               </View>
               <View className="flex-[2] gap-s2">
                 <FieldLabel>{t('form.timePeriod')}</FieldLabel>

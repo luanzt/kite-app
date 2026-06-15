@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { HeroUINativeProvider } from 'heroui-native';
+import { AlertProvider } from '@components/ui';
 import { heroUIConfig } from '@theme/index';
 import { queryClient } from '@api/queryClient';
 import { RootNavigator } from '@navigation/RootNavigator';
@@ -30,7 +31,9 @@ export default function App() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <HeroUINativeProvider config={heroUIConfig}>
-            <RootNavigator />
+            <AlertProvider>
+              <RootNavigator />
+            </AlertProvider>
           </HeroUINativeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

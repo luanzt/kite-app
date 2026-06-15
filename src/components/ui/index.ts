@@ -1,3 +1,4 @@
+export { AlertProvider, useAlert } from './AlertDialog';
 export { DateField } from './DateField';
 export { FieldLabel } from './FieldLabel';
 export { FormInput } from './FormInput';

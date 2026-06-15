@@ -18,7 +18,8 @@
     "lint": "eslint .",
     "tsc": "tsc --noEmit",
     "test": "jest",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "pf": "git add -A && git commit --am --no-edit && git push origin HEAD -f"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.14",
