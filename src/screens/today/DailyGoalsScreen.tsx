@@ -300,12 +300,9 @@ export function DailyGoalsScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         {allDone ? (
-          <View className="items-center px-s6 gap-s3" style={{ paddingTop: 48 }}>
-            <View
-              className="items-center justify-center rounded-xl-k bg-brand-weak"
-              style={{ width: 96, height: 96, marginBottom: 8 }}
-            >
-              <Typography style={{ fontSize: 46 }}>🎉</Typography>
+          <View className="items-center px-s6 gap-s3 pt-12">
+            <View className="mb-s2 h-24 w-24 items-center justify-center rounded-xl-k bg-brand-weak">
+              <Typography className="text-[46px] leading-[60px]">🎉</Typography>
             </View>
             <Typography className="text-xl font-extrabold text-ink text-center">
               {t('today.allClear')}
