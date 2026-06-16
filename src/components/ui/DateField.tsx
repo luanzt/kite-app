@@ -1,10 +1,10 @@
-import { Pressable, View } from 'react-native';
-import { Typography, BottomSheet, useBottomSheet } from 'heroui-native';
-import { Calendar } from 'lucide-react-native';
+import { Pressable, View } from 'react-native'
+import { Typography, BottomSheet, useBottomSheet } from 'heroui-native'
+import { Calendar } from 'lucide-react-native'
 import DateTimePicker, {
   useDefaultStyles,
-  type DateType,
-} from 'react-native-ui-datepicker';
+  type DateType
+} from 'react-native-ui-datepicker'
 
 /**
  * A field that opens a bottom sheet with a calendar to pick a single date.
@@ -23,32 +23,32 @@ export function DateField({
   onChange,
   placeholder,
   minDate,
-  maxDate,
+  maxDate
 }: {
-  value: string;
-  onChange: (iso: string) => void;
-  placeholder?: string;
-  minDate?: Date;
-  maxDate?: Date;
+  value: string
+  onChange: (iso: string) => void
+  placeholder?: string
+  minDate?: Date
+  maxDate?: Date
 }) {
-  const display = value ? value : placeholder ?? 'YYYY-MM-DD';
+  const display = value ? value : placeholder ?? 'YYYY-MM-DD'
   return (
     <BottomSheet>
       <BottomSheet.Trigger asChild>
-        <Pressable className="h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80">
+        <Pressable className='h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80'>
           <Typography
             className={`text-base ${value ? 'text-ink' : 'text-ink-3'}`}
           >
             {display}
           </Typography>
-          <Calendar size={20} color="#8a8e80" />
+          <Calendar size={20} color='#8a8e80' />
         </Pressable>
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
         {/* Explicit scrim — see SelectField for why the token override didn't work. */}
-        <BottomSheet.Overlay className="bg-black/60" />
+        <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
-          <View className="px-s5">
+          <View className='px-s5'>
             <CalendarSheet
               value={value}
               onChange={onChange}
@@ -59,23 +59,23 @@ export function DateField({
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
-  );
+  )
 }
 
 /** Local-time `YYYY-MM-DD` (avoids the UTC off-by-one that `toISOString` causes). */
 function toLocalISODate(d: Date): string {
-  const y = d.getFullYear();
-  const m = `${d.getMonth() + 1}`.padStart(2, '0');
-  const day = `${d.getDate()}`.padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  const y = d.getFullYear()
+  const m = `${d.getMonth() + 1}`.padStart(2, '0')
+  const day = `${d.getDate()}`.padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 /** Parse a `YYYY-MM-DD` string into a local-midnight Date (or undefined). */
 function fromISODate(iso: string): Date | undefined {
-  if (!iso) return undefined;
-  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
-  if (!y || !m || !d) return undefined;
-  return new Date(y, m - 1, d);
+  if (!iso) return undefined
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
+  if (!y || !m || !d) return undefined
+  return new Date(y, m - 1, d)
 }
 
 /**
@@ -86,27 +86,27 @@ function CalendarSheet({
   value,
   onChange,
   minDate,
-  maxDate,
+  maxDate
 }: {
-  value: string;
-  onChange: (iso: string) => void;
-  minDate?: Date;
-  maxDate?: Date;
+  value: string
+  onChange: (iso: string) => void
+  minDate?: Date
+  maxDate?: Date
 }) {
-  const { onOpenChange } = useBottomSheet();
-  const defaultStyles = useDefaultStyles();
-  const selected = fromISODate(value);
+  const { onOpenChange } = useBottomSheet()
+  const defaultStyles = useDefaultStyles()
+  const selected = fromISODate(value)
 
   const select = (date: DateType) => {
     if (date instanceof Date) {
-      onChange(toLocalISODate(date));
+      onChange(toLocalISODate(date))
     }
-    onOpenChange(false);
-  };
+    onOpenChange(false)
+  }
 
   return (
     <DateTimePicker
-      mode="single"
+      mode='single'
       date={selected}
       onChange={({ date }) => select(date)}
       minDate={minDate}
@@ -115,8 +115,8 @@ function CalendarSheet({
         ...defaultStyles,
         today: { borderColor: '#2e7d5b', borderWidth: 1 },
         selected: { backgroundColor: '#2e7d5b' },
-        selected_label: { color: '#ffffff' },
+        selected_label: { color: '#ffffff' }
       }}
     />
-  );
+  )
 }

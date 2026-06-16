@@ -4,7 +4,7 @@
 // op-sqlite (e.g. schema.ts) be imported without crashing, so the pure
 // row-mapping functions in repository.ts can be unit-tested. The DB-backed
 // CRUD functions are covered by the device smoke test in Phase 7.
-const stubResult = { rowsAffected: 0, rows: [] };
+const stubResult = { rowsAffected: 0, rows: [] }
 
 function makeDb() {
   const db = {
@@ -12,12 +12,12 @@ function makeDb() {
     executeSync: () => stubResult,
     close: () => {},
     delete: () => {},
-    transaction: async () => {},
-  };
-  return db;
+    transaction: async () => {}
+  }
+  return db
 }
 
-const open = () => makeDb();
-const openSync = () => makeDb();
+const open = () => makeDb()
+const openSync = () => makeDb()
 
-module.exports = { open, openSync };
+module.exports = { open, openSync }

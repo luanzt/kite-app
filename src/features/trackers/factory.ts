@@ -1,29 +1,35 @@
-import type { Tracker, TrackerType, Accumulation, Period, Routine } from '@features/trackers/types';
-import { toISODate } from '@utils/date';
+import type {
+  Tracker,
+  TrackerType,
+  Accumulation,
+  Period,
+  Routine
+} from '@features/trackers/types'
+import { toISODate } from '@utils/date'
 
 export function uuid(): string {
   return (
-    'xxxxxxxxyxxxx'.replace(/[xy]/g, c => {
-      const r = (Date.now() + Math.floor(Math.random() * 1e9)) % 16;
-      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+    'xxxxxxxxyxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Date.now() + Math.floor(Math.random() * 1e9)) % 16
+      return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
     }) + Date.now().toString(16)
-  );
+  )
 }
 
 export type BuildTrackerInput = {
-  name: string;
-  type: TrackerType;
-  icon?: string;
-  color?: string;
-  unit?: string | null;
-  targetValue?: number | null;
-  accumulation?: Accumulation | null;
-  period?: Period | null;
-  startDate?: string;
-  repeatDays?: number[] | null;
-  routine?: Routine | null;
-  reminderTime?: string | null;
-};
+  name: string
+  type: TrackerType
+  icon?: string
+  color?: string
+  unit?: string | null
+  targetValue?: number | null
+  accumulation?: Accumulation | null
+  period?: Period | null
+  startDate?: string
+  repeatDays?: number[] | null
+  routine?: Routine | null
+  reminderTime?: string | null
+}
 
 /**
  * Build a fully-formed Tracker from minimal input, applying type-appropriate
@@ -31,8 +37,8 @@ export type BuildTrackerInput = {
  * and sum accumulation unless overridden). Always assigns a fresh collision-resistant id.
  */
 export function buildTracker(input: BuildTrackerInput): Tracker {
-  const { type } = input;
-  const isHabit = type === 'habit';
+  const { type } = input
+  const isHabit = type === 'habit'
   return {
     id: uuid(),
     name: input.name,
@@ -43,8 +49,7 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     direction: isHabit ? 'good' : null,
     targetValue: input.targetValue ?? null,
     startValue: type === 'target' ? 0 : null,
-    accumulation:
-      type === 'target' ? input.accumulation ?? 'sum' : null,
+    accumulation: type === 'target' ? input.accumulation ?? 'sum' : null,
     startDate: input.startDate ?? toISODate(new Date()),
     deadline: null,
     period: input.period ?? (type === 'average' || isHabit ? 'daily' : null),
@@ -52,6 +57,6 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     routine: isHabit ? input.routine ?? 'any' : null,
     reminderTime: isHabit ? input.reminderTime ?? null : null,
     createdAt: new Date().toISOString(),
-    archived: false,
-  };
+    archived: false
+  }
 }

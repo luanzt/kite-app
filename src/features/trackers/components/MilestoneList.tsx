@@ -1,25 +1,25 @@
-import { View } from 'react-native';
-import { Typography, Slider } from 'heroui-native';
-import type { Milestone } from '@features/trackers/types';
+import { View } from 'react-native'
+import { Typography, Slider } from 'heroui-native'
+import type { Milestone } from '@features/trackers/types'
 
 export function MilestoneList({
   milestones,
-  onChange,
+  onChange
 }: {
-  milestones: Milestone[];
-  onChange: (m: Milestone, value: number) => void;
+  milestones: Milestone[]
+  onChange: (m: Milestone, value: number) => void
 }) {
   return (
     <View>
-      {milestones.map(m => (
-        <View key={m.id} className="my-2">
+      {milestones.map((m) => (
+        <View key={m.id} className='my-2'>
           <Typography>{m.title}</Typography>
           <Slider
             value={m.progress}
             minValue={0}
             maxValue={1}
             step={0.05}
-            onChange={v => onChange(m, Array.isArray(v) ? (v[0] ?? 0) : v)}
+            onChange={(v) => onChange(m, Array.isArray(v) ? v[0] ?? 0 : v)}
           >
             <Slider.Track>
               <Slider.Fill />
@@ -29,5 +29,5 @@ export function MilestoneList({
         </View>
       ))}
     </View>
-  );
+  )
 }

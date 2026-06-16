@@ -1,7 +1,7 @@
-import { Pressable, View } from 'react-native';
-import { Typography, BottomSheet, useBottomSheet } from 'heroui-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, Check } from 'lucide-react-native';
+import { Pressable, View } from 'react-native'
+import { Typography, BottomSheet, useBottomSheet } from 'heroui-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { ChevronDown, Check } from 'lucide-react-native'
 
 /**
  * A field that opens a bottom sheet to pick one value from a list. The trigger
@@ -23,31 +23,31 @@ export function SelectField<T extends string>({
   label,
   value,
   options,
-  onChange,
+  onChange
 }: {
-  label: string;
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (v: T) => void;
+  label: string
+  value: T
+  options: { value: T; label: string }[]
+  onChange: (v: T) => void
 }) {
-  const insets = useSafeAreaInsets();
-  const current = options.find(o => o.value === value)?.label ?? '';
+  const insets = useSafeAreaInsets()
+  const current = options.find((o) => o.value === value)?.label ?? ''
   return (
     <BottomSheet>
       <BottomSheet.Trigger asChild>
-        <Pressable className="h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80">
-          <Typography className="text-base text-ink">{current}</Typography>
-          <ChevronDown size={20} color="#8a8e80" />
+        <Pressable className='h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80'>
+          <Typography className='text-base text-ink'>{current}</Typography>
+          <ChevronDown size={20} color='#8a8e80' />
         </Pressable>
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
         {/* Explicit scrim: HeroUI's default --color-backdrop is only black @20%
             (washed out behind the white sheet), and overriding that token via
             @theme didn't reach Uniwind — so set the dim directly via className. */}
-        <BottomSheet.Overlay className="bg-black/60" />
+        <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
-          <View className="px-s5" style={{ paddingBottom: insets.bottom + 12 }}>
-            <BottomSheet.Title className="mb-s3 text-lg font-bold text-ink">
+          <View className='px-s5' style={{ paddingBottom: insets.bottom + 12 }}>
+            <BottomSheet.Title className='mb-s3 text-lg font-bold text-ink'>
               {label}
             </BottomSheet.Title>
             <OptionList value={value} options={options} onChange={onChange} />
@@ -55,7 +55,7 @@ export function SelectField<T extends string>({
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
-  );
+  )
 }
 
 /**
@@ -66,21 +66,21 @@ export function SelectField<T extends string>({
 function OptionList<T extends string>({
   value,
   options,
-  onChange,
+  onChange
 }: {
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (v: T) => void;
+  value: T
+  options: { value: T; label: string }[]
+  onChange: (v: T) => void
 }) {
-  const { onOpenChange } = useBottomSheet();
+  const { onOpenChange } = useBottomSheet()
   const select = (v: T) => {
-    onChange(v);
-    onOpenChange(false);
-  };
+    onChange(v)
+    onOpenChange(false)
+  }
   return (
     <View>
-      {options.map(opt => {
-        const on = opt.value === value;
+      {options.map((opt) => {
+        const on = opt.value === value
         return (
           <Pressable
             key={opt.value}
@@ -96,10 +96,10 @@ function OptionList<T extends string>({
             >
               {opt.label}
             </Typography>
-            {on ? <Check size={20} color="#2e7d5b" /> : null}
+            {on ? <Check size={20} color='#2e7d5b' /> : null}
           </Pressable>
-        );
+        )
       })}
     </View>
-  );
+  )
 }
