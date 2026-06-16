@@ -28,10 +28,13 @@ export default function App() {
       await getDb() // open + migrate on launch — hold splash until DB is ready
       initNotifications() // request notification permission + create channel
     }
-    ready().finally(() => {
-      BootSplash.hide({ fade: true })
-    })
+    setTimeout(() => {
+      ready().finally(() => {
+        BootSplash.hide({ fade: true })
+      })
+    }, 2000)
   }, [])
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
