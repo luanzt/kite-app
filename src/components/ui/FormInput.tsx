@@ -14,7 +14,7 @@ export function FormInput(props: {
         onChangeText={props.onChangeText}
         placeholder={props.placeholder}
         keyboardType={props.keyboardType ?? 'default'}
-        className='h-[52px] rounded-md-k border border-line bg-surface px-s4 text-base text-ink focus:border-pace-on'
+        className='h-[52px] rounded-md-k border border-line bg-surface px-s4 text-base text-ink focus:border-brand'
       />
     </TextField>
   )

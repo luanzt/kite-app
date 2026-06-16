@@ -11,6 +11,24 @@
 @source './node_modules/heroui-native/lib';
 
 /* ============================================================
+   Override HeroUI Native's accent so `<Button variant="primary">`,
+   focus rings, and other accent-driven components use Kite's soft
+   blue (#3d7dd8) instead of HeroUI's default blue. Matches the
+   --color-brand token below. Defined for both light & dark so the
+   two stay in sync. (#3d7dd8 ≈ oklch(0.602 0.143 257).)
+   ============================================================ */
+@layer theme {
+  :root {
+    @variant light {
+      --accent: oklch(0.602 0.143 257);
+    }
+    @variant dark {
+      --accent: oklch(0.602 0.143 257);
+    }
+  }
+}
+
+/* ============================================================
    KITE — Design System tokens (from Claude Design handoff)
    Direction = Calm (default), Accent = Classic. Light mode only.
    Exposed as Tailwind utilities via @theme, e.g. bg-bg, text-brand,
@@ -32,10 +50,10 @@
   --color-ink-3: #8a8e80;
   --color-on-accent: #ffffff;
 
-  /* ---- brand (calm forest) ---- */
-  --color-brand: #2e7d5b;
-  --color-brand-weak: #e4f1ea;
-  --color-brand-ink: #1d5740;
+  /* ---- brand (soft blue) ---- */
+  --color-brand: #3d7dd8;
+  --color-brand-weak: #e6eefb;
+  --color-brand-ink: #2f63b3;
 
   /* ---- pace palette (classic) — the soul of the app ---- */
   --color-pace-on: #1f9d57;
