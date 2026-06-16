@@ -12,6 +12,7 @@ import { RootNavigator } from '@navigation/RootNavigator'
 import { getDb } from '@features/trackers/db/schema'
 import { initNotifications } from '@features/trackers/notifications'
 import { initI18n } from '@i18n/index'
+import BootSplash from 'react-native-bootsplash'
 
 initI18n()
 
@@ -23,8 +24,13 @@ const styles = StyleSheet.create({ root: { flex: 1 } })
 
 export default function App() {
   useEffect(() => {
-    getDb() // open + migrate on launch
-    initNotifications() // request notification permission + create channel
+    const ready = async () => {
+      await getDb() // open + migrate on launch — hold splash until DB is ready
+      initNotifications() // request notification permission + create channel
+    }
+    ready().finally(() => {
+      BootSplash.hide({ fade: true })
+    })
   }, [])
   return (
     <GestureHandlerRootView style={styles.root}>
