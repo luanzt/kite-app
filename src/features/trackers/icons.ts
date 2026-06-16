@@ -23,7 +23,15 @@ import {
   X,
   type LucideIcon
 } from 'lucide-react-native'
+import type { FC } from 'react'
+import type { SvgProps } from 'react-native-svg'
 import type { PaceStatus, TrackerType } from '@features/trackers/types'
+import HomeActive from '@assets/images/ic_home_active.svg'
+import HomeInactive from '@assets/images/ic_home_inactive.svg'
+import TrackerActive from '@assets/images/ic_tracker_active.svg'
+import TrackerInactive from '@assets/images/ic_tracker_inactive.svg'
+import SettingActive from '@assets/images/ic_setting_active.svg'
+import SettingInactive from '@assets/images/ic_setting_inactive.svg'
 
 /**
  * Pace-status visual language (classic palette from theme.css).
@@ -87,6 +95,23 @@ export const Icons = {
 } as const
 
 export type IconName = keyof typeof Icons
+
+/**
+ * Bottom-tab icons as imported SVG components (src/assets/images/ic_*.svg),
+ * one active + one inactive variant per tab. The SVGs paint with
+ * `currentColor`, so react-native-svg resolves their fill/stroke from the
+ * `color` prop the navigator passes in — the active variant is filled, the
+ * inactive one is an outline. Distinct files (not a single recolored glyph)
+ * because focused/unfocused differ in shape, not just tint.
+ */
+export const TAB_ICON: Record<
+  'today' | 'trackers' | 'settings',
+  { active: FC<SvgProps>; inactive: FC<SvgProps> }
+> = {
+  today: { active: HomeActive, inactive: HomeInactive },
+  trackers: { active: TrackerActive, inactive: TrackerInactive },
+  settings: { active: SettingActive, inactive: SettingInactive }
+}
 
 /**
  * The 4 tracker types' brand icon + accent color — single source of truth so

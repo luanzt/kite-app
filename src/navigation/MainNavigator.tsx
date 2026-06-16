@@ -1,16 +1,32 @@
+import { createElement } from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useTranslation } from 'react-i18next'
 import type { MainTabParamList } from '@navigation/types'
 import { DailyGoalsScreen } from '@screens/today/DailyGoalsScreen'
 import { TrackerListScreen } from '@screens/trackers/TrackerListScreen'
 import { SettingsScreen } from '@screens/settings/SettingsScreen'
-import { Icons } from '@features/trackers/icons'
+import { TAB_ICON } from '@features/trackers/icons'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
 
 // design tokens: active = brand ink (soft blue), inactive = muted ink-3
 const ACTIVE = '#2f63b3'
 const INACTIVE = '#8a8e80'
+
+/**
+ * Stable `tabBarIcon` factory for a given tab. Defined at module scope (not
+ * inside MainNavigator) so eslint's react/no-unstable-nested-components is
+ * satisfied; uses createElement to pick the focused/unfocused SVG variant
+ * without binding a component to a PascalCase local in render position.
+ */
+const tabIcon =
+  (tab: keyof typeof TAB_ICON) =>
+  ({ color, focused }: { color: string; focused: boolean }) =>
+    createElement(focused ? TAB_ICON[tab].active : TAB_ICON[tab].inactive, {
+      width: 24,
+      height: 24,
+      color
+    })
 
 export function MainNavigator() {
   const { t } = useTranslation()
@@ -28,13 +44,7 @@ export function MainNavigator() {
         component={DailyGoalsScreen}
         options={{
           title: t('tabs.today'),
-          tabBarIcon: ({ color, focused }) => (
-            <Icons.Today
-              size={24}
-              color={color}
-              strokeWidth={focused ? 2.4 : 2}
-            />
-          )
+          tabBarIcon: tabIcon('today')
         }}
       />
       <Tab.Screen
@@ -42,13 +52,7 @@ export function MainNavigator() {
         component={TrackerListScreen}
         options={{
           title: t('tabs.trackers'),
-          tabBarIcon: ({ color, focused }) => (
-            <Icons.Trackers
-              size={24}
-              color={color}
-              strokeWidth={focused ? 2.4 : 2}
-            />
-          )
+          tabBarIcon: tabIcon('trackers')
         }}
       />
       <Tab.Screen
@@ -56,13 +60,7 @@ export function MainNavigator() {
         component={SettingsScreen}
         options={{
           title: t('tabs.settings'),
-          tabBarIcon: ({ color, focused }) => (
-            <Icons.Settings
-              size={24}
-              color={color}
-              strokeWidth={focused ? 2.4 : 2}
-            />
-          )
+          tabBarIcon: tabIcon('settings')
         }}
       />
     </Tab.Navigator>
