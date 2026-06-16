@@ -8,8 +8,8 @@ import { Icons } from '@features/trackers/icons'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
 
-// design tokens: active = brand ink, inactive = muted ink-3
-const ACTIVE = '#1d5740'
+// design tokens: active = brand ink (soft blue), inactive = muted ink-3
+const ACTIVE = '#2f63b3'
 const INACTIVE = '#8a8e80'
 
 export function MainNavigator() {
