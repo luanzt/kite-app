@@ -39,6 +39,7 @@
     "react-hook-form": "^7.76.1",
     "react-i18next": "^17.0.8",
     "react-native": "0.85.3",
+    "react-native-bootsplash": "^7.3.1",
     "react-native-config": "^1.6.1",
     "react-native-gesture-handler": "^3.0.0",
     "react-native-gifted-charts": "^1.4.77",
