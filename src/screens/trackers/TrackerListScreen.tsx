@@ -8,7 +8,7 @@ import type { RootStackParamList } from '@navigation/types'
 import { useTrackers, useSaveTracker } from '@features/trackers/queries'
 import { QUICK_STARTS, type QuickStart } from '@features/trackers/quickStarts'
 import { TrackerCard } from '@features/trackers/components/TrackerCard'
-import { KiteLogo } from '@features/trackers/components/KiteLogo'
+import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import { buildTracker } from '@features/trackers/factory'
 import { Icons, iconEmoji } from '@features/trackers/icons'
@@ -61,7 +61,7 @@ export function TrackerListScreen() {
             style={{ paddingTop: 32, paddingBottom: 8 }}
           >
             <View style={{ marginBottom: 8 }}>
-              <KiteLogo size={96} />
+              <NoData size={120} />
             </View>
             <Typography className='text-xl font-extrabold text-ink text-center'>
               {t('list.empty')}

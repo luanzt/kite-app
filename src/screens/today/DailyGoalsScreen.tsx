@@ -18,7 +18,7 @@ import {
   iconEmoji,
   colorHex
 } from '@features/trackers/icons'
-import { KiteLogo } from '@features/trackers/components/KiteLogo'
+import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
 import type { Tracker, Entry } from '@features/trackers/types'
@@ -303,7 +303,7 @@ export function DailyGoalsScreen() {
         </View>
         <View className='flex-1 items-center justify-center px-s6 gap-s3'>
           <View style={{ marginBottom: 8 }}>
-            <KiteLogo size={96} />
+            <NoData size={220} />
           </View>
           <Typography className='text-xl font-extrabold text-ink text-center'>
             {t('today.empty')}
