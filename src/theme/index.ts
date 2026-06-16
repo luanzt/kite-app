@@ -1,18 +1,18 @@
-import type { HeroUINativeConfig } from 'heroui-native';
+import type { HeroUINativeConfig } from 'heroui-native'
 
 export const heroUIConfig: HeroUINativeConfig = {
   textProps: {
     allowFontScaling: true,
-    maxFontSizeMultiplier: 1.3,
+    maxFontSizeMultiplier: 1.3
   },
   devInfo: {
-    stylingPrinciples: false,
+    stylingPrinciples: false
   },
   toast: {
     defaultProps: {
       variant: 'default',
-      placement: 'top',
+      placement: 'top'
     },
-    maxVisibleToasts: 3,
-  },
-};
+    maxVisibleToasts: 3
+  }
+}

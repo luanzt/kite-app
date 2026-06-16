@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { Typography, BottomSheet, Button, useBottomSheet } from 'heroui-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Clock } from 'lucide-react-native';
-import { useTranslation } from 'react-i18next';
+import { useState } from 'react'
+import { Pressable, View } from 'react-native'
+import { Typography, BottomSheet, Button, useBottomSheet } from 'heroui-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Clock } from 'lucide-react-native'
+import { useTranslation } from 'react-i18next'
 import DateTimePicker, {
   useDefaultStyles,
-  type DateType,
-} from 'react-native-ui-datepicker';
+  type DateType
+} from 'react-native-ui-datepicker'
 
 /**
  * A field that opens a bottom sheet with a scrollable time wheel to pick an
@@ -25,52 +25,52 @@ import DateTimePicker, {
 export function TimeField({
   value,
   onChange,
-  placeholder,
+  placeholder
 }: {
-  value: string;
-  onChange: (hhmm: string) => void;
-  placeholder?: string;
+  value: string
+  onChange: (hhmm: string) => void
+  placeholder?: string
 }) {
-  const insets = useSafeAreaInsets();
-  const display = value ? value : placeholder ?? 'HH:mm';
+  const insets = useSafeAreaInsets()
+  const display = value ? value : placeholder ?? 'HH:mm'
   return (
     <BottomSheet>
       <BottomSheet.Trigger asChild>
-        <Pressable className="h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80">
+        <Pressable className='h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80'>
           <Typography
             className={`text-base ${value ? 'text-ink' : 'text-ink-3'}`}
           >
             {display}
           </Typography>
-          <Clock size={20} color="#8a8e80" />
+          <Clock size={20} color='#8a8e80' />
         </Pressable>
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
         {/* Explicit scrim — see SelectField for why the token override didn't work. */}
-        <BottomSheet.Overlay className="bg-black/60" />
+        <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
-          <View className="px-s5" style={{ paddingBottom: insets.bottom }}>
+          <View className='px-s5' style={{ paddingBottom: insets.bottom }}>
             <TimeSheet value={value} onChange={onChange} />
           </View>
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
-  );
+  )
 }
 
 /** `HH:mm` from the hours/minutes of a Date. */
 function toHHMM(d: Date): string {
-  const h = `${d.getHours()}`.padStart(2, '0');
-  const m = `${d.getMinutes()}`.padStart(2, '0');
-  return `${h}:${m}`;
+  const h = `${d.getHours()}`.padStart(2, '0')
+  const m = `${d.getMinutes()}`.padStart(2, '0')
+  return `${h}:${m}`
 }
 
 /** A `Date` carrying the given `HH:mm` (today's date; only time is used). */
 function fromHHMM(hhmm: string): Date {
-  const [h, m] = hhmm.slice(0, 5).split(':').map(Number);
-  const d = new Date();
-  d.setHours(Number.isFinite(h) ? h : 18, Number.isFinite(m) ? m : 0, 0, 0);
-  return d;
+  const [h, m] = hhmm.slice(0, 5).split(':').map(Number)
+  const d = new Date()
+  d.setHours(Number.isFinite(h) ? h : 18, Number.isFinite(m) ? m : 0, 0, 0)
+  return d
 }
 
 /**
@@ -80,41 +80,41 @@ function fromHHMM(hhmm: string): Date {
  */
 function TimeSheet({
   value,
-  onChange,
+  onChange
 }: {
-  value: string;
-  onChange: (hhmm: string) => void;
+  value: string
+  onChange: (hhmm: string) => void
 }) {
-  const { t } = useTranslation();
-  const { onOpenChange } = useBottomSheet();
-  const defaultStyles = useDefaultStyles();
-  const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'));
+  const { t } = useTranslation()
+  const { onOpenChange } = useBottomSheet()
+  const defaultStyles = useDefaultStyles()
+  const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'))
 
   const confirm = () => {
-    onChange(toHHMM(draft));
-    onOpenChange(false);
-  };
+    onChange(toHHMM(draft))
+    onOpenChange(false)
+  }
 
   return (
-    <View className="gap-s3">
+    <View className='gap-s3'>
       <DateTimePicker
-        mode="single"
+        mode='single'
         date={draft}
         onChange={({ date }: { date: DateType }) => {
-          if (date instanceof Date) setDraft(date);
+          if (date instanceof Date) setDraft(date)
         }}
         timePicker
-        initialView="time"
+        initialView='time'
         hideHeader
         styles={{
           ...defaultStyles,
           selected: { backgroundColor: '#2e7d5b' },
-          selected_label: { color: '#ffffff' },
+          selected_label: { color: '#ffffff' }
         }}
       />
-      <Button variant="primary" feedbackVariant="none" onPress={confirm}>
+      <Button variant='primary' feedbackVariant='none' onPress={confirm}>
         <Button.Label>{t('common.done')}</Button.Label>
       </Button>
     </View>
-  );
+  )
 }

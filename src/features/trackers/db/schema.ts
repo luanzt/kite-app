@@ -1,21 +1,21 @@
-import { open, type DB } from '@op-engineering/op-sqlite';
+import { open, type DB } from '@op-engineering/op-sqlite'
 
-export const DB_NAME = 'kite.sqlite';
+export const DB_NAME = 'kite.sqlite'
 
-let db: DB | null = null;
+let db: DB | null = null
 
 export function getDb(): DB {
   if (!db) {
-    db = open({ name: DB_NAME });
-    migrate(db);
+    db = open({ name: DB_NAME })
+    migrate(db)
   }
-  return db;
+  return db
 }
 
 // For tests: allow injecting an in-memory DB
 export function setDb(injected: DB): void {
-  db = injected;
-  migrate(db);
+  db = injected
+  migrate(db)
 }
 
 /**
@@ -28,13 +28,13 @@ export function setDb(injected: DB): void {
  * already hold rows. Base columns added at table creation can stay strict, but
  * we keep `NOT NULL` ones DEFAULT-able here so the same spec drives both paths.
  */
-export type ColumnSpec = { name: string; decl: string };
+export type ColumnSpec = { name: string; decl: string }
 export type TableSpec = {
-  name: string;
-  columns: ColumnSpec[];
+  name: string
+  columns: ColumnSpec[]
   /** Extra statements (indexes, etc.) run idempotently after the table exists. */
-  extras?: string[];
-};
+  extras?: string[]
+}
 
 export const TRACKER_COLUMNS: ColumnSpec[] = [
   { name: 'id', decl: 'id TEXT PRIMARY KEY' },
@@ -54,16 +54,16 @@ export const TRACKER_COLUMNS: ColumnSpec[] = [
   { name: 'routine', decl: 'routine TEXT' },
   { name: 'reminder_time', decl: 'reminder_time TEXT' },
   { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" },
-  { name: 'archived', decl: 'archived INTEGER NOT NULL DEFAULT 0' },
-];
+  { name: 'archived', decl: 'archived INTEGER NOT NULL DEFAULT 0' }
+]
 
 export const ENTRY_COLUMNS: ColumnSpec[] = [
   { name: 'id', decl: 'id TEXT PRIMARY KEY' },
   { name: 'tracker_id', decl: "tracker_id TEXT NOT NULL DEFAULT ''" },
   { name: 'date', decl: "date TEXT NOT NULL DEFAULT ''" },
   { name: 'value', decl: 'value REAL NOT NULL DEFAULT 0' },
-  { name: 'note', decl: 'note TEXT' },
-];
+  { name: 'note', decl: 'note TEXT' }
+]
 
 export const MILESTONE_COLUMNS: ColumnSpec[] = [
   { name: 'id', decl: 'id TEXT PRIMARY KEY' },
@@ -71,8 +71,8 @@ export const MILESTONE_COLUMNS: ColumnSpec[] = [
   { name: 'title', decl: "title TEXT NOT NULL DEFAULT ''" },
   { name: 'due_date', decl: 'due_date TEXT' },
   { name: 'progress', decl: 'progress REAL NOT NULL DEFAULT 0' },
-  { name: 'order_index', decl: 'order_index INTEGER NOT NULL DEFAULT 0' },
-];
+  { name: 'order_index', decl: 'order_index INTEGER NOT NULL DEFAULT 0' }
+]
 
 /** Every table the app owns, each self-describing for create + upgrade. */
 export const TABLES: TableSpec[] = [
@@ -80,10 +80,12 @@ export const TABLES: TableSpec[] = [
   {
     name: 'entries',
     columns: ENTRY_COLUMNS,
-    extras: ['CREATE INDEX IF NOT EXISTS idx_entries_tracker_date ON entries(tracker_id, date);'],
+    extras: [
+      'CREATE INDEX IF NOT EXISTS idx_entries_tracker_date ON entries(tracker_id, date);'
+    ]
   },
-  { name: 'milestones', columns: MILESTONE_COLUMNS },
-];
+  { name: 'milestones', columns: MILESTONE_COLUMNS }
+]
 
 /**
  * Pure: given a table's canonical column spec and the column names the live
@@ -91,9 +93,12 @@ export const TABLES: TableSpec[] = [
  * order) so they can be added via `ALTER TABLE`. Extra/unknown live columns are
  * ignored.
  */
-export function missingColumns(spec: ColumnSpec[], existing: string[]): ColumnSpec[] {
-  const have = new Set(existing);
-  return spec.filter(c => !have.has(c.name));
+export function missingColumns(
+  spec: ColumnSpec[],
+  existing: string[]
+): ColumnSpec[] {
+  const have = new Set(existing)
+  return spec.filter((c) => !have.has(c.name))
 }
 
 /**
@@ -104,22 +109,24 @@ export function missingColumns(spec: ColumnSpec[], existing: string[]): ColumnSp
  * "table trackers has no column named routine").
  */
 function migrateTable(database: DB, table: TableSpec): void {
-  const cols = table.columns.map(c => c.decl).join(', ');
-  database.executeSync(`CREATE TABLE IF NOT EXISTS ${table.name} (${cols});`);
+  const cols = table.columns.map((c) => c.decl).join(', ')
+  database.executeSync(`CREATE TABLE IF NOT EXISTS ${table.name} (${cols});`)
 
-  const info = database.executeSync(`PRAGMA table_info(${table.name});`);
-  const existing = (info.rows ?? []).map((r: Record<string, any>) => r.name as string);
+  const info = database.executeSync(`PRAGMA table_info(${table.name});`)
+  const existing = (info.rows ?? []).map(
+    (r: Record<string, any>) => r.name as string
+  )
   for (const col of missingColumns(table.columns, existing)) {
-    database.executeSync(`ALTER TABLE ${table.name} ADD COLUMN ${col.decl};`);
+    database.executeSync(`ALTER TABLE ${table.name} ADD COLUMN ${col.decl};`)
   }
 
   for (const extra of table.extras ?? []) {
-    database.executeSync(extra);
+    database.executeSync(extra)
   }
 }
 
 export function migrate(database: DB): void {
   for (const table of TABLES) {
-    migrateTable(database, table);
+    migrateTable(database, table)
   }
 }

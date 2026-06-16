@@ -21,9 +21,9 @@ import {
   Calendar,
   Clock,
   X,
-  type LucideIcon,
-} from 'lucide-react-native';
-import type { PaceStatus, TrackerType } from '@features/trackers/types';
+  type LucideIcon
+} from 'lucide-react-native'
+import type { PaceStatus, TrackerType } from '@features/trackers/types'
 
 /**
  * Pace-status visual language (classic palette from theme.css).
@@ -33,15 +33,15 @@ export const PACE_COLOR: Record<PaceStatus, string> = {
   on_track: '#1f9d57',
   behind: '#e0564e',
   ahead: '#3d7dd8',
-  none: '#a3a8a0',
-};
+  none: '#a3a8a0'
+}
 
 export const PACE_WEAK: Record<PaceStatus, string> = {
   on_track: '#e3f3ea',
   behind: '#fbe7e5',
   ahead: '#e6eefb',
-  none: '#eceee8',
-};
+  none: '#eceee8'
+}
 
 /**
  * i18n key for the human-readable pace label.
@@ -50,14 +50,14 @@ export const PACE_WEAK: Record<PaceStatus, string> = {
 export function paceLabelKey(status: PaceStatus): string {
   switch (status) {
     case 'on_track':
-      return 'detail.onTrack';
+      return 'detail.onTrack'
     case 'behind':
-      return 'detail.behind';
+      return 'detail.behind'
     case 'ahead':
-      return 'detail.ahead';
+      return 'detail.ahead'
     case 'none':
     default:
-      return 'detail.none';
+      return 'detail.none'
   }
 }
 
@@ -83,10 +83,10 @@ export const Icons = {
   Bolt: Zap,
   Bell,
   Calendar,
-  Clock,
-} as const;
+  Clock
+} as const
 
-export type IconName = keyof typeof Icons;
+export type IconName = keyof typeof Icons
 
 /**
  * The 4 tracker types' brand icon + accent color — single source of truth so
@@ -97,15 +97,15 @@ export const TYPE_ICON: Record<TrackerType, LucideIcon> = {
   habit: Repeat,
   target: Target,
   average: ChartColumn,
-  project: Puzzle,
-};
+  project: Puzzle
+}
 
 export const TYPE_COLOR: Record<TrackerType, string> = {
   habit: '#8b5cf6',
   target: '#2e7d5b',
   average: '#0d9488',
-  project: '#e0457a',
-};
+  project: '#e0457a'
+}
 
 /**
  * Map a tracker's `icon` keyword (from quickStarts / buildTracker, e.g. "star",
@@ -123,15 +123,15 @@ const ICON_EMOJI: Record<string, string> = {
   lotus: '🧘',
   walk: '🚶',
   scale: '⚖️',
-  rocket: '🚀',
-};
+  rocket: '🚀'
+}
 
 export function iconEmoji(key: string | null | undefined): string {
-  if (!key) return '🎯';
-  if (key in ICON_EMOJI) return ICON_EMOJI[key];
+  if (!key) return '🎯'
+  if (key in ICON_EMOJI) return ICON_EMOJI[key]
   // An ASCII-only keyword we don't recognise → fallback. Anything containing a
   // non-ASCII glyph is assumed to already be an emoji and is passed through.
-  return /^[\x20-\x7e]+$/.test(key) ? '🎯' : key;
+  return /^[\x20-\x7e]+$/.test(key) ? '🎯' : key
 }
 
 /**
@@ -149,13 +149,13 @@ const COLOR_HEX: Record<string, string> = {
   pink: '#e0457a',
   gray: '#6b7280',
   cyan: '#0d9488',
-  indigo: '#6366f1',
-};
+  indigo: '#6366f1'
+}
 
 export function colorHex(color: string | null | undefined): string {
-  if (!color) return COLOR_HEX.green;
-  if (color.startsWith('#')) return color;
-  return COLOR_HEX[color] ?? COLOR_HEX.green;
+  if (!color) return COLOR_HEX.green
+  if (color.startsWith('#')) return color
+  return COLOR_HEX[color] ?? COLOR_HEX.green
 }
 
 /**
@@ -164,10 +164,10 @@ export function colorHex(color: string | null | undefined): string {
  * Accepts palette names too (resolved via colorHex).
  */
 export function hexA(hex: string, alpha: number): string {
-  const h = colorHex(hex).replace('#', '');
-  const n = parseInt(h, 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  const h = colorHex(hex).replace('#', '')
+  const n = parseInt(h, 16)
+  const r = (n >> 16) & 255
+  const g = (n >> 8) & 255
+  const b = n & 255
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }

@@ -1,6 +1,6 @@
-import { Pressable, View } from 'react-native';
-import { Typography } from 'heroui-native';
-import { Icons } from '@features/trackers/icons';
+import { Pressable, View } from 'react-native'
+import { Typography } from 'heroui-native'
+import { Icons } from '@features/trackers/icons'
 
 /**
  * Primary "Create tracker" button — matches the design's `.btn-primary .btn-lg`:
@@ -10,11 +10,11 @@ import { Icons } from '@features/trackers/icons';
 export function CreateButton({
   label,
   onPress,
-  block = false,
+  block = false
 }: {
-  label: string;
-  onPress: () => void;
-  block?: boolean;
+  label: string
+  onPress: () => void
+  block?: boolean
 }) {
   return (
     <Pressable
@@ -24,10 +24,12 @@ export function CreateButton({
       }`}
       style={{ height: 54 }}
     >
-      <Icons.Plus size={20} color="#ffffff" strokeWidth={2.6} />
+      <Icons.Plus size={20} color='#ffffff' strokeWidth={2.6} />
       <View>
-        <Typography className="text-base font-bold text-on-accent">{label}</Typography>
+        <Typography className='text-base font-bold text-on-accent'>
+          {label}
+        </Typography>
       </View>
     </Pressable>
-  );
+  )
 }
