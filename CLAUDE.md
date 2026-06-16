@@ -220,4 +220,6 @@ HeroUI Native uses compound components, NOT flat props. This is critical:
 
 ## Known follow-ups (deferred, see `docs/superpowers/plans/`)
 
-Reminders (notifee installed, not wired), haptics, richer TrackerForm (deadline/period/accumulation/milestone editors), quick-log number entry on Today (currently logs value 1), dark-mode color tokens, and renaming the iOS/Android project from `RnHeroUITemplate` to `Kite` (bundle id is still the template's).
+Reminders (notifee installed, not wired), haptics, richer TrackerForm (deadline/period/accumulation/milestone editors), quick-log number entry on Today (currently logs value 1), and dark-mode color tokens.
+
+The iOS/Android project has been renamed from `RnHeroUITemplate` to **Kite**: RN/AppRegistry name is `Kite`, the iOS target/scheme/folder is `Kite` (`ios/Kite/`, `Kite.xcodeproj`, `Kite.xcworkspace`), the Android Java package is `com.kite.app`, and the bundle id / `applicationId` is **`com.kite.app`** on both platforms.

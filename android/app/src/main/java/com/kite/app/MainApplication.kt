@@ -1,4 +1,4 @@
-package com.rnherouitemplate
+package com.kite.app
 
 import android.app.Application
 import com.facebook.react.PackageList
