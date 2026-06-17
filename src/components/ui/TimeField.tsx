@@ -12,7 +12,7 @@ import DateTimePicker, {
 /**
  * A field that opens a bottom sheet with a scrollable time wheel to pick an
  * `HH:mm` time. The trigger looks like the design's `.input` (showing the
- * chosen time); tapping it slides up the wheel, and "Done" confirms.
+ * chosen time); tapping it slides up the wheel, and "Save" confirms.
  *
  * `value`/`onChange` are plain `HH:mm` strings (what SQLite stores for
  * `reminderTime`), so this is a drop-in replacement for the old free-text
@@ -20,7 +20,7 @@ import DateTimePicker, {
  *
  * Unlike `DateField` (where picking a day closes the sheet), a time wheel
  * scrolls continuously, so we keep a draft in local state and commit it on
- * "Done" rather than on every scroll tick.
+ * "Save" rather than on every scroll tick.
  */
 export function TimeField({
   value,
@@ -76,7 +76,7 @@ function fromHHMM(hhmm: string): Date {
 /**
  * The time wheel, rendered inside `BottomSheet.Content` so it can call
  * `useBottomSheet()` to close the sheet. The wheel writes to a local draft;
- * "Done" commits it to the parent and closes.
+ * "Save" commits it to the parent and closes.
  */
 function TimeSheet({
   value,
@@ -113,7 +113,7 @@ function TimeSheet({
         }}
       />
       <Button variant='primary' feedbackVariant='none' onPress={confirm}>
-        <Button.Label>{t('common.done')}</Button.Label>
+        <Button.Label>{t('common.save')}</Button.Label>
       </Button>
     </View>
   )
