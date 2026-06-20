@@ -91,4 +91,19 @@
   --text-body-k: 15px;
   --text-sm-k: 13px;
   --text-xs-k: 11.5px;
+
+  /* ---- fonts (San Francisco Display) ----
+     RN matches fontFamily by the font's PostScript name, NOT the .ttf/.otf
+     filename — these strings come from `mdls`/`fc-scan` on the .otf files.
+     HeroUI Native reads --font-normal/medium/semibold/bold for every weight
+     of <Typography>, Button.Label, etc., so overriding them here restyles the
+     whole app. (RN does NOT synthesize weights from one file — each weight must
+     point at its own face, which is why all four are declared.)
+     Requires `npx react-native-asset` + a native rebuild to take effect. */
+  --font-light: 'SanFranciscoDisplay-Light';
+  --font-normal: 'SanFranciscoDisplay-Regular';
+  --font-medium: 'SanFranciscoDisplay-Medium';
+  --font-semibold: 'SanFranciscoDisplay-Semibold';
+  --font-bold: 'SanFranciscoDisplay-Bold';
+  --font-black: 'SanFranciscoDisplay-Black';
 }

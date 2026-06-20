@@ -1,0 +1,33 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/SanFranciscoDisplay-Black.otf",
+      "sha1": "fee27019aa35ef88b70d48bdf1e23e282d3d09ca"
+    },
+    {
+      "path": "assets/fonts/SanFranciscoDisplay-Bold.otf",
+      "sha1": "8df16f15a8d39f499fd9c1501a0fa9f52e2370bb"
+    },
+    {
+      "path": "assets/fonts/SanFranciscoDisplay-Italic.otf",
+      "sha1": "b5bcc0e97b87678fd28823f5342c8518dc792dd0"
+    },
+    {
+      "path": "assets/fonts/SanFranciscoDisplay-Light.otf",
+      "sha1": "412ae5aa0708bd84738c17a28bb012cad18d8120"
+    },
+    {
+      "path": "assets/fonts/SanFranciscoDisplay-Medium.otf",
+      "sha1": "0648995feb5b96d37654dcbd787137168d18531e"
+    },
+    {
+      "path": "assets/fonts/SanFranciscoDisplay-Regular.otf",
+      "sha1": "e4bc5ef9e28b2f283113ed3fd363620c01de0d8d"
+    },
+    {
+      "path": "assets/fonts/SanFranciscoDisplay-Semibold.otf",
+      "sha1": "b48246e6346fb6fb97b7faa74418033bdcf0e4ec"
+    }
+  ]
+}
