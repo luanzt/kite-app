@@ -126,13 +126,17 @@ function LogRow({
     subText = `${fmtNum(todayLog)}${u}`
   }
 
+  // Today's quick-set keeps a stable per-day id so tapping again overwrites the
+  // day's value (on/off, set) rather than stacking records — unlike the Habit
+  // Detail log, which creates a fresh record each time.
   const setValue = (v: number) =>
     onLog({
       id: entryId,
       trackerId: tracker.id,
       date: today,
       value: v,
-      note: null
+      note: null,
+      createdAt: new Date().toISOString()
     })
 
   const renderControl = () => {

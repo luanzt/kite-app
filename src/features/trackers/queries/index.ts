@@ -80,6 +80,19 @@ export function useLogEntry() {
     }
   })
 }
+export function useDeleteEntry() {
+  const qc = useQueryClient()
+  return useMutation({
+    // trackerId is passed alongside id only so onSuccess can invalidate its cache.
+    mutationFn: async ({ id }: { id: string; trackerId: string }) =>
+      repo.deleteEntry(id),
+    onSuccess: (_d, { trackerId }) => {
+      qc.invalidateQueries({ queryKey: keys.entries(trackerId) })
+      qc.invalidateQueries({ queryKey: ['entries', 'date'] })
+      qc.invalidateQueries({ queryKey: keys.trackers })
+    }
+  })
+}
 export function useSaveMilestone() {
   const qc = useQueryClient()
   return useMutation({

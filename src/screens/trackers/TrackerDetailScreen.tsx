@@ -1,24 +1,30 @@
+import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
-import { Typography } from 'heroui-native'
+import { Typography, useToast } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import Svg, { Circle } from 'react-native-svg'
 import type { RootStackParamList, RootStackProps } from '@navigation/types'
 import {
   useTracker,
   useEntries,
   useMilestones,
-  useLogEntry
+  useLogEntry,
+  useDeleteEntry
 } from '@features/trackers/queries'
 import { progressFor } from '@features/trackers/components/TrackerCard'
 import { PaceBar, PaceChip } from '@features/trackers/components/PaceBar'
 import { HistoryChart } from '@features/trackers/components/HistoryChart'
 import { MilestoneList } from '@features/trackers/components/MilestoneList'
-import { Icons, PACE_COLOR } from '@features/trackers/icons'
+import { HabitDetailView } from '@features/trackers/components/HabitDetailView'
+import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
+import { showLogSuccess } from '@features/trackers/components/LogSuccessToast'
+import { Icons, iconEmoji } from '@features/trackers/icons'
+import { cadenceLabel } from '@features/trackers/habitLabels'
+import { uuid } from '@features/trackers/factory'
 import { toISODate, daysBetween } from '@utils/date'
-import type { Tracker } from '@features/trackers/types'
+import type { Tracker, Entry } from '@features/trackers/types'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -51,50 +57,6 @@ function daysLeft(tracker: Tracker): number | null {
   return Math.max(0, daysBetween(toISODate(new Date()), tracker.deadline))
 }
 
-function Ring({
-  fraction,
-  color,
-  size,
-  strokeWidth
-}: {
-  fraction: number
-  color: string
-  size: number
-  strokeWidth: number
-}) {
-  const r = (size - strokeWidth) / 2
-  const c = 2 * Math.PI * r
-  const clamped = Math.max(0, Math.min(1, fraction))
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ transform: [{ rotate: '-90deg' }] }}
-    >
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke='#e6e8df'
-        strokeWidth={strokeWidth}
-      />
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap='round'
-        strokeDasharray={c}
-        strokeDashoffset={c * (1 - clamped)}
-      />
-    </Svg>
-  )
-}
-
 function Stat({
   num,
   cap,
@@ -107,7 +69,7 @@ function Stat({
   return (
     <View className='flex-1 items-center rounded-lg-k border border-line bg-surface p-s4'>
       <Typography
-        className='text-xl font-extrabold text-ink'
+        className='text-xl font-bold text-ink'
         style={color ? { color } : undefined}
       >
         {num}
@@ -133,11 +95,19 @@ export function TrackerDetailScreen({
   const { data: entries = [] } = useEntries(trackerId)
   const { data: milestones = [] } = useMilestones(trackerId)
   const log = useLogEntry()
+  const del = useDeleteEntry()
+  const { toast } = useToast()
+  const [logModal, setLogModal] = useState<{
+    open: boolean
+    entry: Entry | null
+    date: string | null // pre-filled date when back-filling a past day
+  }>({ open: false, entry: null, date: null })
 
   if (!tracker) {
     return <View className='flex-1 bg-bg' style={{ paddingTop: insets.top }} />
   }
 
+  const isHabit = tracker.type === 'habit'
   const p = progressFor(tracker, entries, milestones)
   const paceLabel =
     p.paceStatus === 'behind'
@@ -151,8 +121,6 @@ export function TrackerDetailScreen({
   const pp = pacePercent(tracker)
   const remain = daysLeft(tracker)
   const percentInt = Math.round(p.percent * 100)
-  const successInt = Math.round((p.successRate ?? 0) * 100)
-  const streak = p.streak ?? 0
   const doneMilestones = milestones.filter((m) => m.progress >= 1).length
 
   const start = tracker.startValue ?? 0
@@ -172,12 +140,16 @@ export function TrackerDetailScreen({
       >
         <Icons.Back size={22} color='#1b1e18' />
       </Pressable>
-      <Typography
-        className='flex-1 text-center text-lg font-bold text-ink'
-        numberOfLines={1}
-      >
-        {tracker.name}
-      </Typography>
+      <View className='flex-1 items-center'>
+        <Typography className='text-lg font-bold text-ink' numberOfLines={1}>
+          {tracker.name}
+        </Typography>
+        {isHabit ? (
+          <Typography className='mt-[2px] text-sm font-bold text-brand-ink'>
+            {`${iconEmoji(tracker.icon)} ${cadenceLabel(tracker, t)}`}
+          </Typography>
+        ) : null}
+      </View>
       <Pressable
         onPress={() =>
           nav.navigate('TrackerForm', {
@@ -193,107 +165,62 @@ export function TrackerDetailScreen({
     </View>
   )
 
-  // ---- Hero ----
-  const hero =
-    tracker.type === 'habit' ? (
-      <View className='m-s5 items-center rounded-xl-k border border-line bg-surface p-s5 shadow-md'>
-        <View
-          className='items-center justify-center'
-          style={{ width: 120, height: 120, marginVertical: 4 }}
-        >
-          <Ring
-            fraction={p.successRate ?? 0}
-            color={PACE_COLOR.on_track}
-            size={120}
-            strokeWidth={11}
-          />
-          <View className='absolute inset-0 items-center justify-center'>
-            <Typography
-              className='font-extrabold text-ink'
-              style={{ fontSize: 34, lineHeight: 36 }}
-            >
-              {`${successInt}%`}
-            </Typography>
-            <Typography className='text-xs font-bold text-ink-3'>
-              {t('detail.success')}
-            </Typography>
-          </View>
-        </View>
-        <View className='flex-row items-center gap-s2' style={{ marginTop: 8 }}>
-          <Icons.Flame size={22} color={PACE_COLOR.on_track} />
-          <Typography className='text-lg font-extrabold text-ink'>
-            {`${streak} ${t('detail.days')}`}
-          </Typography>
-        </View>
-      </View>
-    ) : (
-      <View className='m-s5 rounded-xl-k border border-line bg-surface p-s5 shadow-md'>
-        <View
-          className='flex-row items-start justify-between'
-          style={{ marginBottom: 16 }}
-        >
-          <View className='flex-1'>
-            <Typography
-              className='font-extrabold text-ink'
-              style={{ fontSize: 48, lineHeight: 50 }}
-            >
-              {tracker.type === 'project'
-                ? `${percentInt}%`
-                : fmtVal(tracker, p.current)}
-            </Typography>
-            {tracker.type !== 'project' ? (
-              <Typography
-                className='text-sm text-ink-3'
-                style={{ marginTop: 4 }}
-              >
-                {`${t('detail.target')} ${fmtVal(tracker, p.goal)}`}
-              </Typography>
-            ) : null}
-          </View>
-          <PaceChip paceStatus={p.paceStatus} label={paceLabel} />
-        </View>
-        <PaceBar
-          percent={p.percent}
-          paceStatus={p.paceStatus}
-          paceMarkerPercent={pp}
-          height={16}
-        />
-        {pp != null ? (
-          <View
-            className='flex-row items-center justify-between'
-            style={{ marginTop: 14 }}
+  // ---- Hero (target / average / project; habit uses HabitDetailView) ----
+  const hero = (
+    <View className='m-s5 rounded-xl-k border border-line bg-surface p-s5 shadow-md'>
+      <View
+        className='flex-row items-start justify-between'
+        style={{ marginBottom: 16 }}
+      >
+        <View className='flex-1'>
+          <Typography
+            className='font-bold text-ink'
+            style={{ fontSize: 48, lineHeight: 50 }}
           >
-            <Typography className='text-xs text-ink-3'>
-              {`${t('detail.expected')}: `}
-              <Typography className='text-xs font-bold text-ink-2'>
-                {fmtVal(tracker, expectedValue)}
-              </Typography>
+            {tracker.type === 'project'
+              ? `${percentInt}%`
+              : fmtVal(tracker, p.current)}
+          </Typography>
+          {tracker.type !== 'project' ? (
+            <Typography className='text-sm text-ink-3' style={{ marginTop: 4 }}>
+              {`${t('detail.target')} ${fmtVal(tracker, p.goal)}`}
             </Typography>
-            {remain != null ? (
-              <Typography className='text-xs text-ink-3'>
-                {`${remain} ${t('detail.days')} ${t(
-                  'detail.remaining'
-                ).toLowerCase()}`}
-              </Typography>
-            ) : null}
-          </View>
-        ) : null}
+          ) : null}
+        </View>
+        <PaceChip paceStatus={p.paceStatus} label={paceLabel} />
       </View>
-    )
+      <PaceBar
+        percent={p.percent}
+        paceStatus={p.paceStatus}
+        paceMarkerPercent={pp}
+        height={16}
+      />
+      {pp != null ? (
+        <View
+          className='flex-row items-center justify-between'
+          style={{ marginTop: 14 }}
+        >
+          <Typography className='text-xs text-ink-3'>
+            {`${t('detail.expected')}: `}
+            <Typography className='text-xs font-bold text-ink-2'>
+              {fmtVal(tracker, expectedValue)}
+            </Typography>
+          </Typography>
+          {remain != null ? (
+            <Typography className='text-xs text-ink-3'>
+              {`${remain} ${t('detail.days')} ${t(
+                'detail.remaining'
+              ).toLowerCase()}`}
+            </Typography>
+          ) : null}
+        </View>
+      ) : null}
+    </View>
+  )
 
-  // ---- Stat grid ----
+  // ---- Stat grid (habit uses HabitDetailView) ----
   const stats =
-    tracker.type === 'habit' ? (
-      <View className='flex-row gap-s3 px-s5'>
-        <Stat
-          num={String(streak)}
-          cap={t('detail.streak')}
-          color={PACE_COLOR.on_track}
-        />
-        <Stat num={`${successInt}%`} cap={t('detail.success')} />
-        <Stat num={String(streak)} cap={t('detail.best')} />
-      </View>
-    ) : tracker.type === 'project' ? (
+    tracker.type === 'project' ? (
       <View className='flex-row gap-s3 px-s5'>
         <Stat num={`${percentInt}%`} cap={t('common.done')} />
         <Stat
@@ -321,7 +248,7 @@ export function TrackerDetailScreen({
     tracker.type === 'project' ? (
       <View className='m-s5'>
         <Typography
-          className='text-lg font-extrabold text-ink'
+          className='text-lg font-bold text-ink'
           style={{ marginBottom: 12 }}
         >
           {t('detail.milestones')}
@@ -331,7 +258,7 @@ export function TrackerDetailScreen({
     ) : (
       <View className='m-s5'>
         <Typography
-          className='text-lg font-extrabold text-ink'
+          className='text-lg font-bold text-ink'
           style={{ marginBottom: 12 }}
         >
           {t('detail.history')}
@@ -344,17 +271,58 @@ export function TrackerDetailScreen({
       </View>
     )
 
+  // Quick log for non-habit "Log today" — one fresh record (uuid + timestamp).
   const onLogToday = () => {
     if (tracker.type === 'project') return
     const today = toISODate(new Date())
-    const value = tracker.type === 'habit' ? 1 : 1
     log.mutate({
-      id: `${tracker.id}-${today}`,
+      id: uuid(),
       trackerId: tracker.id,
       date: today,
-      value,
-      note: null
+      value: 1,
+      note: null,
+      createdAt: new Date().toISOString()
     })
+  }
+
+  const openAddLog = () =>
+    setLogModal({ open: true, entry: null, date: null })
+  const openEditLog = (entry: Entry) =>
+    setLogModal({ open: true, entry, date: null })
+  const openLogForDate = (iso: string) =>
+    setLogModal({ open: true, entry: null, date: iso })
+  const closeLog = () => setLogModal({ open: false, entry: null, date: null })
+
+  const logModalEl = (
+    <LogEntryModal
+      tracker={tracker}
+      entry={logModal.entry}
+      defaultDate={logModal.date}
+      visible={logModal.open}
+      onClose={closeLog}
+      onSave={(e) =>
+        log.mutate(e, {
+          onSuccess: () => showLogSuccess(toast, t('toast.logSuccess'))
+        })
+      }
+      onDelete={(id) => del.mutate({ id, trackerId: tracker.id })}
+    />
+  )
+
+  if (isHabit) {
+    return (
+      <View className='flex-1 bg-bg'>
+        {appbar}
+        <HabitDetailView
+          tracker={tracker}
+          entries={entries}
+          onAddLog={openAddLog}
+          onEditEntry={openEditLog}
+          onLogForDate={openLogForDate}
+        />
+        {logModalEl}
+      </View>
+    )
   }
 
   return (

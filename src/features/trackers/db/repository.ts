@@ -90,39 +90,56 @@ export function deleteTracker(id: string): void {
   db.executeSync(`DELETE FROM trackers WHERE id = ?`, [id])
 }
 
+export function entryToRow(e: Entry): Row {
+  return {
+    id: e.id,
+    tracker_id: e.trackerId,
+    date: e.date,
+    value: e.value,
+    note: e.note,
+    created_at: e.createdAt
+  }
+}
+
+export function rowToEntry(r: Row): Entry {
+  return {
+    id: r.id,
+    trackerId: r.tracker_id,
+    date: r.date,
+    value: r.value,
+    note: r.note ?? null,
+    createdAt: r.created_at ?? '' // older rows predate the column → empty string
+  }
+}
+
+const ENTRY_COLS = 'id,tracker_id,date,value,note,created_at'
+
 export function insertEntry(e: Entry): void {
+  const r = entryToRow(e)
   getDb().executeSync(
-    `INSERT OR REPLACE INTO entries (id,tracker_id,date,value,note) VALUES (?,?,?,?,?)`,
-    [e.id, e.trackerId, e.date, e.value, e.note]
+    `INSERT OR REPLACE INTO entries (${ENTRY_COLS}) VALUES (?,?,?,?,?,?)`,
+    [r.id, r.tracker_id, r.date, r.value, r.note, r.created_at]
   )
+}
+
+export function deleteEntry(id: string): void {
+  getDb().executeSync(`DELETE FROM entries WHERE id = ?`, [id])
 }
 
 export function listEntries(trackerId: string): Entry[] {
   const res = getDb().executeSync(
-    `SELECT id,tracker_id,date,value,note FROM entries WHERE tracker_id = ? ORDER BY date ASC`,
+    `SELECT ${ENTRY_COLS} FROM entries WHERE tracker_id = ? ORDER BY date ASC`,
     [trackerId]
   )
-  return (res.rows ?? []).map((r: Row) => ({
-    id: r.id,
-    trackerId: r.tracker_id,
-    date: r.date,
-    value: r.value,
-    note: r.note ?? null
-  }))
+  return (res.rows ?? []).map(rowToEntry)
 }
 
 export function listEntriesForDate(date: string): Entry[] {
   const res = getDb().executeSync(
-    `SELECT id,tracker_id,date,value,note FROM entries WHERE date = ?`,
+    `SELECT ${ENTRY_COLS} FROM entries WHERE date = ?`,
     [date.slice(0, 10)]
   )
-  return (res.rows ?? []).map((r: Row) => ({
-    id: r.id,
-    trackerId: r.tracker_id,
-    date: r.date,
-    value: r.value,
-    note: r.note ?? null
-  }))
+  return (res.rows ?? []).map(rowToEntry)
 }
 
 export function listMilestones(trackerId: string): Milestone[] {

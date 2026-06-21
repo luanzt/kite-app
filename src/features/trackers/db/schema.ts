@@ -62,7 +62,8 @@ export const ENTRY_COLUMNS: ColumnSpec[] = [
   { name: 'tracker_id', decl: "tracker_id TEXT NOT NULL DEFAULT ''" },
   { name: 'date', decl: "date TEXT NOT NULL DEFAULT ''" },
   { name: 'value', decl: 'value REAL NOT NULL DEFAULT 0' },
-  { name: 'note', decl: 'note TEXT' }
+  { name: 'note', decl: 'note TEXT' },
+  { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" }
 ]
 
 export const MILESTONE_COLUMNS: ColumnSpec[] = [

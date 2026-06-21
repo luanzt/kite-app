@@ -1,0 +1,277 @@
+import { Pressable, View } from 'react-native'
+import { Typography } from 'heroui-native'
+import { useTranslation } from 'react-i18next'
+import type { Tracker, Entry } from '@features/trackers/types'
+import { Icons } from '@features/trackers/icons'
+import {
+  buildHistoryRows,
+  type HistoryRowItem
+} from '@features/trackers/calculators/habitStats'
+import { toISODate } from '@utils/date'
+
+/** Render an ISO date as a UTC Date for locale formatting. */
+function isoToDate(iso: string): Date {
+  return new Date(`${iso.slice(0, 10)}T00:00:00Z`)
+}
+
+/** Short weekday, e.g. "Sat" / "T7". */
+function weekdayLabel(iso: string, lang: string): string {
+  return isoToDate(iso).toLocaleDateString(lang, {
+    weekday: 'short',
+    timeZone: 'UTC'
+  })
+}
+
+/** Day-of-month number from an ISO date. */
+function dayNum(iso: string): number {
+  return Number(iso.slice(8, 10))
+}
+
+/** Full row date, e.g. "20 June 2026". */
+function fullDate(iso: string, lang: string): string {
+  return isoToDate(iso).toLocaleDateString(lang, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC'
+  })
+}
+
+/** Logged time from a createdAt ISO datetime, e.g. "8:43 AM". Local time. */
+function timeLabel(createdAt: string, lang: string): string {
+  if (!createdAt) return ''
+  const d = new Date(createdAt)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleTimeString(lang, { hour: 'numeric', minute: '2-digit' })
+}
+
+/** Shared row shell: day tile + date/meta + status slot. */
+function RowShell({
+  iso,
+  meta,
+  tileDone,
+  status,
+  isFirst,
+  lang,
+  onPress
+}: {
+  iso: string
+  meta: string
+  tileDone: boolean
+  status: React.ReactNode
+  isFirst: boolean
+  lang: string
+  onPress: () => void
+}) {
+  const wk = weekdayLabel(iso, lang)
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`flex-row items-center gap-s4 px-s5 py-[10px] active:bg-surface-2 ${
+        isFirst ? '' : 'border-t border-line'
+      }`}
+    >
+      <View
+        className={`h-[44px] w-[42px] items-center justify-center rounded-md-k ${
+          tileDone ? 'bg-brand' : 'bg-[#eaedf4]'
+        }`}
+      >
+        <Typography
+          className={`text-base font-bold leading-[18px] ${
+            tileDone ? 'text-on-accent' : 'text-ink-2'
+          }`}
+        >
+          {dayNum(iso)}
+        </Typography>
+        <Typography
+          className={`text-[9.5px] font-bold uppercase leading-[11px] ${
+            tileDone ? 'text-on-accent' : 'text-ink-3'
+          }`}
+        >
+          {wk}
+        </Typography>
+      </View>
+
+      <View className='flex-1'>
+        <Typography className='text-[14px] font-bold text-ink'>
+          {fullDate(iso, lang)}
+        </Typography>
+        <Typography
+          className='mt-[2px] text-xs-k font-medium text-ink-3'
+          numberOfLines={1}
+        >
+          {meta}
+        </Typography>
+      </View>
+
+      <View className='flex-row items-center gap-s2'>
+        {status}
+        <Icons.Chevron size={16} color='#d2d5c8' />
+      </View>
+    </Pressable>
+  )
+}
+
+/** Yes / No pill for a logged record. */
+function RecordRow({
+  entry,
+  isFirst,
+  lang,
+  t,
+  onPress
+}: {
+  entry: Entry
+  isFirst: boolean
+  lang: string
+  t: (k: string) => string
+  onPress: () => void
+}) {
+  const yes = entry.value > 0
+  const wk = weekdayLabel(entry.date, lang)
+  const time = timeLabel(entry.createdAt, lang)
+  const base = time ? `${wk} · ${time}` : wk
+  const meta = entry.note && entry.note.trim() ? entry.note : base
+  return (
+    <RowShell
+      iso={entry.date}
+      meta={meta}
+      tileDone={yes}
+      isFirst={isFirst}
+      lang={lang}
+      onPress={onPress}
+      status={
+        yes ? (
+          <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-brand-weak px-s3 py-s1'>
+            <Icons.Check size={12} color='#2456b5' />
+            <Typography className='text-xs-k font-bold text-brand-ink'>
+              {t('log.yes')}
+            </Typography>
+          </View>
+        ) : (
+          <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-pace-behind-weak px-s3 py-s1'>
+            <Icons.Close size={12} color='#e0564e' />
+            <Typography className='text-xs-k font-bold text-pace-behind'>
+              {t('log.no')}
+            </Typography>
+          </View>
+        )
+      }
+    />
+  )
+}
+
+/** Dashed "Log" pill for a due day with no record yet. */
+function EmptyRow({
+  iso,
+  isFirst,
+  lang,
+  t,
+  onPress
+}: {
+  iso: string
+  isFirst: boolean
+  lang: string
+  t: (k: string) => string
+  onPress: () => void
+}) {
+  const wk = weekdayLabel(iso, lang)
+  return (
+    <RowShell
+      iso={iso}
+      meta={`${wk} · ${t('detail.notLogged')}`}
+      tileDone={false}
+      isFirst={isFirst}
+      lang={lang}
+      onPress={onPress}
+      status={
+        // border (1px, not 1.5) renders shorter, tighter dashes than a thick one;
+        // min-w matches the Yes/No pill width so all three line up.
+        <View className='min-w-[72px] items-center rounded-full border border-dashed border-[#eaedf4] px-s3 py-s1'>
+          <Typography className='text-xs-k font-bold text-ink-3'>
+            {t('detail.logShort')}
+          </Typography>
+        </View>
+      }
+    />
+  )
+}
+
+/**
+ * History tab — every due day from the tracker's start date to today (newest
+ * first). A logged day shows each of its records (Yes/No); a day with no record
+ * shows a dashed "Log" row so the user can back-fill it. "Add Log" logs today.
+ */
+export function HabitHistoryTab({
+  tracker,
+  entries,
+  onAddLog,
+  onEditEntry,
+  onLogForDate
+}: {
+  tracker: Tracker
+  entries: Entry[]
+  onAddLog?: () => void
+  onEditEntry?: (entry: Entry) => void
+  onLogForDate?: (iso: string) => void
+}) {
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
+  const rows: HistoryRowItem[] = buildHistoryRows(
+    tracker,
+    entries,
+    toISODate(new Date())
+  )
+
+  return (
+    <>
+      {/* Log History header */}
+      <View className='flex-row items-center justify-between px-s5 pb-s1 pt-s1'>
+        <Typography className='text-h3-k font-bold text-ink'>
+          {t('detail.logHistory')}
+        </Typography>
+        <Pressable
+          onPress={onAddLog}
+          className='flex-row items-center gap-s2 rounded-full bg-brand-weak px-s4 py-s2 active:opacity-80'
+        >
+          <Icons.Plus size={17} color='#2456b5' />
+          <Typography className='text-sm-k font-bold text-brand-ink'>
+            {t('detail.addLog')}
+          </Typography>
+        </Pressable>
+      </View>
+
+      {rows.length === 0 ? (
+        <View className='m-s5 items-center rounded-xl-k border border-line bg-surface p-s7'>
+          <Icons.History size={28} color='#8a8e80' />
+          <Typography className='mt-s3 text-sm font-medium text-ink-3'>
+            {t('detail.noHistory')}
+          </Typography>
+        </View>
+      ) : (
+        <View className='mx-s4 mt-s2 overflow-hidden rounded-xl-k border border-line bg-surface'>
+          {rows.map((row, i) =>
+            row.kind === 'record' ? (
+              <RecordRow
+                key={row.entry.id}
+                entry={row.entry}
+                isFirst={i === 0}
+                lang={lang}
+                t={t}
+                onPress={() => onEditEntry?.(row.entry)}
+              />
+            ) : (
+              <EmptyRow
+                key={`empty-${row.iso}`}
+                iso={row.iso}
+                isFirst={i === 0}
+                lang={lang}
+                t={t}
+                onPress={() => onLogForDate?.(row.iso)}
+              />
+            )
+          )}
+        </View>
+      )}
+    </>
+  )
+}

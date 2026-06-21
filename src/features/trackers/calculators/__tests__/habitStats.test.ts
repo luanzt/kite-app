@@ -1,0 +1,312 @@
+import {
+  doneDatesOf,
+  bestStreak,
+  buildCalendarMonth,
+  weeklyGoalOf,
+  periodSessions,
+  buildHistoryRows,
+  isoAddDays
+} from '../habitStats'
+import type { Tracker, Entry } from '@features/trackers/types'
+
+const base: Tracker = {
+  id: 'h1',
+  name: 'Running',
+  type: 'habit',
+  icon: 'walk',
+  color: 'blue',
+  unit: null,
+  direction: 'good',
+  targetValue: null,
+  startValue: null,
+  accumulation: null,
+  startDate: '2026-06-01',
+  deadline: null,
+  period: 'daily',
+  repeatDays: [0, 1, 2, 3, 4, 5, 6],
+  routine: 'any',
+  reminderTime: null,
+  createdAt: '2026-06-01T00:00:00Z',
+  archived: false
+}
+
+const log = (date: string, value = 1): Entry => ({
+  id: `${date}-${value}`,
+  trackerId: 'h1',
+  date,
+  value,
+  note: null,
+  createdAt: `${date}T00:00:00Z`
+})
+
+describe('isoAddDays', () => {
+  test('crosses month boundaries in UTC', () => {
+    expect(isoAddDays('2026-06-30', 1)).toBe('2026-07-01')
+    expect(isoAddDays('2026-06-01', -1)).toBe('2026-05-31')
+  })
+})
+
+describe('doneDatesOf', () => {
+  test('a day counts once its summed value meets the per-day goal', () => {
+    const t = { ...base, period: 'daily' as const, targetValue: 3 }
+    const done = doneDatesOf(t, [
+      log('2026-06-02', 2),
+      log('2026-06-02', 1), // 2 + 1 = 3 → met
+      log('2026-06-03', 2) // below goal → not done
+    ])
+    expect(done.has('2026-06-02')).toBe(true)
+    expect(done.has('2026-06-03')).toBe(false)
+  })
+
+  test('sums multiple records on the same day (a "No" log of 0 does not block)', () => {
+    const t = { ...base, period: 'daily' as const, targetValue: 1 }
+    const done = doneDatesOf(t, [
+      log('2026-06-02', 0), // a "No" log
+      log('2026-06-02', 1) // then a "Yes" log → day is done
+    ])
+    expect(done.has('2026-06-02')).toBe(true)
+  })
+})
+
+describe('bestStreak', () => {
+  test('finds the longest run, not the current one', () => {
+    // 4-day run (2..5), broken on the 6th, then a shorter recent run.
+    const entries = [
+      log('2026-06-02'),
+      log('2026-06-03'),
+      log('2026-06-04'),
+      log('2026-06-05'),
+      // 6th missed
+      log('2026-06-07'),
+      log('2026-06-08')
+    ]
+    expect(bestStreak(base, entries, '2026-06-08')).toBe(4)
+  })
+
+  test('respects repeatDays — non-scheduled days never break the run', () => {
+    // Mon/Wed/Fri only. 2026-06-01 is a Monday.
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const entries = [
+      log('2026-06-01'), // Mon
+      log('2026-06-03'), // Wed
+      log('2026-06-05') // Fri
+    ]
+    expect(bestStreak(mwf, entries, '2026-06-05')).toBe(3)
+  })
+})
+
+describe('buildCalendarMonth', () => {
+  test('classifies done / rest / today / future days', () => {
+    // Mon/Wed/Fri schedule so weekends are "rest".
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(
+      mwf,
+      [log('2026-06-01'), log('2026-06-03')],
+      2026,
+      5, // June (0-based)
+      '2026-06-10'
+    )
+    expect(m.daysInMonth).toBe(30)
+    // June 1 2026 is a Monday → Monday-based offset 0.
+    expect(m.firstWeekdayMon).toBe(0)
+    const status = (day: number) => m.cells.find((c) => c.day === day)?.status
+    expect(status(1)).toBe('done')
+    expect(status(3)).toBe('done')
+    expect(status(6)).toBe('rest') // Saturday, not scheduled
+    expect(status(10)).toBe('today')
+    expect(status(12)).toBe('future') // Friday after today
+  })
+})
+
+describe('weeklyGoalOf', () => {
+  test('uses the number of scheduled weekdays', () => {
+    expect(weeklyGoalOf({ ...base, repeatDays: [1, 2, 3, 4, 5] })).toBe(5)
+  })
+  test('falls back to a weekly target', () => {
+    expect(
+      weeklyGoalOf({
+        ...base,
+        repeatDays: null,
+        period: 'weekly',
+        targetValue: 4
+      })
+    ).toBe(4)
+  })
+})
+
+describe('buildHistoryRows', () => {
+  // every-day habit, started Jun 1, today Jun 5 → days 5,4,3,2,1 (newest first)
+  const t = { ...base, startDate: '2026-06-01' }
+  const logAt = (date: string, time: string, value = 1): Entry => ({
+    id: `${date}-${time}`,
+    trackerId: 'h1',
+    date,
+    value,
+    note: null,
+    createdAt: `${date}T${time}Z`
+  })
+
+  test('emits a row for every due day from today back to startDate, newest first', () => {
+    const rows = buildHistoryRows(t, [], '2026-06-05')
+    expect(rows).toHaveLength(5)
+    expect(rows.every((r) => r.kind === 'empty')).toBe(true)
+    expect(rows.map((r) => (r.kind === 'empty' ? r.iso : ''))).toEqual([
+      '2026-06-05',
+      '2026-06-04',
+      '2026-06-03',
+      '2026-06-02',
+      '2026-06-01'
+    ])
+  })
+
+  test('a day with no record is an "empty" row (Log), a logged day is a "record"', () => {
+    const rows = buildHistoryRows(t, [logAt('2026-06-03', '08:00:00')], '2026-06-05')
+    const byDay = (iso: string) =>
+      rows.filter((r) =>
+        r.kind === 'record' ? r.entry.date === iso : r.iso === iso
+      )
+    expect(byDay('2026-06-05')[0].kind).toBe('empty')
+    expect(byDay('2026-06-03')[0].kind).toBe('record')
+  })
+
+  test('a day with multiple records shows each, newest record first', () => {
+    const rows = buildHistoryRows(
+      t,
+      [
+        logAt('2026-06-02', '07:00:00'),
+        logAt('2026-06-02', '20:00:00') // later same day
+      ],
+      '2026-06-02'
+    )
+    const recs = rows.filter((r) => r.kind === 'record')
+    expect(recs).toHaveLength(2)
+    expect(recs.map((r) => (r.kind === 'record' ? r.entry.createdAt : ''))).toEqual(
+      ['2026-06-02T20:00:00Z', '2026-06-02T07:00:00Z']
+    )
+  })
+
+  test('skips non-due (rest) days', () => {
+    // Mon/Wed/Fri only. Jun 1 is Mon. today = Jun 5 (Fri).
+    const mwf = { ...t, repeatDays: [1, 3, 5] }
+    const rows = buildHistoryRows(mwf, [], '2026-06-05')
+    // due days in range: Fri 5, Wed 3, Mon 1
+    expect(rows.map((r) => (r.kind === 'empty' ? r.iso : ''))).toEqual([
+      '2026-06-05',
+      '2026-06-03',
+      '2026-06-01'
+    ])
+  })
+})
+
+describe('periodSessions', () => {
+  let n = 0
+  const log = (date: string): Entry => ({
+    id: `${date}-${n++}`,
+    trackerId: 'h1',
+    date,
+    value: 1,
+    note: null,
+    createdAt: `${date}T10:00:00Z`
+  })
+
+  test('daily habit → one bar per day from start to today, unit "day"', () => {
+    // start Jun 1, today Jun 20 → 20 day bars (oldest first)
+    const t = { ...base, period: 'daily' as const, startDate: '2026-06-01' }
+    const r = periodSessions(t, [log('2026-06-20')], '2026-06-20')
+    expect(r.unit).toBe('day')
+    expect(r.bars).toHaveLength(20)
+    expect(r.bars[0].startISO).toBe('2026-06-01')
+    const last = r.bars[r.bars.length - 1]
+    expect(last.startISO).toBe('2026-06-20')
+    expect(last.partial).toBe(true)
+  })
+
+  test('daily bar count = number of records that day, 0 when none', () => {
+    const t = {
+      ...base,
+      period: 'daily' as const,
+      startDate: '2026-06-18',
+      targetValue: 5 // 5 times a day
+    }
+    const entries = [
+      log('2026-06-20'),
+      log('2026-06-20'),
+      log('2026-06-20') // 3 logs on the 20th
+    ]
+    const r = periodSessions(t, entries, '2026-06-20')
+    expect(r.perDayTarget).toBe(5)
+    expect(r.bars.find((b) => b.startISO === '2026-06-20')?.count).toBe(3)
+    expect(r.bars.find((b) => b.startISO === '2026-06-19')?.count).toBe(0)
+  })
+
+  test('daily scaleMax is the larger of max count and the per-day target', () => {
+    const t = {
+      ...base,
+      period: 'daily' as const,
+      startDate: '2026-06-19',
+      targetValue: 5
+    }
+    // a day with 8 logs (over target) → scaleMax follows the data
+    const entries = Array.from({ length: 8 }, () => log('2026-06-20'))
+    const r = periodSessions(t, entries, '2026-06-20')
+    expect(r.scaleMax).toBe(8)
+  })
+
+  test('daily scaleMax includes the target so the goal line is to scale', () => {
+    // goal 2, only 1 log → bar should be half height → scaleMax must be 2
+    const t = {
+      ...base,
+      period: 'daily' as const,
+      startDate: '2026-06-19',
+      targetValue: 2
+    }
+    const r = periodSessions(t, [log('2026-06-20')], '2026-06-20')
+    expect(r.scaleMax).toBe(2)
+  })
+
+  test('daily scaleMax caps an absurd target so the Y axis never breaks', () => {
+    // a garbage tracker with a giant per-day target must not blow up the scale
+    const t = {
+      ...base,
+      period: 'daily' as const,
+      startDate: '2026-06-19',
+      targetValue: 1000000
+    }
+    const r = periodSessions(t, [log('2026-06-20'), log('2026-06-20')], '2026-06-20')
+    expect(r.scaleMax).toBeLessThanOrEqual(100) // capped, not a billion
+  })
+
+  test('weekly habit → 4 week bars, unit "week"', () => {
+    const t = { ...base, period: 'weekly' as const, startDate: '2026-01-01' }
+    const r = periodSessions(t, [log('2026-06-20')], '2026-06-20')
+    expect(r.unit).toBe('week')
+    expect(r.bars).toHaveLength(4)
+    expect(r.bars[r.bars.length - 1].startISO).toBe('2026-06-15') // current monday
+    expect(r.bars[r.bars.length - 1].count).toBe(1)
+  })
+
+  test('monthly habit → 3 month bars, unit "month"', () => {
+    const t = { ...base, period: 'monthly' as const, startDate: '2026-01-01' }
+    const r = periodSessions(t, [log('2026-06-20'), log('2026-06-05')], '2026-06-20')
+    expect(r.unit).toBe('month')
+    expect(r.bars).toHaveLength(3)
+    // current month bar starts at the 1st
+    const cur = r.bars[r.bars.length - 1]
+    expect(cur.startISO).toBe('2026-06-01')
+    expect(cur.count).toBe(2) // two done days this month
+  })
+
+  test('yearly habit → 2 year bars, unit "year"', () => {
+    const t = { ...base, period: 'yearly' as const, startDate: '2025-01-01' }
+    const r = periodSessions(t, [log('2026-03-10')], '2026-06-20')
+    expect(r.unit).toBe('year')
+    expect(r.bars).toHaveLength(2)
+    expect(r.bars[r.bars.length - 1].startISO).toBe('2026-01-01')
+    expect(r.bars[r.bars.length - 1].count).toBe(1)
+  })
+
+  test('null period defaults to daily', () => {
+    const t = { ...base, period: null, startDate: '2026-01-01' }
+    expect(periodSessions(t, [], '2026-06-20').unit).toBe('day')
+  })
+})

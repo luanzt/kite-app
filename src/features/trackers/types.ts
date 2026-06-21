@@ -30,9 +30,10 @@ export type Tracker = {
 export type Entry = {
   id: string
   trackerId: string
-  date: string // ISO date
+  date: string // ISO date (YYYY-MM-DD) — the day this log belongs to
   value: number
   note: string | null
+  createdAt: string // ISO datetime — when logged; orders multiple logs per day
 }
 
 export type Milestone = {

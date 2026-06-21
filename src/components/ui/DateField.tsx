@@ -113,8 +113,8 @@ function CalendarSheet({
       maxDate={maxDate}
       styles={{
         ...defaultStyles,
-        today: { borderColor: '#2e7d5b', borderWidth: 1 },
-        selected: { backgroundColor: '#2e7d5b' },
+        today: { borderColor: '#2456b5', borderWidth: 1 },
+        selected: { backgroundColor: '#2456b5' },
         selected_label: { color: '#ffffff' }
       }}
     />

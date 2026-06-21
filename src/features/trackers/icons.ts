@@ -21,6 +21,8 @@ import {
   Calendar,
   Clock,
   X,
+  History,
+  StickyNote,
   type LucideIcon
 } from 'lucide-react-native'
 import type { FC } from 'react'
@@ -40,7 +42,7 @@ import SettingInactive from '@assets/images/ic_setting_inactive.svg'
 export const PACE_COLOR: Record<PaceStatus, string> = {
   on_track: '#1f9d57',
   behind: '#e0564e',
-  ahead: '#3d7dd8',
+  ahead: '#2456b5',
   none: '#a3a8a0'
 }
 
@@ -91,7 +93,10 @@ export const Icons = {
   Bolt: Zap,
   Bell,
   Calendar,
-  Clock
+  Clock,
+  Charts: ChartColumn,
+  History,
+  Notes: StickyNote
 } as const
 
 export type IconName = keyof typeof Icons
@@ -166,7 +171,7 @@ export function iconEmoji(key: string | null | undefined): string {
  */
 const COLOR_HEX: Record<string, string> = {
   green: '#2e7d5b',
-  blue: '#3d7dd8',
+  blue: '#2456b5',
   red: '#e0564e',
   orange: '#d98b2b',
   purple: '#8b5cf6',
