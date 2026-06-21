@@ -2,11 +2,14 @@ import './global.css'
 import { useEffect } from 'react'
 import { StyleSheet } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { SafeAreaProvider } from 'react-native-safe-area-context'
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets
+} from 'react-native-safe-area-context'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { HeroUINativeProvider } from 'heroui-native'
 import { AlertProvider } from '@components/ui'
-import { heroUIConfig } from '@theme/index'
+import { makeHeroUIConfig } from '@theme/index'
 import { queryClient } from '@api/queryClient'
 import { RootNavigator } from '@navigation/RootNavigator'
 import { getDb } from '@features/trackers/db/schema'
@@ -39,13 +42,22 @@ export default function App() {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <HeroUINativeProvider config={heroUIConfig}>
-            <AlertProvider>
-              <RootNavigator />
-            </AlertProvider>
-          </HeroUINativeProvider>
+          <AppShell />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  )
+}
+
+// Inside SafeAreaProvider so it can read the device top inset and feed it to
+// HeroUI's toast config (toasts render in a full-window overlay → no auto inset).
+function AppShell() {
+  const insets = useSafeAreaInsets()
+  return (
+    <HeroUINativeProvider config={makeHeroUIConfig(insets.top)}>
+      <AlertProvider>
+        <RootNavigator />
+      </AlertProvider>
+    </HeroUINativeProvider>
   )
 }

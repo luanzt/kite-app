@@ -12,18 +12,18 @@
 
 /* ============================================================
    Override HeroUI Native's accent so `<Button variant="primary">`,
-   focus rings, and other accent-driven components use Kite's soft
-   blue (#3d7dd8) instead of HeroUI's default blue. Matches the
+   focus rings, and other accent-driven components use Kite's deep
+   blue (#2456b5) instead of HeroUI's default blue. Matches the
    --color-brand token below. Defined for both light & dark so the
-   two stay in sync. (#3d7dd8 ≈ oklch(0.602 0.143 257).)
+   two stay in sync. (#2456b5 ≈ oklch(0.476 0.160 261.6).)
    ============================================================ */
 @layer theme {
   :root {
     @variant light {
-      --accent: oklch(0.602 0.143 257);
+      --accent: oklch(0.476 0.16 261.6);
     }
     @variant dark {
-      --accent: oklch(0.602 0.143 257);
+      --accent: oklch(0.476 0.16 261.6);
     }
   }
 }
@@ -50,17 +50,17 @@
   --color-ink-3: #8a8e80;
   --color-on-accent: #ffffff;
 
-  /* ---- brand (soft blue) ---- */
-  --color-brand: #3d7dd8;
+  /* ---- brand (deep blue) ---- */
+  --color-brand: #2456b5;
   --color-brand-weak: #e6eefb;
-  --color-brand-ink: #2f63b3;
+  --color-brand-ink: #2456b5;
 
   /* ---- pace palette (classic) — the soul of the app ---- */
   --color-pace-on: #1f9d57;
   --color-pace-on-weak: #e3f3ea;
   --color-pace-behind: #e0564e;
   --color-pace-behind-weak: #fbe7e5;
-  --color-pace-ahead: #3d7dd8;
+  --color-pace-ahead: #2456b5;
   --color-pace-ahead-weak: #e6eefb;
   --color-pace-none: #a3a8a0;
   --color-pace-none-weak: #eceee8;
@@ -91,4 +91,19 @@
   --text-body-k: 15px;
   --text-sm-k: 13px;
   --text-xs-k: 11.5px;
+
+  /* ---- fonts (San Francisco Display) ----
+     RN matches fontFamily by the font's PostScript name, NOT the .ttf/.otf
+     filename — these strings come from `mdls`/`fc-scan` on the .otf files.
+     HeroUI Native reads --font-normal/medium/semibold/bold for every weight
+     of <Typography>, Button.Label, etc., so overriding them here restyles the
+     whole app. (RN does NOT synthesize weights from one file — each weight must
+     point at its own face, which is why all four are declared.)
+     Requires `npx react-native-asset` + a native rebuild to take effect. */
+  --font-light: 'SanFranciscoDisplay-Light';
+  --font-normal: 'SanFranciscoDisplay-Regular';
+  --font-medium: 'SanFranciscoDisplay-Medium';
+  --font-semibold: 'SanFranciscoDisplay-Semibold';
+  --font-bold: 'SanFranciscoDisplay-Bold';
+  --font-black: 'SanFranciscoDisplay-Black';
 }

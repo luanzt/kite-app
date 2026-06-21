@@ -148,6 +148,35 @@ These rules are non-negotiable for all UI code in this project:
    lucide component (e.g. via a small `icon`-name → component lookup) rather than
    rendering arbitrary strings.
 
+4. **For overlays use HeroUI Native, NEVER react-native `Modal`.** When you need
+   a sheet, modal, dialog, or popover, reach for HeroUI Native's overlay
+   components — they ship backdrop, swipe-to-dismiss, animation, theming, and
+   safe-area handling for free, and keep the app HeroUI-first.
+   - **`BottomSheet`** — a sheet sliding up from the bottom (the default choice
+     for a full task like logging/editing). Controlled via `isOpen`/
+     `onOpenChange`; compose `BottomSheet.Portal` > `BottomSheet.Overlay` +
+     `BottomSheet.Content`. Scroll its content with `BottomSheetScrollView` (NOT
+     react-native `ScrollView`, or the sheet steals the scroll gesture) and use
+     `BottomSheetTextInput` + `keyboardBehavior="extend"` for inputs so the
+     keyboard doesn't cover them.
+   - **`Dialog`** — a small centered popup / confirm.
+   - **`Popover`** — anchored transient content.
+   ```tsx
+   import { BottomSheet } from 'heroui-native';
+   <BottomSheet isOpen={open} onOpenChange={setOpen}>
+     <BottomSheet.Portal>
+       <BottomSheet.Overlay />
+       <BottomSheet.Content snapPoints={['92%']} enableDynamicSizing={false}>
+         …
+       </BottomSheet.Content>
+     </BottomSheet.Portal>
+   </BottomSheet>
+   ```
+   This is the overlay-specific exception to the general rule that bare
+   react-native primitives (`View`, `Pressable`, `ScrollView`, `TextInput`,
+   `FlatList`) are fine — those have no HeroUI equivalent and are used
+   project-wide; `Modal` does have one, so use it.
+
 ## HeroUI Native — Compound Component Patterns
 
 HeroUI Native uses compound components, NOT flat props. This is critical:

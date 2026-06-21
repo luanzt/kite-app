@@ -26,7 +26,8 @@ const e = (date: string, value: number): Entry => ({
   trackerId: 'a1',
   date,
   value,
-  note: null
+  note: null,
+  createdAt: `${date}T00:00:00Z`
 })
 
 describe('calculateAverage', () => {

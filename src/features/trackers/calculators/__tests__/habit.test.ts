@@ -26,14 +26,16 @@ const done = (date: string): Entry => ({
   trackerId: 'h1',
   date,
   value: 1,
-  note: null
+  note: null,
+  createdAt: `${date}T00:00:00Z`
 })
 const log = (date: string, value: number): Entry => ({
   id: `${date}-${value}`,
   trackerId: 'h1',
   date,
   value,
-  note: null
+  note: null,
+  createdAt: `${date}T00:00:00Z`
 })
 
 describe('calculateHabit', () => {

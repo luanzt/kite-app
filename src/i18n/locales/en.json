@@ -66,15 +66,34 @@
     "streak": "Streak", "successRate": "Success rate", "history": "History",
     "days": "days", "success": "success", "target": "Target", "milestones": "Milestones",
     "shouldBe": "Pace target", "expected": "Expected by now", "remaining": "Left",
-    "best": "Best", "logToday": "Log today"
+    "best": "Best", "logToday": "Log today",
+    "calendar": "Calendar",
+    "sessionsBy": { "day": "Last 21 days", "week": "Sessions per week", "month": "Sessions per month", "year": "Sessions per year" },
+    "goalMet": "Goal met", "currentStreak": "Current streak", "bestStreak": "Best streak",
+    "completed": "Completed", "restDay": "Rest day", "goal": "Goal",
+    "dow": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "tabCharts": "Charts", "tabHistory": "History", "tabNotes": "Notes",
+    "everyDay": "Every day", "perWeek": "{{count}} times a week",
+    "perMonth": "{{count}} times a month", "perYear": "{{count}} times a year",
+    "schedule": "Schedule", "editDetails": "Edit details", "archive": "Archive",
+    "deleteConfirmTitle": "Delete tracker?", "deleteConfirmMsg": "This permanently removes the tracker and all its entries. This cannot be undone.",
+    "noNotes": "No notes yet", "noNotesHint": "Notes you add when logging will show up here.",
+    "noHistory": "No entries yet", "recentEntries": "Recent entries",
+    "logHistory": "Log History", "addLog": "Add Log", "logShort": "Log", "notLogged": "not logged",
+    "weekLogged": "{{logged}}/{{goal}} logged"
   },
   "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close" },
+  "log": {
+    "prompt": "Did you do this habit?", "yes": "Yes", "no": "No",
+    "notesPh": "Add a note about this session — how it felt, distance, pace…",
+    "date": "Date", "time": "Time", "save": "Save log"
+  },
   "set": {
     "appearance": "Appearance", "theme": "Dark mode", "themeSoon": "Coming soon", "language": "Language",
     "data": "Data", "export": "Export data", "exportSub": "Save a JSON backup",
     "clear": "Clear all data", "clearSub": "Delete every tracker & entry",
     "about": "About", "version": "Version", "offline": "Works fully offline"
   },
-  "toast": { "saved": "Tracker saved", "logged": "Logged", "deleted": "Tracker deleted" },
+  "toast": { "saved": "Tracker saved", "logged": "Logged", "logSuccess": "Logged successfully", "deleted": "Tracker deleted" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" }
 }

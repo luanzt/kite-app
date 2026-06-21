@@ -43,7 +43,7 @@ const ICONSET: Record<string, string[]> = {
 /** Tracker color palette (mirrors COLORS in data.js). */
 const COLORS = [
   '#2e7d5b',
-  '#3d7dd8',
+  '#2456b5',
   '#e0564e',
   '#d98b2b',
   '#8b5cf6',

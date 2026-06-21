@@ -1,5 +1,10 @@
-import { rowToTracker, trackerToRow } from '../repository'
-import type { Tracker } from '@features/trackers/types'
+import {
+  rowToTracker,
+  trackerToRow,
+  entryToRow,
+  rowToEntry
+} from '../repository'
+import type { Tracker, Entry } from '@features/trackers/types'
 
 const tracker: Tracker = {
   id: 't1',
@@ -64,5 +69,34 @@ describe('tracker row mapping', () => {
     }
     const back = rowToTracker(trackerToRow(habit))
     expect(back).toEqual(habit)
+  })
+})
+
+describe('entry row mapping', () => {
+  const entry: Entry = {
+    id: 'e1',
+    trackerId: 'h1',
+    date: '2026-06-18',
+    value: 1,
+    note: 'felt great',
+    createdAt: '2026-06-18T09:59:00Z'
+  }
+
+  test('entryToRow maps createdAt to created_at column', () => {
+    const row = entryToRow(entry)
+    expect(row.created_at).toBe('2026-06-18T09:59:00Z')
+    expect(row.tracker_id).toBe('h1')
+    expect(row.value).toBe(1)
+  })
+
+  test('rowToEntry round-trips', () => {
+    expect(rowToEntry(entryToRow(entry))).toEqual(entry)
+  })
+
+  test('rowToEntry handles null note and missing created_at', () => {
+    const row = { ...entryToRow(entry), note: null, created_at: null }
+    const back = rowToEntry(row)
+    expect(back.note).toBeNull()
+    expect(back.createdAt).toBe('') // missing timestamp → empty string, not null
   })
 })

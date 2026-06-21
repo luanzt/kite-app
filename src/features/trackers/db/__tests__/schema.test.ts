@@ -43,10 +43,11 @@ describe('missingColumns', () => {
   })
 
   it('works the same for the entries spec', () => {
-    // An "old" entries table missing the later-added `note` column.
+    // An "old" entries table missing the later-added `note` + `created_at`.
     const existing = ['id', 'tracker_id', 'date', 'value']
     expect(missingColumns(ENTRY_COLUMNS, existing)).toEqual([
-      { name: 'note', decl: 'note TEXT' }
+      { name: 'note', decl: 'note TEXT' },
+      { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" }
     ])
   })
 

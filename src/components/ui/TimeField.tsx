@@ -8,6 +8,7 @@ import DateTimePicker, {
   useDefaultStyles,
   type DateType
 } from 'react-native-ui-datepicker'
+import { toHHMM, fromHHMM } from '@utils/date'
 
 /**
  * A field that opens a bottom sheet with a scrollable time wheel to pick an
@@ -58,21 +59,6 @@ export function TimeField({
   )
 }
 
-/** `HH:mm` from the hours/minutes of a Date. */
-function toHHMM(d: Date): string {
-  const h = `${d.getHours()}`.padStart(2, '0')
-  const m = `${d.getMinutes()}`.padStart(2, '0')
-  return `${h}:${m}`
-}
-
-/** A `Date` carrying the given `HH:mm` (today's date; only time is used). */
-function fromHHMM(hhmm: string): Date {
-  const [h, m] = hhmm.slice(0, 5).split(':').map(Number)
-  const d = new Date()
-  d.setHours(Number.isFinite(h) ? h : 18, Number.isFinite(m) ? m : 0, 0, 0)
-  return d
-}
-
 /**
  * The time wheel, rendered inside `BottomSheet.Content` so it can call
  * `useBottomSheet()` to close the sheet. The wheel writes to a local draft;
@@ -108,7 +94,7 @@ function TimeSheet({
         hideHeader
         styles={{
           ...defaultStyles,
-          selected: { backgroundColor: '#2e7d5b' },
+          selected: { backgroundColor: '#2456b5' },
           selected_label: { color: '#ffffff' }
         }}
       />

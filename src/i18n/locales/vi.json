@@ -66,15 +66,34 @@
     "streak": "Chuỗi ngày", "successRate": "Tỉ lệ thành công", "history": "Lịch sử",
     "days": "ngày", "success": "tỷ lệ", "target": "Mục tiêu", "milestones": "Cột mốc",
     "shouldBe": "Mốc tiến độ", "expected": "Dự kiến tới giờ", "remaining": "Còn lại",
-    "best": "Kỷ lục", "logToday": "Ghi hôm nay"
+    "best": "Kỷ lục", "logToday": "Ghi hôm nay",
+    "calendar": "Lịch",
+    "sessionsBy": { "day": "21 ngày gần nhất", "week": "Số buổi mỗi tuần", "month": "Số buổi mỗi tháng", "year": "Số buổi mỗi năm" },
+    "goalMet": "Đạt mục tiêu", "currentStreak": "Chuỗi hiện tại", "bestStreak": "Chuỗi dài nhất",
+    "completed": "Hoàn thành", "restDay": "Ngày nghỉ", "goal": "Mục tiêu",
+    "dow": ["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
+    "tabCharts": "Biểu đồ", "tabHistory": "Lịch sử", "tabNotes": "Ghi chú",
+    "everyDay": "Mỗi ngày", "perWeek": "{{count}} lần/tuần",
+    "perMonth": "{{count}} lần/tháng", "perYear": "{{count}} lần/năm",
+    "schedule": "Lịch trình", "editDetails": "Chỉnh sửa chi tiết", "archive": "Lưu trữ",
+    "deleteConfirmTitle": "Xóa tracker?", "deleteConfirmMsg": "Thao tác này xóa vĩnh viễn tracker và toàn bộ dữ liệu của nó. Không thể hoàn tác.",
+    "noNotes": "Chưa có ghi chú", "noNotesHint": "Ghi chú bạn thêm khi ghi nhận sẽ hiện ở đây.",
+    "noHistory": "Chưa có dữ liệu", "recentEntries": "Mục gần đây",
+    "logHistory": "Lịch sử ghi", "addLog": "Thêm", "logShort": "Ghi", "notLogged": "chưa ghi",
+    "weekLogged": "{{logged}}/{{goal}} ngày"
   },
   "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu", "ok": "OK", "close": "Đóng" },
+  "log": {
+    "prompt": "Bạn đã làm habit này chưa?", "yes": "Có", "no": "Không",
+    "notesPh": "Thêm ghi chú cho lần này — cảm giác, quãng đường, tốc độ…",
+    "date": "Ngày", "time": "Giờ", "save": "Lưu nhật ký"
+  },
   "set": {
     "appearance": "Giao diện", "theme": "Chế độ tối", "themeSoon": "Sắp có", "language": "Ngôn ngữ",
     "data": "Dữ liệu", "export": "Xuất dữ liệu", "exportSub": "Lưu bản sao JSON",
     "clear": "Xóa toàn bộ", "clearSub": "Xóa mọi mục tiêu & dữ liệu",
     "about": "Giới thiệu", "version": "Phiên bản", "offline": "Hoạt động hoàn toàn ngoại tuyến"
   },
-  "toast": { "saved": "Đã lưu mục tiêu", "logged": "Đã ghi", "deleted": "Đã xóa mục tiêu" },
+  "toast": { "saved": "Đã lưu mục tiêu", "logged": "Đã ghi", "logSuccess": "Đã ghi nhận thành công", "deleted": "Đã xóa mục tiêu" },
   "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" }
 }
