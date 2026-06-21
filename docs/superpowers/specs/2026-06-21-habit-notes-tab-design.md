@@ -36,16 +36,19 @@ Every logged entry that carries a non-empty note, newest first, each as a card:
 
 - **Badge** (circular): green check on a `brand-weak` tint if the entry's day
   **met the per-day goal**, red X on the red weak tint if not.
-- **Date** (e.g. "18 Jun 2026") + a **Done / Missed** status label.
+- **Date** (e.g. "18 Jun 2026") + a **Yes / No** status label.
 - **Note text.**
 - Section header shows a count ("N notes").
-- **Read-only** — tapping does nothing (editing happens from the History tab).
+- **Tappable → edit the log.** A log note *is* a log entry that carries a note,
+  so tapping a card opens the existing `LogEntryModal` for that entry (via the
+  `onEditEntry` callback) — exactly like editing a log from the History tab. The
+  user can change the note/value/date or delete the entry from there.
 - Existing **empty state** card when no entry carries a note.
 
-**Done vs Missed semantics:** a note always belongs to a day that has ≥1 log (notes
-attach to entries). "Done" = the entry's `date` is in
+**Yes vs No semantics:** a note always belongs to a day that has ≥1 log (notes
+attach to entries). "Yes" = the entry's `date` is in
 `doneDatesOf(tracker, entries)` (the day's summed value met `perDayGoal`).
-"Missed" = it logged but fell short of the per-day goal (e.g. target 2 logs/day,
+"No" = it logged but fell short of the per-day goal (e.g. target 2 logs/day,
 only 1 logged). This reuses the existing single-source-of-truth helper in
 `calculators/habitStats.ts` — no new completion logic.
 
@@ -93,10 +96,10 @@ and correct, since the tracker's reminder config is unchanged.) No new hook need
 
 ### Context (`HabitDetailContext` / `HabitDetailView`)
 
-`HabitNotesTab` needs `tracker` (for the Done/Missed derivation and the goal note)
-in addition to `entries`. `tracker` is already in `HabitDetailContext`; the
-`NotesScreen` wrapper just passes it through. No new context fields. (`onEditEntry`
-is NOT needed — log notes are read-only here.)
+`HabitNotesTab` needs `tracker` (for the Yes/No derivation and the goal note),
+`entries`, and `onEditEntry` (to open a log note for editing). All three already
+exist in `HabitDetailContext` — the `NotesScreen` wrapper just passes them
+through. No new context fields.
 
 ### UI (`components/HabitNotesTab.tsx`)
 
@@ -106,7 +109,8 @@ two sections above. New small subcomponents kept in the same file unless one
 grows large:
 
 - the Goal note card (controlled `TextInput`, local draft state, save-on-blur),
-- the Log note card (badge + date + status + text).
+- the Log note card (badge + date + Yes/No status + text), wrapped in a
+  `Pressable` that calls `onEditEntry(entry)`.
 
 ## Styling
 
@@ -132,8 +136,8 @@ Reuse existing `detail.noNotes`, `detail.noNotesHint`. Add under `detail`:
 | `goalNotePlaceholder` | Why does this habit matter to you? Write a note to keep you motivated… | Vì sao thói quen này quan trọng với bạn? Viết một ghi chú để giữ động lực… |
 | `logNotes` | Log notes | Ghi chú nhật ký |
 | `notesCount` | `{{count}} notes` | `{{count}} ghi chú` |
-| `done` | Done | Hoàn thành |
-| `missed` | Missed | Bỏ lỡ |
+| `yes` | Yes | Có |
+| `no` | No | Không |
 
 User-entered note text is stored verbatim, never translated.
 
@@ -148,14 +152,13 @@ on device (op-sqlite is mocked in Jest).
 - **Schema** (`db/__tests__/schema.test.ts`): `missingColumns` already covers the
   add-column path generically; add `goal_note` to any column-list assertion if one
   exists, otherwise no new test needed.
-- **No new calculator** — Done/Missed reuses `doneDatesOf`, already unit-tested.
+- **No new calculator** — Yes/No reuses `doneDatesOf`, already unit-tested.
 - **On-device verification:** goal note persists across app restart; editing and
-  blurring saves; Done/Missed badges match the calendar's done days; empty states
-  render for both sections.
+  blurring saves; Yes/No badges match the calendar's done days; tapping a log note
+  opens the edit modal for that entry; empty states render for both sections.
 
 ## Out of scope (YAGNI)
 
 - No changes to Charts, History, calendar, or reminders.
-- No editing of log notes from this tab (read-only).
 - No `user_version` migration system (add-column path is sufficient).
 - No goal-note support surfaced in the TrackerForm (this tab is the only editor for now).
