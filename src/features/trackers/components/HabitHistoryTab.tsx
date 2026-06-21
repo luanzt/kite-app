@@ -1,4 +1,6 @@
 import { Pressable, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { FlashList } from '@shopify/flash-list'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import type { Tracker, Entry } from '@features/trackers/types'
@@ -52,6 +54,7 @@ function RowShell({
   tileDone,
   status,
   isFirst,
+  isLast,
   lang,
   onPress
 }: {
@@ -60,16 +63,20 @@ function RowShell({
   tileDone: boolean
   status: React.ReactNode
   isFirst: boolean
+  isLast: boolean
   lang: string
   onPress: () => void
 }) {
   const wk = weekdayLabel(iso, lang)
+  // FlashList renders each row standalone, so the row itself carries the card
+  // border: left/right always, top on every row but the first (acts as the
+  // divider), bottom only on the last, with rounded corners at the two ends.
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center gap-s4 px-s5 py-[10px] active:bg-surface-2 ${
-        isFirst ? '' : 'border-t border-line'
-      }`}
+      className={`mx-s4 flex-row items-center gap-s4 border-l border-r border-line bg-surface px-s5 py-[10px] active:bg-surface-2 ${
+        isFirst ? 'rounded-t-xl-k border-t' : 'border-t'
+      } ${isLast ? 'rounded-b-xl-k border-b' : ''}`}
     >
       <View
         className={`h-[44px] w-[42px] items-center justify-center rounded-md-k ${
@@ -116,12 +123,14 @@ function RowShell({
 function RecordRow({
   entry,
   isFirst,
+  isLast,
   lang,
   t,
   onPress
 }: {
   entry: Entry
   isFirst: boolean
+  isLast: boolean
   lang: string
   t: (k: string) => string
   onPress: () => void
@@ -137,6 +146,7 @@ function RecordRow({
       meta={meta}
       tileDone={yes}
       isFirst={isFirst}
+      isLast={isLast}
       lang={lang}
       onPress={onPress}
       status={
@@ -164,12 +174,14 @@ function RecordRow({
 function EmptyRow({
   iso,
   isFirst,
+  isLast,
   lang,
   t,
   onPress
 }: {
   iso: string
   isFirst: boolean
+  isLast: boolean
   lang: string
   t: (k: string) => string
   onPress: () => void
@@ -181,6 +193,7 @@ function EmptyRow({
       meta={`${wk} · ${t('detail.notLogged')}`}
       tileDone={false}
       isFirst={isFirst}
+      isLast={isLast}
       lang={lang}
       onPress={onPress}
       status={
@@ -216,62 +229,73 @@ export function HabitHistoryTab({
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
+  const insets = useSafeAreaInsets()
   const rows: HistoryRowItem[] = buildHistoryRows(
     tracker,
     entries,
     toISODate(new Date())
   )
 
-  return (
-    <>
-      {/* Log History header */}
-      <View className='flex-row items-center justify-between px-s5 pb-s1 pt-s1'>
-        <Typography className='text-h3-k font-bold text-ink'>
-          {t('detail.logHistory')}
+  // "Log History" title + Add Log button — scrolls with the list.
+  const header = (
+    <View className='flex-row items-center justify-between px-s5 pb-s2 pt-s1'>
+      <Typography className='text-h3-k font-bold text-ink'>
+        {t('detail.logHistory')}
+      </Typography>
+      <Pressable
+        onPress={onAddLog}
+        className='flex-row items-center gap-s2 rounded-full bg-brand-weak px-s4 py-s2 active:opacity-80'
+      >
+        <Icons.Plus size={17} color='#2456b5' />
+        <Typography className='text-sm-k font-bold text-brand-ink'>
+          {t('detail.addLog')}
         </Typography>
-        <Pressable
-          onPress={onAddLog}
-          className='flex-row items-center gap-s2 rounded-full bg-brand-weak px-s4 py-s2 active:opacity-80'
-        >
-          <Icons.Plus size={17} color='#2456b5' />
-          <Typography className='text-sm-k font-bold text-brand-ink'>
-            {t('detail.addLog')}
-          </Typography>
-        </Pressable>
-      </View>
+      </Pressable>
+    </View>
+  )
 
-      {rows.length === 0 ? (
-        <View className='m-s5 items-center rounded-xl-k border border-line bg-surface p-s7'>
-          <Icons.History size={28} color='#8a8e80' />
-          <Typography className='mt-s3 text-sm font-medium text-ink-3'>
-            {t('detail.noHistory')}
-          </Typography>
-        </View>
-      ) : (
-        <View className='mx-s4 mt-s2 overflow-hidden rounded-xl-k border border-line bg-surface'>
-          {rows.map((row, i) =>
-            row.kind === 'record' ? (
-              <RecordRow
-                key={row.entry.id}
-                entry={row.entry}
-                isFirst={i === 0}
-                lang={lang}
-                t={t}
-                onPress={() => onEditEntry?.(row.entry)}
-              />
-            ) : (
-              <EmptyRow
-                key={`empty-${row.iso}`}
-                iso={row.iso}
-                isFirst={i === 0}
-                lang={lang}
-                t={t}
-                onPress={() => onLogForDate?.(row.iso)}
-              />
-            )
-          )}
-        </View>
-      )}
-    </>
+  const empty = (
+    <View className='m-s5 items-center rounded-xl-k border border-line bg-surface p-s7'>
+      <Icons.History size={28} color='#8a8e80' />
+      <Typography className='mt-s3 text-sm font-medium text-ink-3'>
+        {t('detail.noHistory')}
+      </Typography>
+    </View>
+  )
+
+  return (
+    <FlashList
+      data={rows}
+      keyExtractor={(row) =>
+        row.kind === 'record' ? row.entry.id : `empty-${row.iso}`
+      }
+      renderItem={({ item, index }) => {
+        const isFirst = index === 0
+        const isLast = index === rows.length - 1
+        return item.kind === 'record' ? (
+          <RecordRow
+            entry={item.entry}
+            isFirst={isFirst}
+            isLast={isLast}
+            lang={lang}
+            t={t}
+            onPress={() => onEditEntry?.(item.entry)}
+          />
+        ) : (
+          <EmptyRow
+            iso={item.iso}
+            isFirst={isFirst}
+            isLast={isLast}
+            lang={lang}
+            t={t}
+            onPress={() => onLogForDate?.(item.iso)}
+          />
+        )
+      }}
+      ListHeaderComponent={header}
+      ListEmptyComponent={empty}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} // safe-area, runtime
+      showsVerticalScrollIndicator={false}
+    />
   )
 }

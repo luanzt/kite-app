@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Typography, useToast } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import type { Tracker, Entry } from '@features/trackers/types'
@@ -67,6 +68,7 @@ export function HabitChartsTab({
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
+  const insets = useSafeAreaInsets()
   const today = toISODate(new Date())
   const log = useLogEntry()
   const { toast } = useToast()
@@ -112,7 +114,10 @@ export function HabitChartsTab({
     )
 
   return (
-    <>
+    <ScrollView
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} // safe-area, runtime
+      showsVerticalScrollIndicator={false}
+    >
       <AchievementHero
         percent={(progress.successRate ?? 0) * 100}
         currentStreak={progress.streak ?? 0}
@@ -174,6 +179,6 @@ export function HabitChartsTab({
           </Typography>
         </Pressable>
       </View>
-    </>
+    </ScrollView>
   )
 }

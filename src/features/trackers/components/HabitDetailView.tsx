@@ -1,28 +1,56 @@
-import { useState } from 'react'
-import { Pressable, ScrollView, View } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
-import { Typography } from 'heroui-native'
-import { useTranslation } from 'react-i18next'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { LucideIcon } from 'lucide-react-native'
+import { StyleSheet } from 'react-native'
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
 import type { Tracker, Entry } from '@features/trackers/types'
-import { Icons } from '@features/trackers/icons'
 import { HabitChartsTab } from './HabitChartsTab'
 import { HabitHistoryTab } from './HabitHistoryTab'
 import { HabitNotesTab } from './HabitNotesTab'
+import { HabitDetailProvider, useHabitDetail } from './HabitDetailContext'
+import { HabitTabBar } from './HabitTabBar'
 
-type TabKey = 'charts' | 'history' | 'notes'
+const Tab = createMaterialTopTabNavigator()
 
-const TABS: { key: TabKey; labelKey: string; Icon: LucideIcon }[] = [
-  { key: 'charts', labelKey: 'detail.tabCharts', Icon: Icons.Charts },
-  { key: 'history', labelKey: 'detail.tabHistory', Icon: Icons.History },
-  { key: 'notes', labelKey: 'detail.tabNotes', Icon: Icons.Notes }
-]
+// Transparent scene background so the screen's bg-bg shows through. Static, but
+// the navigator's sceneStyle is a host prop with no className, so it goes
+// through StyleSheet per the styling rules.
+const styles = StyleSheet.create({
+  scene: { backgroundColor: 'transparent' }
+})
+
+// Each tab owns its own scroll (Charts/Notes wrap a ScrollView, History uses a
+// FlashList) and its own bottom safe-area padding — there is no shared scroll
+// container here, so the screen wrappers just feed context data to each tab.
+
+/** Charts screen — reads shared data from context, renders the existing tab. */
+function ChartsScreen() {
+  const { tracker, entries } = useHabitDetail()
+  return <HabitChartsTab tracker={tracker} entries={entries} />
+}
+
+/** History screen — reads shared data + callbacks from context. */
+function HistoryScreen() {
+  const { tracker, entries, onAddLog, onEditEntry, onLogForDate } =
+    useHabitDetail()
+  return (
+    <HabitHistoryTab
+      tracker={tracker}
+      entries={entries}
+      onAddLog={onAddLog}
+      onEditEntry={onEditEntry}
+      onLogForDate={onLogForDate}
+    />
+  )
+}
+
+/** Notes screen — reads entries from context. */
+function NotesScreen() {
+  const { entries } = useHabitDetail()
+  return <HabitNotesTab entries={entries} />
+}
 
 /**
- * HabitDetailView — the redesigned Habit Detail body. A pill tab bar
- * (Charts / History / Notes) over a scrolling content area; each tab is its
- * own component. All metrics derive from real entries.
+ * HabitDetailView — the redesigned Habit Detail body. A material-top-tabs
+ * navigator (Charts / History / Notes) with a custom pill tab bar. Tap-only:
+ * swipe is disabled. Screen data flows through HabitDetailContext.
  */
 export function HabitDetailView({
   tracker,
@@ -37,65 +65,22 @@ export function HabitDetailView({
   onEditEntry?: (entry: Entry) => void
   onLogForDate?: (iso: string) => void
 }) {
-  const { t } = useTranslation()
-  const insets = useSafeAreaInsets()
-  const [tab, setTab] = useState<TabKey>('charts')
-
   return (
-    <View className='flex-1'>
-      {/* tab pills */}
-      <View className='flex-row gap-s1 bg-bg px-s4 pb-s3 mt-s3'>
-        {TABS.map(({ key, labelKey, Icon }) => {
-          const on = key === tab
-          return (
-            <Pressable
-              key={key}
-              onPress={() => setTab(key)}
-              className={`h-[38px] flex-1 flex-row items-center justify-center gap-s1 rounded-full ${
-                on ? 'bg-brand' : 'bg-transparent'
-              }`}
-            >
-              <Icon size={16} color={on ? '#ffffff' : '#565a4f'} />
-              <Typography
-                className={`text-xs ${on ? 'font-bold' : 'font-medium'} ${
-                  on ? 'text-on-accent' : 'text-ink-2'
-                }`}
-              >
-                {t(labelKey)}
-              </Typography>
-            </Pressable>
-          )
-        })}
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} // safe-area, runtime
-        showsVerticalScrollIndicator={false}
+    <HabitDetailProvider
+      value={{ tracker, entries, onAddLog, onEditEntry, onLogForDate }}
+    >
+      <Tab.Navigator
+        tabBar={HabitTabBar}
+        screenOptions={{
+          swipeEnabled: false,
+          lazy: true,
+          sceneStyle: styles.scene
+        }}
       >
-        {/* key={tab} remounts on switch → re-triggers the fade+slide entrance.
-            withInitialValues caps the slide at a gentle 12px (default is larger). */}
-        <Animated.View
-          key={tab}
-          entering={FadeInDown.duration(220).withInitialValues({
-            opacity: 0,
-            transform: [{ translateY: 12 }]
-          })}
-        >
-          {tab === 'charts' ? (
-            <HabitChartsTab tracker={tracker} entries={entries} />
-          ) : tab === 'history' ? (
-            <HabitHistoryTab
-              tracker={tracker}
-              entries={entries}
-              onAddLog={onAddLog}
-              onEditEntry={onEditEntry}
-              onLogForDate={onLogForDate}
-            />
-          ) : (
-            <HabitNotesTab entries={entries} />
-          )}
-        </Animated.View>
-      </ScrollView>
-    </View>
+        <Tab.Screen name='charts' component={ChartsScreen} />
+        <Tab.Screen name='history' component={HistoryScreen} />
+        <Tab.Screen name='notes' component={NotesScreen} />
+      </Tab.Navigator>
+    </HabitDetailProvider>
   )
 }

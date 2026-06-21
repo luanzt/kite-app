@@ -16,6 +16,7 @@ import {
 } from '@features/trackers/calculators'
 import { toISODate } from '@utils/date'
 import { Icons, PACE_COLOR, hexA, iconEmoji } from '@features/trackers/icons'
+import { fmtVal } from '@features/trackers/detailFormat'
 import { PaceBar } from './PaceBar'
 
 export function progressFor(
@@ -36,19 +37,6 @@ export function progressFor(
     default:
       throw new Error(`Unknown tracker type: ${t.type as string}`)
   }
-}
-
-/** Format a number the way the design's fmtNum does: locale, max 1 decimal. */
-function fmtNum(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return '0'
-  const rounded = Number.isInteger(n) ? n : Math.round(n * 10) / 10
-  return rounded.toLocaleString()
-}
-
-/** Format a value with its unit ($ prefixes, others suffix). */
-function fmtVal(tracker: Tracker, n: number | null | undefined): string {
-  if (tracker.unit === '$') return `$${fmtNum(n)}`
-  return `${fmtNum(n)}${tracker.unit ? ` ${tracker.unit}` : ''}`
 }
 
 /** Circular progress ring (-90deg start), via react-native-svg. */
