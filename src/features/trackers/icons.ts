@@ -55,6 +55,18 @@ export const PACE_WEAK: Record<PaceStatus, string> = {
 }
 
 /**
+ * Pace-status as a solid-background Tailwind class. Use this instead of an
+ * inline `style={{ backgroundColor: PACE_COLOR[status] }}` — the status is a
+ * finite enum so it branches to a literal class (see CLAUDE.md rule #2).
+ */
+export const PACE_DOT_CLASS: Record<PaceStatus, string> = {
+  on_track: 'bg-pace-on',
+  behind: 'bg-pace-behind',
+  ahead: 'bg-pace-ahead',
+  none: 'bg-pace-none'
+}
+
+/**
  * i18n key for the human-readable pace label.
  * Keys may not exist in locale files yet — the screen task adds them.
  */

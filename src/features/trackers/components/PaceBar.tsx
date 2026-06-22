@@ -1,7 +1,7 @@
 import { View } from 'react-native'
 import { Typography } from 'heroui-native'
 import type { PaceStatus } from '@features/trackers/types'
-import { PACE_COLOR } from '@features/trackers/icons'
+import { PACE_COLOR, PACE_DOT_CLASS } from '@features/trackers/icons'
 
 /**
  * Normalize a progress value to a 0..1 fraction.
@@ -58,22 +58,18 @@ export function PaceBar({
     <View className='gap-s2'>
       <View
         className='relative justify-center rounded-full bg-surface-2 border border-line'
-        style={{ height }}
+        style={{ height }} // runtime: height is a caller prop
       >
         <View
           className='absolute left-0 top-0 bottom-0 rounded-full'
+          // runtime: fill width is a live % of progress, color is the pace enum's hex
           style={{ width: `${fillFrac * 100}%`, backgroundColor: fillColor }}
         />
         {markerFrac != null ? (
           <View
-            className='absolute bg-ink rounded-sm-k'
-            style={{
-              left: `${markerFrac * 100}%`,
-              width: 3,
-              height: height + 12,
-              top: -6,
-              marginLeft: -1.5
-            }}
+            className='absolute top-[-6px] ml-[-1.5px] w-[3px] rounded-sm-k bg-ink'
+            // runtime: marker left is a live % position; height tracks the prop
+            style={{ left: `${markerFrac * 100}%`, height: height + 12 }}
           />
         ) : null}
       </View>
@@ -99,10 +95,7 @@ export function PaceChip({
     <View
       className={`flex-row items-center gap-s2 self-start rounded-full px-3 py-1 ${PACE_WEAK_CLASS[paceStatus]}`}
     >
-      <View
-        className='rounded-full'
-        style={{ width: 8, height: 8, backgroundColor: PACE_COLOR[paceStatus] }}
-      />
+      <View className={`h-2 w-2 rounded-full ${PACE_DOT_CLASS[paceStatus]}`} />
       <Typography
         className={`text-sm font-bold ${PACE_TEXT_CLASS[paceStatus]}`}
       >

@@ -81,6 +81,13 @@ export function HistoryChart({
       : paceStatus === 'ahead'
       ? PACE_COLOR.ahead
       : PACE_COLOR.on_track
+  // legend-dot class mirrors `col` (none collapses to on_track)
+  const colClass =
+    paceStatus === 'behind'
+      ? 'bg-pace-behind'
+      : paceStatus === 'ahead'
+      ? 'bg-pace-ahead'
+      : 'bg-pace-on'
   const gid = `hist-${tracker?.id ?? 'x'}`
 
   return (
@@ -139,10 +146,7 @@ export function HistoryChart({
       </Svg>
       <View className='flex-row gap-s4 px-s2 pt-s2'>
         <View className='flex-row items-center gap-s1'>
-          <View
-            className='w-3.5 h-0.5 rounded-full'
-            style={{ backgroundColor: col }}
-          />
+          <View className={`h-0.5 w-3.5 rounded-full ${colClass}`} />
           <Typography className='text-xs text-ink-2 font-semibold'>
             {tracker?.name ?? ''}
           </Typography>

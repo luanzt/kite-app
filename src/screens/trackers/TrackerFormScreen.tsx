@@ -202,7 +202,8 @@ export function TrackerFormScreen({
       {/* appbar */}
       <View
         className='flex-row items-center gap-s3 bg-surface px-s4 pb-s3'
-        style={{ paddingTop: insets.top + 8 }} // safe-area top, runtime
+        // safe-area, runtime
+        style={{ paddingTop: insets.top + 8 }}
       >
         <Pressable
           onPress={() => navigation.goBack()}
@@ -215,7 +216,8 @@ export function TrackerFormScreen({
         </Typography>
         <View
           className='flex-row items-center gap-s1 rounded-full px-3 py-1'
-          style={{ backgroundColor: hexA(TYPE_COLOR[type], 0.14) }} // per-type tint, runtime
+          // runtime: per-type tint via hexA
+          style={{ backgroundColor: hexA(TYPE_COLOR[type], 0.14) }}
         >
           {(() => {
             const TypeIcon = TYPE_ICON[type]
@@ -223,9 +225,9 @@ export function TrackerFormScreen({
               <TypeIcon size={15} color={TYPE_COLOR[type]} strokeWidth={2.2} />
             )
           })()}
-          {/* per-type color is runtime-dynamic → inline style */}
           <Typography
             className='text-sm font-bold'
+            // runtime: per-type color
             style={{ color: TYPE_COLOR[type] }}
           >
             {t(`type.${type}`)}
@@ -289,7 +291,8 @@ export function TrackerFormScreen({
                     className={`h-full w-full rounded-full ${
                       sel ? 'border border-surface' : ''
                     }`}
-                    style={{ backgroundColor: c }} // palette swatch color, runtime
+                    // runtime: selected palette color
+                    style={{ backgroundColor: c }}
                   />
                 </Pressable>
               )
@@ -495,7 +498,8 @@ export function TrackerFormScreen({
       {/* sticky footer */}
       <View
         className='flex-row gap-s3 border-t border-line bg-surface px-s5 pt-s4'
-        style={{ paddingBottom: insets.bottom + 16 }} // safe-area bottom, runtime
+        // safe-area, runtime
+        style={{ paddingBottom: insets.bottom + 16 }}
       >
         {editing ? (
           <Pressable

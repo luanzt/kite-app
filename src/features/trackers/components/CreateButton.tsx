@@ -19,10 +19,9 @@ export function CreateButton({
   return (
     <Pressable
       onPress={onPress}
-      className={`flex-row items-center justify-center gap-s2 rounded-md-k bg-brand px-s5 shadow-sm active:opacity-90 ${
+      className={`h-[54px] flex-row items-center justify-center gap-s2 rounded-md-k bg-brand px-s5 shadow-sm active:opacity-90 ${
         block ? 'self-stretch' : 'self-center'
       }`}
-      style={{ height: 54 }}
     >
       <Icons.Plus size={20} color='#ffffff' strokeWidth={2.6} />
       <View>
