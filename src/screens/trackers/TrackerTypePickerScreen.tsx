@@ -29,6 +29,7 @@ export function TrackerTypePickerScreen({
       {/* appbar */}
       <View
         className='flex-row items-center gap-s3 bg-surface px-s4 pb-s3'
+        // safe-area, runtime
         style={{ paddingTop: insets.top + 8 }}
       >
         <Pressable
@@ -42,7 +43,10 @@ export function TrackerTypePickerScreen({
         </Typography>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
+      <ScrollView
+        // safe-area, runtime
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      >
         {/* heading */}
         <View className='px-s5 pt-s6 pb-s3'>
           <Typography className='text-2xl font-extrabold text-ink'>
@@ -68,7 +72,8 @@ export function TrackerTypePickerScreen({
               >
                 <View
                   className='h-[56px] w-[56px] items-center justify-center rounded-lg-k'
-                  style={{ backgroundColor: hexA(color, 0.14) }} // per-type tint, runtime
+                  // runtime: per-type tint via hexA
+                  style={{ backgroundColor: hexA(color, 0.14) }}
                 >
                   <TypeIcon size={28} color={color} strokeWidth={2.2} />
                 </View>
@@ -84,6 +89,7 @@ export function TrackerTypePickerScreen({
                   </Typography>
                   <View className='mt-s2 flex-row items-center gap-s1'>
                     <Icons.Bolt size={14} color={color} />
+                    {/* runtime: per-type color */}
                     <Typography className='text-xs font-bold' style={{ color }}>
                       {t(`type.${ty.tag}`)}
                     </Typography>

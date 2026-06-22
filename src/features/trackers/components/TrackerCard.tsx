@@ -15,7 +15,13 @@ import {
   calculateProject
 } from '@features/trackers/calculators'
 import { toISODate } from '@utils/date'
-import { Icons, PACE_COLOR, hexA, iconEmoji } from '@features/trackers/icons'
+import {
+  Icons,
+  PACE_COLOR,
+  PACE_DOT_CLASS,
+  hexA,
+  iconEmoji
+} from '@features/trackers/icons'
 import { fmtVal } from '@features/trackers/detailFormat'
 import { PaceBar } from './PaceBar'
 
@@ -141,16 +147,13 @@ export function TrackerCard({
   return (
     <Pressable onPress={onPress} className='active:opacity-90'>
       <View className='flex-row items-center gap-s4 rounded-lg-k border border-line bg-surface p-s4 shadow-sm'>
-        {/* tile — emoji on a tint of the tracker's color (dynamic → inline) */}
+        {/* tile — emoji on a tint of the tracker's color */}
         <View
-          className='items-center justify-center rounded-md-k'
-          style={{
-            width: 44,
-            height: 44,
-            backgroundColor: hexA(tracker.color, 0.14)
-          }}
+          className='h-[44px] w-[44px] items-center justify-center rounded-md-k'
+          // runtime: tint blended from the user-chosen tracker.color
+          style={{ backgroundColor: hexA(tracker.color, 0.14) }}
         >
-          <Typography style={{ fontSize: 22 }}>
+          <Typography className='text-[22px]'>
             {iconEmoji(tracker.icon)}
           </Typography>
         </View>
@@ -159,12 +162,7 @@ export function TrackerCard({
         <View className='flex-1 min-w-0 gap-s2'>
           <View className='flex-row items-center gap-s2'>
             <View
-              className='rounded-full'
-              style={{
-                width: 8,
-                height: 8,
-                backgroundColor: PACE_COLOR[p.paceStatus]
-              }}
+              className={`h-2 w-2 rounded-full ${PACE_DOT_CLASS[p.paceStatus]}`}
             />
             <Typography
               numberOfLines={1}
@@ -183,10 +181,7 @@ export function TrackerCard({
 
         {/* right rail */}
         {tracker.type === 'habit' ? (
-          <View
-            className='items-center justify-center'
-            style={{ width: 40, height: 40 }}
-          >
+          <View className='h-[40px] w-[40px] items-center justify-center'>
             <Ring fraction={p.successRate ?? 0} color={PACE_COLOR.on_track} />
             <View className='absolute inset-0 items-center justify-center'>
               <Typography className='text-xs font-extrabold text-ink'>

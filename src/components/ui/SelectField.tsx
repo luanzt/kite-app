@@ -46,6 +46,7 @@ export function SelectField<T extends string>({
             @theme didn't reach Uniwind — so set the dim directly via className. */}
         <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
+          {/* runtime: safe-area inset + static offset */}
           <View className='px-s5' style={{ paddingBottom: insets.bottom + 12 }}>
             <BottomSheet.Title className='mb-s3 text-lg font-bold text-ink'>
               {label}

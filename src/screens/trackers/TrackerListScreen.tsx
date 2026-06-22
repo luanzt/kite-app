@@ -40,6 +40,7 @@ export function TrackerListScreen() {
   const header = (
     <View
       className='flex-row items-center bg-surface px-s5 pb-s3'
+      // safe-area, runtime
       style={{ paddingTop: insets.top + 12 }}
     >
       <Typography className='text-lg font-bold text-ink'>
@@ -55,29 +56,20 @@ export function TrackerListScreen() {
     return (
       <View className='flex-1 bg-bg'>
         {header}
-        <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-          <View
-            className='items-center px-s6 gap-s3'
-            style={{ paddingTop: 32, paddingBottom: 8 }}
-          >
-            <View style={{ marginBottom: 8 }}>
+        <ScrollView contentContainerClassName='pb-8'>
+          <View className='items-center px-s6 gap-s3 pt-8 pb-2'>
+            <View className='mb-2'>
               <NoData size={120} />
             </View>
             <Typography className='text-xl font-extrabold text-ink text-center'>
               {t('list.empty')}
             </Typography>
-            <Typography
-              className='text-base text-ink-2 text-center'
-              style={{ maxWidth: 250 }}
-            >
+            <Typography className='text-base text-ink-2 text-center max-w-[250px]'>
               {t('list.emptyBody')}
             </Typography>
           </View>
 
-          <Typography
-            className='text-xs font-bold uppercase text-ink-3 px-s5'
-            style={{ paddingTop: 20, paddingBottom: 8 }}
-          >
+          <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
             {t('list.quickHint')}
           </Typography>
 
@@ -86,14 +78,9 @@ export function TrackerListScreen() {
               <Pressable
                 key={qs.key}
                 onPress={() => addQuickStart(qs)}
-                className='flex-row items-center gap-s2 rounded-md-k border border-line bg-surface active:bg-surface-2'
-                style={{
-                  width: '48%',
-                  paddingVertical: 13,
-                  paddingHorizontal: 14
-                }}
+                className='flex-row items-center gap-s2 rounded-md-k border border-line bg-surface active:bg-surface-2 w-[48%] py-[13px] px-[14px]'
               >
-                <Typography style={{ fontSize: 20 }}>
+                <Typography className='text-[20px]'>
                   {iconEmoji(qs.icon)}
                 </Typography>
                 <Typography
@@ -106,7 +93,7 @@ export function TrackerListScreen() {
             ))}
           </View>
 
-          <View className='px-s5' style={{ paddingTop: 20 }}>
+          <View className='px-s5 pt-5'>
             <CreateButton
               label={t('list.create')}
               onPress={() => nav.navigate('TrackerTypePicker')}
@@ -125,8 +112,8 @@ export function TrackerListScreen() {
       <FlatList
         data={trackers}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        contentContainerClassName='p-5 pb-[100px]'
+        ItemSeparatorComponent={() => <View className='h-s3' />}
         renderItem={({ item }) => (
           <TrackerCard
             tracker={item}
@@ -142,14 +129,7 @@ export function TrackerListScreen() {
       {/* FAB */}
       <Pressable
         onPress={() => nav.navigate('TrackerTypePicker')}
-        className='absolute items-center justify-center bg-brand shadow-md active:opacity-90'
-        style={{
-          right: 18,
-          bottom: 18,
-          width: 58,
-          height: 58,
-          borderRadius: 20
-        }}
+        className='absolute items-center justify-center bg-brand shadow-md active:opacity-90 right-[18px] bottom-[18px] h-[58px] w-[58px] rounded-[20px]'
       >
         <Icons.Plus size={28} color='#ffffff' />
       </Pressable>

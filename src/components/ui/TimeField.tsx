@@ -51,6 +51,7 @@ export function TimeField({
         {/* Explicit scrim — see SelectField for why the token override didn't work. */}
         <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
+          {/* runtime: safe-area inset */}
           <View className='px-s5' style={{ paddingBottom: insets.bottom }}>
             {/* Mount the wheel only while open and key it by `value`, so its
                 draft (and the picker's internal initial state) is always seeded

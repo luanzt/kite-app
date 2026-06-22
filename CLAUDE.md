@@ -97,9 +97,47 @@ These rules are non-negotiable for all UI code in this project:
    ScrollView/FlatList container styling use the Uniwind-mapped prop
    `contentContainerClassName`. A fixed value that isn't on the spacing scale is
    NOT an excuse for inline `style` — use a Tailwind **arbitrary value**:
-   `h-[52px]`, `w-[38px]`, `p-[3px]`, `ml-[20px]`. A value that depends on a
-   boolean/enum is NOT dynamic — branch the class instead: `${on ? 'ml-[20px]' :
-   'ml-0'}`.
+   `h-[52px]`, `w-[38px]`, `p-[3px]`, `ml-[20px]`.
+
+   **`className` updates styles at runtime — VERIFIED on-device.** When the
+   `className` string changes between renders, Uniwind re-applies the new styles
+   (confirmed for `bg-*`, `text-*`, and arbitrary values like `w-[Npx]` — a
+   side-by-side probe against inline `style` tracked identically). So a value
+   that depends on a boolean/enum is **NOT** a reason to use `style` — **branch
+   the whole class** instead. Both branches are written as literals, so Tailwind
+   generates the CSS for each at build time:
+   ```tsx
+   // Good — branch the class on state (this re-renders correctly at runtime)
+   className={`rounded-full p-[3px] ${on ? 'bg-brand ml-[20px]' : 'bg-surface-2 ml-0'}`}
+   className={`text-sm font-bold ${PACE_TEXT_CLASS[paceStatus]}`}  // enum → lookup of literal classes
+   ```
+
+   **THE ONE REAL LIMIT — never interpolate a value INTO a class string.**
+   Tailwind scans source files **as plain text** and only generates CSS for
+   classes it finds as **complete, statically-detectable literals** — it cannot
+   follow string concatenation or interpolation (official docs:
+   "Detecting classes in source files → Dynamic class names"). A class assembled
+   from a variable is silently absent from the CSS and renders **unstyled**.
+   VERIFIED on-device: `` `w-[${px}px]` `` never resized (bar stayed put while a
+   literal `w-[120px]` and inline `style` both grew), and `` `bg-[${hex}]` ``
+   showed no fill. This is the only case that legitimately forces `style`:
+   ```tsx
+   // BROKEN — these classes don't exist in the generated CSS, render unstyled:
+   className={`w-[${px}px]`}            // ✗ computed arbitrary value
+   className={`bg-[${hex}]`}            // ✗ interpolated arbitrary color
+   className={`bg-${color}-500`}        // ✗ interpolated scale color
+   // Fix A — enumerate the literal classes and pick one (if the set is finite & known):
+   const W = { sm: 'w-[40px]', md: 'w-[140px]', lg: 'w-[260px]' }; className={W[size]}
+   // Fix B — truly continuous/computed value → inline style is correct here:
+   <View style={{ width: pct }} />      // e.g. a progress bar width bound to live %
+   ```
+   **Do NOT rely on the partial exception.** Interpolating a *named* theme token
+   (`` `bg-${token}` ``) sometimes appears to work — Tailwind v4 may have already
+   generated that utility because the literal exists elsewhere (the token name
+   shows up as plain text, or another file uses the full class). This is
+   incidental, not guaranteed: the moment the literal isn't present, it silently
+   breaks, and a typo in the token never errors. Treat ALL interpolation into a
+   class string as forbidden regardless of whether it happens to render today.
    ```tsx
    // Good
    <View className="flex-1 p-4 gap-4">
@@ -109,9 +147,11 @@ These rules are non-negotiable for all UI code in this project:
    <Pressable style={{ height: 52, width: 52 }} />   // use h-[52px] w-[52px]
    ```
    **The `style` prop is allowed ONLY when truly unavoidable:**
-   - A value computed at runtime that no class can express — e.g. safe-area
-     insets (`paddingBottom: insets.bottom + 12`), or a percentage width bound to
-     live state.
+   - A value computed at runtime that no finite set of literal classes can
+     express — safe-area insets (`paddingBottom: insets.bottom + 12`), or a
+     continuous/percentage dimension bound to live state (a progress-bar width).
+     A boolean/enum is NOT this — it has finitely many outcomes, so branch the
+     class (see above).
    - A third-party/native host component that doesn't accept `className` (e.g.
      `GestureHandlerRootView style={{ flex: 1 }}` in `App.tsx`). Note most HeroUI
      Native and Uniwind-patched components DO accept `className` — try it first.

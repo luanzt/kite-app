@@ -67,6 +67,7 @@ function Ring({
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
+      // runtime: SVG transform, no className equivalent
       style={{ transform: [{ rotate: '-90deg' }] }}
     >
       <Circle
@@ -144,14 +145,9 @@ function LogRow({
       return (
         <Pressable
           onPress={() => setValue(done ? 0 : 1)}
-          className='items-center justify-center rounded-full'
-          style={{
-            width: 46,
-            height: 46,
-            borderWidth: 2.5,
-            borderColor: done ? PACE_COLOR.on_track : '#d2d5c8',
-            backgroundColor: done ? PACE_COLOR.on_track : '#ffffff'
-          }}
+          className={`items-center justify-center rounded-full h-[46px] w-[46px] border-[2.5px] ${
+            done ? 'border-pace-on bg-pace-on' : 'border-line-strong bg-white'
+          }`}
         >
           <Icons.Check size={24} color={done ? '#ffffff' : 'transparent'} />
         </Pressable>
@@ -167,18 +163,16 @@ function LogRow({
       <View className='flex-row items-center gap-s2'>
         <Pressable
           onPress={() => setValue(Math.max(0, todayLog - step))}
-          className='items-center justify-center rounded-md-k border border-line bg-surface-2'
-          style={{ width: 38, height: 38 }}
+          className='items-center justify-center rounded-md-k border border-line bg-surface-2 h-[38px] w-[38px]'
         >
           <Typography className='text-xl font-bold text-ink'>−</Typography>
         </Pressable>
-        <View className='items-center' style={{ minWidth: 46 }}>
+        <View className='items-center min-w-[46px]'>
           <Typography className='text-lg font-extrabold text-ink'>
             {fmtNum(todayLog)}
           </Typography>
           <Typography
-            className='text-ink-3 font-semibold'
-            style={{ fontSize: 10 }}
+            className='text-ink-3 font-semibold text-[10px]'
             numberOfLines={1}
           >
             {unitLabel}
@@ -186,8 +180,7 @@ function LogRow({
         </View>
         <Pressable
           onPress={() => setValue(todayLog + step)}
-          className='items-center justify-center rounded-md-k border border-line bg-surface-2'
-          style={{ width: 38, height: 38 }}
+          className='items-center justify-center rounded-md-k border border-line bg-surface-2 h-[38px] w-[38px]'
         >
           <Typography className='text-xl font-bold text-ink'>+</Typography>
         </Pressable>
@@ -203,14 +196,11 @@ function LogRow({
       }`}
     >
       <View
-        className='items-center justify-center rounded-md-k'
-        style={{
-          width: 38,
-          height: 38,
-          backgroundColor: hexA(tracker.color, 0.14)
-        }}
+        className='items-center justify-center rounded-md-k h-[38px] w-[38px]'
+        // runtime: tint from user-chosen tracker.color
+        style={{ backgroundColor: hexA(tracker.color, 0.14) }}
       >
-        <Typography style={{ fontSize: 19 }}>
+        <Typography className='text-[19px]'>
           {iconEmoji(tracker.icon)}
         </Typography>
       </View>
@@ -219,14 +209,11 @@ function LogRow({
         <Typography numberOfLines={1} className='text-lg font-bold text-ink'>
           {tracker.name}
         </Typography>
-        <View className='flex-row items-center gap-s2' style={{ marginTop: 2 }}>
+        <View className='flex-row items-center gap-s2 mt-[2px]'>
           <View
-            className='rounded-full'
-            style={{
-              width: 8,
-              height: 8,
-              backgroundColor: colorHex(tracker.color)
-            }}
+            className='rounded-full h-2 w-2'
+            // runtime: user-chosen tracker.color
+            style={{ backgroundColor: colorHex(tracker.color) }}
           />
           <Typography className='text-sm text-ink-2'>{subText}</Typography>
         </View>
@@ -290,29 +277,24 @@ export function DailyGoalsScreen() {
       <View className='flex-1 bg-bg'>
         <View
           className='bg-surface px-s5 pb-s4'
+          // safe-area, runtime
           style={{ paddingTop: insets.top + 16 }}
         >
           <Typography className='text-sm font-bold text-brand-ink uppercase'>
             {dateStr}
           </Typography>
-          <Typography
-            className='text-2xl font-extrabold text-ink'
-            style={{ marginTop: 4 }}
-          >
+          <Typography className='text-2xl font-extrabold text-ink mt-1'>
             {t(greetKey)}
           </Typography>
         </View>
         <View className='flex-1 items-center justify-center px-s6 gap-s3'>
-          <View style={{ marginBottom: 8 }}>
+          <View className='mb-2'>
             <NoData size={220} />
           </View>
           <Typography className='text-xl font-extrabold text-ink text-center'>
             {t('today.empty')}
           </Typography>
-          <Typography
-            className='text-base text-ink-2 text-center'
-            style={{ maxWidth: 250 }}
-          >
+          <Typography className='text-base text-ink-2 text-center max-w-[250px]'>
             {t('today.emptyBody')}
           </Typography>
           <View className='mt-s3'>
@@ -333,26 +315,18 @@ export function DailyGoalsScreen() {
       {/* head */}
       <View
         className='bg-surface px-s5 pb-s4'
+        // safe-area, runtime
         style={{ paddingTop: insets.top + 16 }}
       >
         <Typography className='text-sm font-bold text-brand-ink uppercase'>
           {dateStr}
         </Typography>
-        <Typography
-          className='text-2xl font-extrabold text-ink'
-          style={{ marginTop: 4 }}
-        >
+        <Typography className='text-2xl font-extrabold text-ink mt-1'>
           {t(greetKey)}
         </Typography>
 
-        <View
-          className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4'
-          style={{ marginTop: 16 }}
-        >
-          <View
-            className='items-center justify-center'
-            style={{ width: 52, height: 52 }}
-          >
+        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mt-s4'>
+          <View className='items-center justify-center h-[52px] w-[52px]'>
             <Ring
               fraction={total ? doneCount / total : 0}
               color='#2456b5'
@@ -360,10 +334,7 @@ export function DailyGoalsScreen() {
               strokeWidth={6}
             />
             <View className='absolute inset-0 items-center justify-center'>
-              <Typography
-                className='font-extrabold text-brand-ink'
-                style={{ fontSize: 14 }}
-              >
+              <Typography className='font-extrabold text-brand-ink text-[14px]'>
                 {`${doneCount}/${total}`}
               </Typography>
             </View>
@@ -372,17 +343,14 @@ export function DailyGoalsScreen() {
             <Typography className='text-xl font-extrabold text-brand-ink'>
               {t('today.summaryDone', { done: doneCount, total })}
             </Typography>
-            <Typography
-              className='text-sm text-brand-ink'
-              style={{ opacity: 0.8 }}
-            >
+            <Typography className='text-sm text-brand-ink opacity-80'>
               {allDone ? t('today.allClear') : t('today.summaryCap')}
             </Typography>
           </View>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView contentContainerClassName='pb-8'>
         {allDone ? (
           <View className='items-center px-s6 gap-s3 pt-12'>
             <View className='mb-s2 h-24 w-24 items-center justify-center rounded-xl-k bg-brand-weak'>
@@ -391,19 +359,13 @@ export function DailyGoalsScreen() {
             <Typography className='text-xl font-extrabold text-ink text-center'>
               {t('today.allClear')}
             </Typography>
-            <Typography
-              className='text-base text-ink-2 text-center'
-              style={{ maxWidth: 250 }}
-            >
+            <Typography className='text-base text-ink-2 text-center max-w-[250px]'>
               {t('today.allClearBody')}
             </Typography>
           </View>
         ) : (
           <>
-            <Typography
-              className='text-xs font-bold uppercase text-ink-3 px-s5'
-              style={{ paddingTop: 20, paddingBottom: 8 }}
-            >
+            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
               {t('today.dueToday')}
             </Typography>
             <View className='px-s5 gap-s3'>
@@ -422,10 +384,7 @@ export function DailyGoalsScreen() {
 
         {completed.length > 0 && !allDone ? (
           <>
-            <Typography
-              className='text-xs font-bold uppercase text-ink-3 px-s5'
-              style={{ paddingTop: 20, paddingBottom: 8 }}
-            >
+            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
               {t('today.completed')}
             </Typography>
             <View className='px-s5 gap-s3'>
