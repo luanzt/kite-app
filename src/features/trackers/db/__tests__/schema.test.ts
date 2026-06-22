@@ -28,7 +28,8 @@ describe('missingColumns', () => {
     ]
     expect(missingColumns(TRACKER_COLUMNS, existing)).toEqual([
       { name: 'routine', decl: 'routine TEXT' },
-      { name: 'reminder_time', decl: 'reminder_time TEXT' }
+      { name: 'reminder_time', decl: 'reminder_time TEXT' },
+      { name: 'goal_note', decl: 'goal_note TEXT' }
     ])
   })
 

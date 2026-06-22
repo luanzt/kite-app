@@ -68,7 +68,7 @@
     "shouldBe": "Pace target", "expected": "Expected by now", "remaining": "Left",
     "best": "Best", "logToday": "Log today",
     "calendar": "Calendar",
-    "sessionsBy": { "day": "Last 21 days", "week": "Sessions per week", "month": "Sessions per month", "year": "Sessions per year" },
+    "sessionsBy": { "day": "Daily sessions", "week": "Sessions per week", "month": "Sessions per month", "year": "Sessions per year" },
     "goalMet": "Goal met", "currentStreak": "Current streak", "bestStreak": "Best streak",
     "completed": "Completed", "restDay": "Rest day", "goal": "Goal",
     "dow": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -78,6 +78,9 @@
     "schedule": "Schedule", "editDetails": "Edit details", "archive": "Archive",
     "deleteConfirmTitle": "Delete tracker?", "deleteConfirmMsg": "This permanently removes the tracker and all its entries. This cannot be undone.",
     "noNotes": "No notes yet", "noNotesHint": "Notes you add when logging will show up here.",
+    "goalNote": "Goal note", "goalNoteHint": "Tap to edit · pinned to this goal",
+    "goalNotePlaceholder": "Why does this habit matter to you? Write a note to keep you motivated…",
+    "logNotes": "Log notes", "notesCount": "{{count}} notes",
     "noHistory": "No entries yet", "recentEntries": "Recent entries",
     "logHistory": "Log History", "addLog": "Add Log", "logShort": "Log", "notLogged": "not logged",
     "weekLogged": "{{logged}}/{{goal}} logged"

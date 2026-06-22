@@ -56,6 +56,7 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     repeatDays: input.repeatDays ?? (isHabit ? [0, 1, 2, 3, 4, 5, 6] : null),
     routine: isHabit ? input.routine ?? 'any' : null,
     reminderTime: isHabit ? input.reminderTime ?? null : null,
+    goalNote: null,
     createdAt: new Date().toISOString(),
     archived: false
   }

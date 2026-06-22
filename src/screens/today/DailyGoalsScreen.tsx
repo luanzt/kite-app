@@ -216,10 +216,7 @@ function LogRow({
       </View>
 
       <View className='flex-1 min-w-0'>
-        <Typography
-          numberOfLines={1}
-          className={`text-lg font-bold text-ink ${done ? 'line-through' : ''}`}
-        >
+        <Typography numberOfLines={1} className='text-lg font-bold text-ink'>
           {tracker.name}
         </Typography>
         <View className='flex-row items-center gap-s2' style={{ marginTop: 2 }}>
@@ -358,7 +355,7 @@ export function DailyGoalsScreen() {
           >
             <Ring
               fraction={total ? doneCount / total : 0}
-              color='#2e7d5b'
+              color='#2456b5'
               size={52}
               strokeWidth={6}
             />
