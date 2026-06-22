@@ -28,6 +28,7 @@ import {
 import type { FC } from 'react'
 import type { SvgProps } from 'react-native-svg'
 import type { PaceStatus, TrackerType } from '@features/trackers/types'
+import { ICONSET } from '@features/trackers/iconSets'
 import HomeActive from '@assets/images/ic_home_active.svg'
 import HomeInactive from '@assets/images/ic_home_inactive.svg'
 import TrackerActive from '@assets/images/ic_tracker_active.svg'
@@ -138,12 +139,17 @@ export const TYPE_COLOR: Record<TrackerType, string> = {
 }
 
 /**
- * Map a tracker's `icon` keyword (from quickStarts / buildTracker, e.g. "star",
- * "drop", "book") to an emoji glyph for the design's tinted emoji tiles.
- * Falls back to a target emoji for unknown keys. Values that already contain a
- * non-ASCII glyph are assumed to be emoji already and are passed through.
+ * Map a tracker's `icon` keyword (e.g. "lotus", "drop", "book") to an emoji
+ * glyph for the design's tinted emoji tiles.
+ *
+ * Icons are persisted as ASCII keywords, NEVER as raw emoji: op-sqlite v16
+ * corrupts string bind parameters containing non-BMP characters (surrogate
+ * pairs), so an emoji written to SQLite reads back as garbage. Keeping the
+ * stored value ASCII sidesteps that entirely; the emoji exists only at render
+ * time via this map. Every emoji offered in the form's picker has a key here.
  */
 const ICON_EMOJI: Record<string, string> = {
+  // shared / quick-start keys
   star: '⭐',
   drop: '💧',
   dumbbell: '🏋️',
@@ -153,15 +159,73 @@ const ICON_EMOJI: Record<string, string> = {
   lotus: '🧘',
   walk: '🚶',
   scale: '⚖️',
-  rocket: '🚀'
+  rocket: '🚀',
+  // habit set
+  read: '📖',
+  nosmoke: '🚭',
+  pill: '💊',
+  tooth: '🦷',
+  bed: '🛏️',
+  pray: '🙏',
+  // target set
+  target: '🎯',
+  run: '🏃',
+  write: '✍️',
+  guitar: '🎸',
+  chart: '📈',
+  // average set
+  sleep: '😴',
+  salad: '🥗',
+  coffee: '☕',
+  phone: '📱',
+  cash: '💵',
+  fire: '🔥',
+  // project set
+  puzzle: '🧩',
+  build: '🏗️',
+  paint: '🎨',
+  film: '🎬',
+  home: '🏡',
+  work: '💼',
+  grad: '🎓'
+}
+
+/**
+ * Reverse lookup: emoji glyph → keyword. ICONSET keys are seeded first so that
+ * when two keywords share a glyph (e.g. "moon"/"sleep" → 😴), the one actually
+ * offered in the picker wins the reverse mapping.
+ */
+const EMOJI_KEY: Record<string, string> = {}
+for (const keys of Object.values(ICONSET)) {
+  for (const k of keys) {
+    const e = ICON_EMOJI[k]
+    if (e && !(e in EMOJI_KEY)) EMOJI_KEY[e] = k
+  }
+}
+for (const [k, e] of Object.entries(ICON_EMOJI)) {
+  if (!(e in EMOJI_KEY)) EMOJI_KEY[e] = k
 }
 
 export function iconEmoji(key: string | null | undefined): string {
   if (!key) return '🎯'
   if (key in ICON_EMOJI) return ICON_EMOJI[key]
   // An ASCII-only keyword we don't recognise → fallback. Anything containing a
-  // non-ASCII glyph is assumed to already be an emoji and is passed through.
+  // non-ASCII glyph is assumed to already be an emoji and is passed through
+  // (legacy/hand-set values).
   return /^[\x20-\x7e]+$/.test(key) ? '🎯' : key
+}
+
+/**
+ * Inverse of iconEmoji for the picker: given a value that may be an emoji glyph
+ * (a freshly tapped tile) or already a keyword, return the ASCII keyword to
+ * persist. Unknown emoji fall back to "star" so we never store a surrogate.
+ */
+export function iconKey(value: string | null | undefined): string {
+  if (!value) return 'star'
+  if (value in ICON_EMOJI) return value // already a keyword
+  if (value in EMOJI_KEY) return EMOJI_KEY[value] // emoji glyph → keyword
+  // Unknown emoji glyph (non-ASCII) → safe default; unknown ASCII → itself.
+  return /^[\x20-\x7e]+$/.test(value) ? value : 'star'
 }
 
 /**

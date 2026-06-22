@@ -18,6 +18,7 @@ const habit: Tracker = {
   repeatDays: [0, 1, 2, 3, 4, 5, 6],
   routine: 'any',
   reminderTime: null,
+  goalNote: null,
   createdAt: '2026-06-01T00:00:00Z',
   archived: false
 }

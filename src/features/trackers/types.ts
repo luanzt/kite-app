@@ -23,6 +23,7 @@ export type Tracker = {
   repeatDays: number[] | null // 0=Sun..6=Sat
   routine: Routine | null // time-of-day grouping (habit)
   reminderTime: string | null // "HH:MM" 24h, null = reminders off
+  goalNote: string | null // free-text motivation note pinned to the goal (habit Notes tab)
   createdAt: string // ISO datetime
   archived: boolean
 }
