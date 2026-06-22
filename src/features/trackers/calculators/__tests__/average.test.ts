@@ -18,6 +18,7 @@ const avg: Tracker = {
   repeatDays: null,
   routine: null,
   reminderTime: null,
+  goalNote: null,
   createdAt: '2026-06-01T00:00:00Z',
   archived: false
 }

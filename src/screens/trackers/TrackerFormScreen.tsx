@@ -10,7 +10,15 @@ import {
   useDeleteTracker
 } from '@features/trackers/queries'
 import { buildTracker } from '@features/trackers/factory'
-import { Icons, TYPE_ICON, TYPE_COLOR, hexA } from '@features/trackers/icons'
+import {
+  Icons,
+  TYPE_ICON,
+  TYPE_COLOR,
+  hexA,
+  iconEmoji,
+  iconKey
+} from '@features/trackers/icons'
+import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import {
   DateField,
   FieldLabel,
@@ -32,14 +40,6 @@ import type {
   Tracker
 } from '@features/trackers/types'
 
-/** Per-type emoji set (mirrors ICONSET in data.js). */
-const ICONSET: Record<string, string[]> = {
-  habit: ['🧘', '🏋️', '📖', '🚭', '💊', '🦷', '🛏️', '🙏'],
-  target: ['🎯', '📚', '💰', '⚖️', '🏃', '✍️', '🎸', '📈'],
-  average: ['💧', '😴', '🚶', '🥗', '☕', '📱', '💵', '🔥'],
-  project: ['🚀', '🧩', '🏗️', '🎨', '🎬', '🏡', '💼', '🎓']
-}
-
 /** Tracker color palette (mirrors COLORS in data.js). */
 const COLORS = [
   '#2e7d5b',
@@ -51,17 +51,6 @@ const COLORS = [
   '#e0457a',
   '#6b7280'
 ]
-
-function defaultIcon(type: string): string {
-  return (
-    (
-      { habit: '🧘', target: '🎯', average: '💧', project: '🚀' } as Record<
-        string,
-        string
-      >
-    )[type] ?? '🎯'
-  )
-}
 
 export function TrackerFormScreen({
   route,
@@ -90,7 +79,12 @@ export function TrackerFormScreen({
 
   // Controlled fields — initialised from the editing tracker when present.
   const [name, setName] = useState(editing?.name ?? '')
-  const [icon, setIcon] = useState(editing?.icon ?? defaultIcon(type))
+  // Hold the icon as its ASCII keyword (e.g. "lotus"). Stored values are
+  // keywords; legacy/raw-emoji values are normalised via iconKey(). Keywords
+  // are what we persist — op-sqlite corrupts raw emoji on write.
+  const [icon, setIcon] = useState(
+    editing?.icon ? iconKey(editing.icon) : defaultIcon(type)
+  )
   const [color, setColor] = useState(editing?.color ?? COLORS[0])
   const [unit, setUnit] = useState(editing?.unit ?? '')
   const [target, setTarget] = useState(
@@ -122,7 +116,7 @@ export function TrackerFormScreen({
     if (!editing || hydrated.current) return
     hydrated.current = true
     setName(editing.name)
-    setIcon(editing.icon)
+    setIcon(iconKey(editing.icon))
     setColor(editing.color)
     setUnit(editing.unit ?? '')
     setTarget(editing.targetValue != null ? String(editing.targetValue) : '')
@@ -175,9 +169,10 @@ export function TrackerFormScreen({
     })
     const tracker: Tracker = {
       ...base,
-      // Preserve identity & origin date when editing.
+      // Preserve identity, origin date & goal note when editing.
       id: editing?.id ?? base.id,
       createdAt: editing?.createdAt ?? base.createdAt,
+      goalNote: editing?.goalNote ?? base.goalNote,
       startDate: isHabit
         ? base.startDate
         : editing?.startDate ?? base.startDate,
@@ -189,7 +184,17 @@ export function TrackerFormScreen({
 
   const onDelete = () => {
     if (!editing) return
-    del.mutate(editing.id, { onSuccess: () => navigation.navigate('MainTabs') })
+    alert({
+      title: t('detail.deleteConfirmTitle'),
+      message: t('detail.deleteConfirmMsg'),
+      variant: 'danger',
+      cancelLabel: t('form.cancel'),
+      confirmLabel: t('form.delete'),
+      onConfirm: () =>
+        del.mutate(editing.id, {
+          onSuccess: () => navigation.navigate('MainTabs')
+        })
+    })
   }
 
   return (
@@ -255,7 +260,9 @@ export function TrackerFormScreen({
                       : 'border-line bg-surface'
                   }`}
                 >
-                  <Typography className='text-[22px]'>{ic}</Typography>
+                  <Typography className='text-[22px]'>
+                    {iconEmoji(ic)}
+                  </Typography>
                 </Pressable>
               )
             })}
@@ -272,11 +279,19 @@ export function TrackerFormScreen({
                 <Pressable
                   key={c}
                   onPress={() => setColor(c)}
-                  className={`h-9 w-9 rounded-full border-2 ${
+                  className={`h-9 w-9 items-center justify-center rounded-full border-2 ${
                     sel ? 'border-ink' : 'border-transparent'
                   }`}
-                  style={{ backgroundColor: c }} // palette swatch color, runtime
-                />
+                >
+                  {/* When selected: outer black ring → white 1px ring → swatch
+                      (border-ink → border-surface → color), all touching. */}
+                  <View
+                    className={`h-full w-full rounded-full ${
+                      sel ? 'border border-surface' : ''
+                    }`}
+                    style={{ backgroundColor: c }} // palette swatch color, runtime
+                  />
+                </Pressable>
               )
             })}
           </View>

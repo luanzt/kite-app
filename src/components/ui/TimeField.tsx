@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { Typography, BottomSheet, Button, useBottomSheet } from 'heroui-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -33,9 +33,10 @@ export function TimeField({
   placeholder?: string
 }) {
   const insets = useSafeAreaInsets()
+  const [open, setOpen] = useState(false)
   const display = value ? value : placeholder ?? 'HH:mm'
   return (
-    <BottomSheet>
+    <BottomSheet isOpen={open} onOpenChange={setOpen}>
       <BottomSheet.Trigger asChild>
         <Pressable className='h-[52px] flex-row items-center justify-between rounded-md-k border border-line bg-surface px-s4 active:opacity-80'>
           <Typography
@@ -51,7 +52,12 @@ export function TimeField({
         <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
           <View className='px-s5' style={{ paddingBottom: insets.bottom }}>
-            <TimeSheet value={value} onChange={onChange} />
+            {/* Mount the wheel only while open and key it by `value`, so its
+                draft (and the picker's internal initial state) is always seeded
+                from the current value rather than a stale mount-time snapshot. */}
+            {open ? (
+              <TimeSheet key={value} value={value} onChange={onChange} />
+            ) : null}
           </View>
         </BottomSheet.Content>
       </BottomSheet.Portal>
@@ -75,6 +81,10 @@ function TimeSheet({
   const { onOpenChange } = useBottomSheet()
   const defaultStyles = useDefaultStyles()
   const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'))
+  // react-native-ui-datepicker fires a spurious onChange on mount with the
+  // time reset to midnight, which would clobber our correct initial draft.
+  // Drop that first callback; honour every change after the user interacts.
+  const ready = useRef(false)
 
   const confirm = () => {
     onChange(toHHMM(draft))
@@ -87,6 +97,11 @@ function TimeSheet({
         mode='single'
         date={draft}
         onChange={({ date }: { date: DateType }) => {
+          // Skip the spurious mount-time callback (see `ready` above).
+          if (!ready.current) {
+            ready.current = true
+            return
+          }
           if (date instanceof Date) setDraft(date)
         }}
         timePicker

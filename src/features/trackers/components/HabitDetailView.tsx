@@ -41,10 +41,16 @@ function HistoryScreen() {
   )
 }
 
-/** Notes screen — reads entries from context. */
+/** Notes screen — reads tracker, entries, and the edit callback from context. */
 function NotesScreen() {
-  const { entries } = useHabitDetail()
-  return <HabitNotesTab entries={entries} />
+  const { tracker, entries, onEditEntry } = useHabitDetail()
+  return (
+    <HabitNotesTab
+      tracker={tracker}
+      entries={entries}
+      onEditEntry={onEditEntry}
+    />
+  )
 }
 
 /**

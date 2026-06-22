@@ -24,6 +24,7 @@ const tracker: Tracker = {
   routine: null,
   reminderTime: null,
   createdAt: '2026-01-01T00:00:00Z',
+  goalNote: 'Build an emergency fund',
   archived: false
 }
 
@@ -46,6 +47,15 @@ describe('tracker row mapping', () => {
     expect(rowToTracker(row).repeatDays).toBeNull()
   })
 
+  test('trackerToRow maps goalNote to goal_note column', () => {
+    expect(trackerToRow(tracker).goal_note).toBe('Build an emergency fund')
+  })
+
+  test('rowToTracker handles null goal_note', () => {
+    const row = { ...trackerToRow(tracker), goal_note: null }
+    expect(rowToTracker(row).goalNote).toBeNull()
+  })
+
   test('round-trips a tracker with all nullable fields null (e.g. a habit)', () => {
     const habit: Tracker = {
       id: 'h1',
@@ -65,6 +75,7 @@ describe('tracker row mapping', () => {
       routine: null,
       reminderTime: null,
       createdAt: '2026-06-01T00:00:00Z',
+      goalNote: null,
       archived: false
     }
     const back = rowToTracker(trackerToRow(habit))

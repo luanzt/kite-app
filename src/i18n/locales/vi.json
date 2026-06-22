@@ -68,7 +68,7 @@
     "shouldBe": "Mốc tiến độ", "expected": "Dự kiến tới giờ", "remaining": "Còn lại",
     "best": "Kỷ lục", "logToday": "Ghi hôm nay",
     "calendar": "Lịch",
-    "sessionsBy": { "day": "21 ngày gần nhất", "week": "Số buổi mỗi tuần", "month": "Số buổi mỗi tháng", "year": "Số buổi mỗi năm" },
+    "sessionsBy": { "day": "Số buổi mỗi ngày", "week": "Số buổi mỗi tuần", "month": "Số buổi mỗi tháng", "year": "Số buổi mỗi năm" },
     "goalMet": "Đạt mục tiêu", "currentStreak": "Chuỗi hiện tại", "bestStreak": "Chuỗi dài nhất",
     "completed": "Hoàn thành", "restDay": "Ngày nghỉ", "goal": "Mục tiêu",
     "dow": ["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
@@ -78,6 +78,9 @@
     "schedule": "Lịch trình", "editDetails": "Chỉnh sửa chi tiết", "archive": "Lưu trữ",
     "deleteConfirmTitle": "Xóa tracker?", "deleteConfirmMsg": "Thao tác này xóa vĩnh viễn tracker và toàn bộ dữ liệu của nó. Không thể hoàn tác.",
     "noNotes": "Chưa có ghi chú", "noNotesHint": "Ghi chú bạn thêm khi ghi nhận sẽ hiện ở đây.",
+    "goalNote": "Ghi chú mục tiêu", "goalNoteHint": "Chạm để sửa · ghim vào mục tiêu này",
+    "goalNotePlaceholder": "Vì sao thói quen này quan trọng với bạn? Viết một ghi chú để giữ động lực…",
+    "logNotes": "Ghi chú nhật ký", "notesCount": "{{count}} ghi chú",
     "noHistory": "Chưa có dữ liệu", "recentEntries": "Mục gần đây",
     "logHistory": "Lịch sử ghi", "addLog": "Thêm", "logShort": "Ghi", "notLogged": "chưa ghi",
     "weekLogged": "{{logged}}/{{goal}} ngày"

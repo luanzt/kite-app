@@ -53,6 +53,7 @@ export const TRACKER_COLUMNS: ColumnSpec[] = [
   { name: 'repeat_days', decl: 'repeat_days TEXT' },
   { name: 'routine', decl: 'routine TEXT' },
   { name: 'reminder_time', decl: 'reminder_time TEXT' },
+  { name: 'goal_note', decl: 'goal_note TEXT' },
   { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" },
   { name: 'archived', decl: 'archived INTEGER NOT NULL DEFAULT 0' }
 ]
