@@ -23,6 +23,7 @@ export type BuildTrackerInput = {
   color?: string
   unit?: string | null
   targetValue?: number | null
+  startValue?: number | null
   accumulation?: Accumulation | null
   period?: Period | null
   startDate?: string
@@ -48,14 +49,16 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     unit: input.unit ?? null,
     direction: isHabit ? 'good' : null,
     targetValue: input.targetValue ?? null,
-    startValue: type === 'target' ? 0 : null,
+    startValue: type === 'target' ? input.startValue ?? 0 : null,
     accumulation: type === 'target' ? input.accumulation ?? 'sum' : null,
     startDate: input.startDate ?? toISODate(new Date()),
     deadline: null,
     period: input.period ?? (type === 'average' || isHabit ? 'daily' : null),
-    repeatDays: input.repeatDays ?? (isHabit ? [0, 1, 2, 3, 4, 5, 6] : null),
+    repeatDays:
+      input.repeatDays ??
+      (isHabit || type === 'target' ? [0, 1, 2, 3, 4, 5, 6] : null),
     routine: isHabit ? input.routine ?? 'any' : null,
-    reminderTime: isHabit ? input.reminderTime ?? null : null,
+    reminderTime: input.reminderTime ?? null,
     goalNote: null,
     createdAt: new Date().toISOString(),
     archived: false
