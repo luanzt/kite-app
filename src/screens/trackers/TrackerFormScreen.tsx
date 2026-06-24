@@ -22,7 +22,9 @@ import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import {
   DateField,
   FieldLabel,
+  FieldLabelRow,
   FormInput,
+  InfoTooltip,
   Segmented,
   SelectField,
   TimeField,
@@ -341,7 +343,16 @@ export function TrackerFormScreen({
               />
             </View>
             <View className='gap-s2'>
-              <FieldLabel>{t('form.mode')}</FieldLabel>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.modeHelp')}
+                  />
+                }
+              >
+                {t('form.mode')}
+              </FieldLabelRow>
               <Segmented<Accumulation>
                 value={accum}
                 onChange={setAccum}
@@ -352,7 +363,16 @@ export function TrackerFormScreen({
               />
             </View>
             <View className='gap-s2'>
-              <FieldLabel>{t('form.direction')}</FieldLabel>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.directionHelp')}
+                  />
+                }
+              >
+                {t('form.direction')}
+              </FieldLabelRow>
               <Segmented<HabitDirection>
                 value={dir}
                 onChange={setDir}
@@ -435,7 +455,16 @@ export function TrackerFormScreen({
               </View>
             </View>
             <View className='gap-s2'>
-              <FieldLabel>{t('form.period')}</FieldLabel>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.periodHelp')}
+                  />
+                }
+              >
+                {t('form.period')}
+              </FieldLabelRow>
               <Segmented<Period>
                 value={period}
                 onChange={setPeriod}
