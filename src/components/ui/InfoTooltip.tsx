@@ -1,4 +1,4 @@
-import { View } from 'react-native'
+import { Pressable } from 'react-native'
 import { Popover } from 'heroui-native'
 import { HelpCircle } from 'lucide-react-native'
 
@@ -16,10 +16,14 @@ export function InfoTooltip({
 }) {
   return (
     <Popover>
-      <Popover.Trigger>
-        <View className='h-6 w-6 items-center justify-center rounded-full border border-line bg-surface active:opacity-70'>
+      {/* asChild over a real Pressable — the proven trigger pattern in this app
+          (see DateField). A bare View child does not reliably wire press +
+          measure() on the New Architecture, leaving triggerPosition null so the
+          popover content never mounts. */}
+      <Popover.Trigger asChild>
+        <Pressable className='h-6 w-6 items-center justify-center rounded-full border border-line bg-surface active:opacity-70'>
           <HelpCircle size={15} color='#8a8e80' />
-        </View>
+        </Pressable>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Overlay />
