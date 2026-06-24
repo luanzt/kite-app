@@ -97,7 +97,7 @@
   },
   "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close" },
   "log": {
-    "prompt": "Did you do this habit?", "yes": "Yes", "no": "No",
+    "prompt": "Did you do this habit?", "yes": "Yes", "no": "No", "value": "Value", "valuePh": "0",
     "notesPh": "Add a note about this session — how it felt, distance, pace…",
     "date": "Date", "time": "Time", "save": "Save log"
   },
