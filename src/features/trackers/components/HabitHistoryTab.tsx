@@ -10,6 +10,7 @@ import {
   type HistoryRowItem
 } from '@features/trackers/calculators/habitStats'
 import { toISODate } from '@utils/date'
+import { fmtVal } from '@features/trackers/detailFormat'
 
 /** Render an ISO date as a UTC Date for locale formatting. */
 function isoToDate(iso: string): Date {
@@ -119,8 +120,9 @@ function RowShell({
   )
 }
 
-/** Yes / No pill for a logged record. */
+/** Status pill for a logged record: Yes/No (habit) or the numeric value. */
 function RecordRow({
+  tracker,
   entry,
   isFirst,
   isLast,
@@ -128,6 +130,7 @@ function RecordRow({
   t,
   onPress
 }: {
+  tracker: Tracker
   entry: Entry
   isFirst: boolean
   isLast: boolean
@@ -140,28 +143,37 @@ function RecordRow({
   const time = timeLabel(entry.createdAt, lang)
   const base = time ? `${wk} · ${time}` : wk
   const meta = entry.note && entry.note.trim() ? entry.note : base
+  const isHabit = tracker.type === 'habit'
   return (
     <RowShell
       iso={entry.date}
       meta={meta}
-      tileDone={yes}
+      tileDone={isHabit ? yes : true}
       isFirst={isFirst}
       isLast={isLast}
       lang={lang}
       onPress={onPress}
       status={
-        yes ? (
-          <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-brand-weak px-s3 py-s1'>
-            <Icons.Check size={12} color='#2456b5' />
-            <Typography className='text-xs-k font-bold text-brand-ink'>
-              {t('log.yes')}
-            </Typography>
-          </View>
+        isHabit ? (
+          yes ? (
+            <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-brand-weak px-s3 py-s1'>
+              <Icons.Check size={12} color='#2456b5' />
+              <Typography className='text-xs-k font-bold text-brand-ink'>
+                {t('log.yes')}
+              </Typography>
+            </View>
+          ) : (
+            <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-pace-behind-weak px-s3 py-s1'>
+              <Icons.Close size={12} color='#e0564e' />
+              <Typography className='text-xs-k font-bold text-pace-behind'>
+                {t('log.no')}
+              </Typography>
+            </View>
+          )
         ) : (
-          <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-pace-behind-weak px-s3 py-s1'>
-            <Icons.Close size={12} color='#e0564e' />
-            <Typography className='text-xs-k font-bold text-pace-behind'>
-              {t('log.no')}
+          <View className='min-w-[72px] items-center justify-center rounded-full bg-brand-weak px-s3 py-s1'>
+            <Typography className='text-xs-k font-bold text-brand-ink'>
+              {fmtVal(tracker, entry.value)}
             </Typography>
           </View>
         )
@@ -274,6 +286,7 @@ export function HabitHistoryTab({
         const isLast = index === rows.length - 1
         return item.kind === 'record' ? (
           <RecordRow
+            tracker={tracker}
             entry={item.entry}
             isFirst={isFirst}
             isLast={isLast}
