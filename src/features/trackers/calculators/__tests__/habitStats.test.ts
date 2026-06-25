@@ -5,7 +5,8 @@ import {
   weeklyGoalOf,
   periodSessions,
   buildHistoryRows,
-  isoAddDays
+  isoAddDays,
+  habitStreakStatus
 } from '../habitStats'
 import type { Tracker, Entry } from '@features/trackers/types'
 
@@ -161,7 +162,11 @@ describe('buildHistoryRows', () => {
   })
 
   test('a day with no record is an "empty" row (Log), a logged day is a "record"', () => {
-    const rows = buildHistoryRows(t, [logAt('2026-06-03', '08:00:00')], '2026-06-05')
+    const rows = buildHistoryRows(
+      t,
+      [logAt('2026-06-03', '08:00:00')],
+      '2026-06-05'
+    )
     const byDay = (iso: string) =>
       rows.filter((r) =>
         r.kind === 'record' ? r.entry.date === iso : r.iso === iso
@@ -181,9 +186,9 @@ describe('buildHistoryRows', () => {
     )
     const recs = rows.filter((r) => r.kind === 'record')
     expect(recs).toHaveLength(2)
-    expect(recs.map((r) => (r.kind === 'record' ? r.entry.createdAt : ''))).toEqual(
-      ['2026-06-02T20:00:00Z', '2026-06-02T07:00:00Z']
-    )
+    expect(
+      recs.map((r) => (r.kind === 'record' ? r.entry.createdAt : ''))
+    ).toEqual(['2026-06-02T20:00:00Z', '2026-06-02T07:00:00Z'])
   })
 
   test('skips non-due (rest) days', () => {
@@ -273,7 +278,11 @@ describe('periodSessions', () => {
       startDate: '2026-06-19',
       targetValue: 1000000
     }
-    const r = periodSessions(t, [log('2026-06-20'), log('2026-06-20')], '2026-06-20')
+    const r = periodSessions(
+      t,
+      [log('2026-06-20'), log('2026-06-20')],
+      '2026-06-20'
+    )
     expect(r.scaleMax).toBeLessThanOrEqual(100) // capped, not a billion
   })
 
@@ -288,7 +297,11 @@ describe('periodSessions', () => {
 
   test('monthly habit → 3 month bars, unit "month"', () => {
     const t = { ...base, period: 'monthly' as const, startDate: '2026-01-01' }
-    const r = periodSessions(t, [log('2026-06-20'), log('2026-06-05')], '2026-06-20')
+    const r = periodSessions(
+      t,
+      [log('2026-06-20'), log('2026-06-05')],
+      '2026-06-20'
+    )
     expect(r.unit).toBe('month')
     expect(r.bars).toHaveLength(3)
     // current month bar starts at the 1st
@@ -309,5 +322,118 @@ describe('periodSessions', () => {
   test('null period defaults to daily', () => {
     const t = { ...base, period: null, startDate: '2026-01-01' }
     expect(periodSessions(t, [], '2026-06-20').unit).toBe('day')
+  })
+})
+
+describe('habitStreakStatus', () => {
+  // A Mon/Tue/Sat habit for rest-day cases. 2026-06: 1st=Mon. weekdayOf: Sun=0..Sat=6.
+  // repeatDays for Mon/Tue/Sat = [1, 2, 6].
+  const mts: Tracker = { ...base, repeatDays: [1, 2, 6] }
+
+  it('new tracker, start today, not done → none', () => {
+    const t = { ...base, startDate: '2026-06-10' }
+    expect(habitStreakStatus(t, [], '2026-06-10')).toEqual({
+      kind: 'none',
+      n: 0
+    })
+  })
+
+  it('start today + done → greatStart', () => {
+    const t = { ...base, startDate: '2026-06-10' }
+    expect(habitStreakStatus(t, [log('2026-06-10')], '2026-06-10')).toEqual({
+      kind: 'greatStart',
+      n: 0
+    })
+  })
+
+  it('past start, yesterday missed, today done → greatStart', () => {
+    // startDate 06-01 daily; only today (06-10) done, 06-09 missed.
+    expect(habitStreakStatus(base, [log('2026-06-10')], '2026-06-10')).toEqual({
+      kind: 'greatStart',
+      n: 0
+    })
+  })
+
+  it('today done + yesterday done → streakOngoing n=2', () => {
+    const entries = [log('2026-06-09'), log('2026-06-10')]
+    expect(habitStreakStatus(base, entries, '2026-06-10')).toEqual({
+      kind: 'streakOngoing',
+      n: 2
+    })
+  })
+
+  it('today + two prior done → streakOngoing n=3', () => {
+    const entries = [log('2026-06-08'), log('2026-06-09'), log('2026-06-10')]
+    expect(habitStreakStatus(base, entries, '2026-06-10')).toEqual({
+      kind: 'streakOngoing',
+      n: 3
+    })
+  })
+
+  it('today not done, yesterday done → streakEnded n=1', () => {
+    expect(habitStreakStatus(base, [log('2026-06-09')], '2026-06-10')).toEqual({
+      kind: 'streakEnded',
+      n: 1
+    })
+  })
+
+  it('today not done, yesterday + prior done → streakEnded n=2', () => {
+    const entries = [log('2026-06-08'), log('2026-06-09')]
+    expect(habitStreakStatus(base, entries, '2026-06-10')).toEqual({
+      kind: 'streakEnded',
+      n: 2
+    })
+  })
+
+  it('today not done, yesterday (due) missed → missedYesterday', () => {
+    // daily: 06-09 is a due day and not done; 06-08 done so run stops there.
+    expect(habitStreakStatus(base, [log('2026-06-08')], '2026-06-10')).toEqual({
+      kind: 'missedYesterday',
+      n: 0
+    })
+  })
+
+  it('today not done, two prior due missed → missedDays n=2', () => {
+    // 06-07 done; 06-08 and 06-09 missed; today 06-10 not done.
+    expect(habitStreakStatus(base, [log('2026-06-07')], '2026-06-10')).toEqual({
+      kind: 'missedDays',
+      n: 2
+    })
+  })
+
+  it('rest-day completion extends the streak', () => {
+    // Mon/Tue/Sat due. Tue 06-02 done, Wed 06-03 (rest) not done,
+    // Thu 06-04 (rest) done. Today = Sat 06-06 done.
+    // back from 06-06(done,+1) → 06-05 rest skip → 06-04 rest done(+1)
+    // → 06-03 rest skip → 06-02 due done(+1) → 06-01 Mon due NOT done → stop.
+    // runEndingToday = 3.
+    const entries = [log('2026-06-02'), log('2026-06-04'), log('2026-06-06')]
+    expect(habitStreakStatus(mts, entries, '2026-06-06')).toEqual({
+      kind: 'streakOngoing',
+      n: 3
+    })
+  })
+
+  it('missed last time when yesterday is a rest day', () => {
+    // Mon/Tue/Sat. Today = Sat 06-06 not done. Yesterday 06-05 is Fri (rest).
+    // Most recent prior DUE day = Tue 06-02, and it was missed (no logs at all).
+    // missedRun counts consecutive prior due missed: Tue 06-02 missed,
+    // Mon 06-01 missed → but only the run immediately before today; both due
+    // days before today (Tue, Mon) missed and consecutive → missedRun = 2.
+    // To isolate missedLastTime (n=1) we complete Mon so only Tue is missed:
+    const entries = [log('2026-06-01')] // Mon done, Tue missed, today Sat not done
+    expect(habitStreakStatus(mts, entries, '2026-06-06')).toEqual({
+      kind: 'missedLastTime',
+      n: 0
+    })
+  })
+
+  it('missedRun excludes today and counts only the consecutive run', () => {
+    // daily, today 06-10 not done. 06-09, 06-08 missed; 06-07 done.
+    // missedRun = 2 (09 + 08), not counting today, not counting earlier.
+    expect(habitStreakStatus(base, [log('2026-06-07')], '2026-06-10')).toEqual({
+      kind: 'missedDays',
+      n: 2
+    })
   })
 })

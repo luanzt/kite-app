@@ -192,6 +192,92 @@ export function buildHistoryRows(
   return rows
 }
 
+export type StreakStatusKind =
+  | 'none'
+  | 'greatStart'
+  | 'streakOngoing'
+  | 'streakEnded'
+  | 'missedYesterday'
+  | 'missedLastTime'
+  | 'missedDays'
+
+export type StreakStatus = { kind: StreakStatusKind; n: number }
+
+/**
+ * Motivational streak status for the Today card (today is always a due day
+ * there). Scans backward from today: a *done* day (due or rest) extends the
+ * run; a rest day not done is skipped; a due day not done (other than today)
+ * breaks it. "Missed" counts only consecutive *due* days not done strictly
+ * before today.
+ */
+export function habitStreakStatus(
+  tracker: Tracker,
+  entries: Entry[],
+  todayISO: string
+): StreakStatus {
+  const done = doneDatesOf(tracker, entries)
+  const span = daysBetween(tracker.startDate, todayISO)
+  if (span < 0) return { kind: 'none', n: 0 }
+
+  const todayDone = done.has(todayISO)
+
+  // Does any due day exist strictly before today?
+  let hasPriorDue = false
+  for (let i = 1; i <= span; i++) {
+    if (isDueOn(tracker, isoAddDays(todayISO, -i))) {
+      hasPriorDue = true
+      break
+    }
+  }
+
+  // Run of consecutive done days (due or rest) ending at the cursor, scanning
+  // back; rest-not-done skipped; due-not-done stops. startOffset 0 includes today.
+  const runFrom = (startOffset: number): number => {
+    let run = 0
+    for (let i = startOffset; i <= span; i++) {
+      const day = isoAddDays(todayISO, -i)
+      if (done.has(day)) {
+        run += 1
+      } else if (isDueOn(tracker, day)) {
+        break // a missed due day breaks the run
+      }
+      // else: rest day not done → skip (neutral)
+    }
+    return run
+  }
+
+  const runEndingToday = todayDone ? runFrom(0) : 0
+  const runEndingYesterday = runFrom(1)
+
+  // Consecutive due days not done, strictly before today (today excluded).
+  let missedRun = 0
+  for (let i = 1; i <= span; i++) {
+    const day = isoAddDays(todayISO, -i)
+    if (!isDueOn(tracker, day)) continue // skip rest days
+    if (done.has(day)) break // a done due day ends the missed run
+    missedRun += 1
+  }
+
+  // Was the most recent missed due day literally yesterday (today - 1)?
+  const yest = isoAddDays(todayISO, -1)
+  const lastMissedWasYesterday =
+    span >= 1 && isDueOn(tracker, yest) && !done.has(yest)
+
+  if (!hasPriorDue && !todayDone) return { kind: 'none', n: 0 }
+  if (todayDone) {
+    return runEndingToday >= 2
+      ? { kind: 'streakOngoing', n: runEndingToday }
+      : { kind: 'greatStart', n: 0 }
+  }
+  // !todayDone
+  if (runEndingYesterday >= 1)
+    return { kind: 'streakEnded', n: runEndingYesterday }
+  if (missedRun >= 2) return { kind: 'missedDays', n: missedRun }
+  return lastMissedWasYesterday
+    ? { kind: 'missedYesterday', n: 0 }
+    : { kind: 'missedLastTime', n: 0 }
+}
+
 export type PeriodUnit = 'day' | 'week' | 'month' | 'year'
 export type PeriodSessions = {
   bars: WeekBar[] // oldest first; for daily, count = number of logs that day
