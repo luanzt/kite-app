@@ -35,28 +35,45 @@ skip → Tue done (+1) → streak = 2.
   strictly before today, per the same skip/break rules. Concretely: step back
   from yesterday; skip rest-not-done; stop at the first due-not-done; count
   done days. (0 when the most recent prior due day was missed.)
-- `missedRun` — consecutive **due** days not done, counting back from today
-  (including today), skipping rest days. (Only due days count as "missed" —
-  rest days are never a miss.)
+- `missedRun` — consecutive **due** days not done, counting back **strictly
+  before today** (today is NOT counted — it hasn't ended yet), skipping rest
+  days, stopping at the first prior due day that was done. (Only due days count
+  as "missed" — rest days are never a miss.) Example: due Mon/Tue/Sat, Tue
+  missed, today Sat not done → missedRun = 1 (just Tue); if Mon also missed →
+  missedRun = 2 (Mon+Tue), regardless of how many earlier days were missed —
+  only the *consecutive* run immediately before today counts.
+- `lastMissedWasYesterday` — the calendar day (today − 1) is itself a **due**
+  day AND was **not done**. Distinguishes "Missed yesterday" (the missed due
+  day is literally yesterday) from "Missed last time" (yesterday was a rest
+  day, so the most recent missed due day is further back, e.g. Tue when today
+  is Sat).
 - `hasPriorDue` — at least one due day exists strictly before today within
   [startDate, today].
 
 ## Status mapping → `{ kind, n }`
 
-`kind ∈ { none, greatStart, streakOngoing, streakEnded, missedYesterday, missedDays }`
+`kind ∈ { none, greatStart, streakOngoing, streakEnded, missedYesterday, missedLastTime, missedDays }`
 
-| Condition | kind | n | line-2 text |
+| Condition (top-to-bottom, first match wins) | kind | n | line-2 text |
 |---|---|---|---|
 | `!hasPriorDue && !todayDone` | `none` | – | (hidden — no line 2) |
 | `todayDone && runEndingToday === 1` | `greatStart` | – | "Great start" |
 | `todayDone && runEndingToday >= 2` | `streakOngoing` | runEndingToday | "Streak: {n} days" |
 | `!todayDone && runEndingYesterday >= 1` | `streakEnded` | runEndingYesterday | "{n} day streak" |
-| `!todayDone && missedRun === 1` | `missedYesterday` | – | "Missed yesterday" |
 | `!todayDone && missedRun >= 2` | `missedDays` | missedRun | "Missed {n} days in row" |
+| `!todayDone && missedRun === 1 && lastMissedWasYesterday` | `missedYesterday` | – | "Missed yesterday" |
+| `!todayDone && missedRun === 1 && !lastMissedWasYesterday` | `missedLastTime` | – | "Missed last time" |
 
-Resolution order is top-to-bottom (first match wins). Note `greatStart` is the
-start-today-and-done case AND the past-start-but-yesterday-missed-and-today-done
-case — both yield `runEndingToday === 1`, so one rule covers both.
+Notes:
+- `greatStart` covers BOTH start-today-and-done AND
+  past-start-but-prior-due-missed-then-today-done — both yield
+  `runEndingToday === 1`.
+- The `streakEnded` (prior due done) and the three missed rows (prior due
+  missed) are mutually exclusive: when `!todayDone`, the most recent prior due
+  day is either done (`runEndingYesterday >= 1`, so `missedRun === 0`) or missed
+  (`runEndingYesterday === 0`, `missedRun >= 1`). So at most one matches.
+- A single missed due day distinguishes `missedYesterday` vs `missedLastTime`
+  purely by whether (today − 1) is the missed due day.
 
 ## UI (DailyGoalsScreen card)
 
@@ -64,8 +81,8 @@ case — both yield `runEndingToday === 1`, so one rule covers both.
 - Line 2, only when `kind !== 'none'` and `tracker.type === 'habit'`:
   - positive kinds (`greatStart`, `streakOngoing`, `streakEnded`): lucide
     `Flame` (`Icons.Flame`) in `pace-on` green + text in `pace-on`.
-  - missed kinds (`missedYesterday`, `missedDays`): a warning lucide icon
-    (`TriangleAlert` — add to `Icons` as `Icons.Warn` if absent) in
+  - missed kinds (`missedYesterday`, `missedLastTime`, `missedDays`): a warning
+    lucide icon (`TriangleAlert` — add to `Icons` as `Icons.Warn`) in
     `pace-behind` + text in `pace-behind`.
 - Only habits get line 2 (target/average/project keep their existing single
   sub-line). `TrackerCard.tsx` (Trackers tab) is NOT changed.
@@ -90,6 +107,7 @@ one subscription per visible habit row is acceptable for the Today list size.)
 | `streakOngoing` | "Streak: {{count}} days" | "Chuỗi: {{count}} ngày" |
 | `streakEnded` | "{{count}} day streak" | "Chuỗi {{count}} ngày" |
 | `missedYesterday` | "Missed yesterday" | "Lỡ hôm qua" |
+| `missedLastTime` | "Missed last time" | "Lỡ lần trước" |
 | `missedDays` | "Missed {{count}} days in row" | "Lỡ {{count}} ngày liên tiếp" |
 
 ## Testing
@@ -99,13 +117,21 @@ one subscription per visible habit row is acceptable for the Today list size.)
 - start today + done → `greatStart`.
 - past start, yesterday missed, today done → `greatStart`.
 - today done + yesterday done (run 2) → `streakOngoing` n=2; run 3 → n=3.
-- today not done, yesterday done → `streakEnded` n=1; prior also done → n=2.
-- today not done, yesterday missed (due) → `missedYesterday`.
-- today not done, missed 2 due days → `missedDays` n=2.
-- rest-day-done extends streak (the Mon/Tue/Sat example: Tue done, Thu[rest]
-  done → counting includes the rest-day completion).
-- missed due day with an intervening rest-done still breaks (rest done skipped,
-  due-not-done breaks).
+- today not done, most recent prior due done → `streakEnded` n=1; prior due
+  also done → n=2.
+- today not done, yesterday is a due day and missed → `missedYesterday`.
+- today not done, yesterday is a rest day, the prior due day (e.g. Tue when
+  today is Sat) was missed → `missedLastTime`.
+- today not done, 2 consecutive prior due days missed → `missedDays` n=2; and
+  missedRun counts only the consecutive run immediately before today (earlier
+  missed days beyond a done due day are not added).
+- rest-day-done extends streak (Mon/Tue/Sat due: Tue done, Wed[rest] not done,
+  Thu[rest] done → counting back from Thu includes the rest-day completion and
+  the skipped rest, reaching Tue → run 2).
+- a due-not-done breaks the streak even with an intervening rest-done (rest-done
+  is skipped/counted, but the due-not-done stops the scan).
+- missedRun excludes today: due Mon/Tue/Sat, Tue missed, today Sat not done →
+  missedRun = 1, not 2.
 
 Card render verified on simulator.
 
