@@ -13,7 +13,13 @@
     "allClear": "Bạn đã hoàn tất",
     "allClearBody": "Không còn gì để ghi hôm nay. Tuyệt vời!",
     "empty": "Chưa có mục tiêu",
-    "emptyBody": "Tạo mục tiêu đầu tiên để bắt đầu tạo đà."
+    "emptyBody": "Tạo mục tiêu đầu tiên để bắt đầu tạo đà.",
+    "streakGreatStart": "Khởi đầu tốt",
+    "streakOngoing": "Chuỗi: {{count}} ngày",
+    "streakEnded": "Chuỗi {{count}} ngày",
+    "missedYesterday": "Lỡ hôm qua",
+    "missedLastTime": "Lỡ lần trước",
+    "missedDays": "Lỡ {{count}} ngày liên tiếp"
   },
   "list": {
     "title": "Mục tiêu",

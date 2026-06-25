@@ -13,7 +13,13 @@
     "allClear": "You're all caught up",
     "allClearBody": "Nothing left to log today. Beautiful work.",
     "empty": "No goals yet",
-    "emptyBody": "Create your first tracker to start building momentum."
+    "emptyBody": "Create your first tracker to start building momentum.",
+    "streakGreatStart": "Great start",
+    "streakOngoing": "Streak: {{count}} days",
+    "streakEnded": "{{count}} day streak",
+    "missedYesterday": "Missed yesterday",
+    "missedLastTime": "Missed last time",
+    "missedDays": "Missed {{count}} days in row"
   },
   "list": {
     "title": "Trackers",
