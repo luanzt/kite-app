@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
@@ -22,7 +23,12 @@ import {
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
-import type { Tracker, Entry } from '@features/trackers/types'
+import type {
+  Tracker,
+  Entry,
+  PaceStatus,
+  TrackerProgress
+} from '@features/trackers/types'
 import {
   classifyTodayRow,
   habitStreakStatus,
@@ -31,6 +37,10 @@ import {
   type TodayRowStatus
 } from '@features/trackers/calculators/habitStats'
 import { uuid } from '@features/trackers/factory'
+import { calculateTarget } from '@features/trackers/calculators/target'
+import { calculateAverage } from '@features/trackers/calculators/average'
+import { fmtCompact } from '@features/trackers/detailFormat'
+import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -39,21 +49,6 @@ function isDueToday(t: Tracker, todayISO: string): boolean {
     return t.repeatDays.includes(weekdayOf(todayISO))
   }
   return true
-}
-
-/** A sensible quick-increment step for stepper trackers. */
-function quickStep(t: Tracker): number {
-  if (t.unit === '$') return 25
-  if (t.unit === 'kg') return 0.1
-  if (t.unit === 'steps') return 500
-  return 1
-}
-
-/** Format a number: integers plain, otherwise max one decimal. */
-function fmtNum(n: number): string {
-  if (!Number.isFinite(n)) return '0'
-  const rounded = Number.isInteger(n) ? n : Math.round(n * 10) / 10
-  return rounded.toLocaleString()
 }
 
 /** Small circular progress ring (-90deg start). */
@@ -116,6 +111,25 @@ const STREAK_KEY: Record<StreakStatus['kind'], string> = {
 const isMissedKind = (k: StreakStatus['kind']): boolean =>
   k === 'missedYesterday' || k === 'missedLastTime' || k === 'missedDays'
 
+// Pace line color by status (literal classes — never interpolate).
+const PACE_TEXT_CLASS: Record<PaceStatus, string> = {
+  on_track: 'text-pace-on',
+  behind: 'text-pace-behind',
+  ahead: 'text-pace-ahead',
+  none: 'text-ink-2'
+}
+
+/** Deadline as "29 Nov 2026" in the active locale. */
+function fmtDeadline(iso: string, lang: string): string {
+  const d = new Date(`${iso}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
 type Row = {
   tracker: Tracker
   status: TodayRowStatus
@@ -127,21 +141,28 @@ function LogRow({
   row,
   today,
   onLog,
-  onOpen
+  onOpen,
+  onQuickLog
 }: {
   row: Row
   today: string
   onLog: (e: Entry) => void
   onOpen: (id: string) => void
+  onQuickLog: (tracker: Tracker) => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { tracker, done, todayLog } = row
   const { data: allEntries = [] } = useEntries(tracker.id)
   const streak: StreakStatus | null =
     tracker.type === 'habit'
       ? habitStreakStatus(tracker, allEntries, today)
       : null
-  const entryId = `${tracker.id}-${today}`
+  const progress: TrackerProgress | null =
+    tracker.type === 'target'
+      ? calculateTarget(tracker, allEntries, today)
+      : tracker.type === 'average'
+      ? calculateAverage(tracker, allEntries, today)
+      : null
 
   // Sub-line text per type.
   let subText: string
@@ -149,26 +170,21 @@ function LogRow({
     const period = tracker.period ?? 'daily'
     subText = period.charAt(0).toUpperCase() + period.slice(1)
   } else if (tracker.type === 'average') {
-    const target = tracker.targetValue ?? 0
     const u = tracker.unit ? ` ${tracker.unit}` : ''
-    subText = `${t('detail.target')} ${fmtNum(target)}${u}`
-  } else {
-    const u = tracker.unit ? ` ${tracker.unit}` : ''
-    subText = `${fmtNum(todayLog)}${u}`
-  }
-
-  // Today's quick-set keeps a stable per-day id so tapping again overwrites the
-  // day's value (on/off, set) rather than stacking records — unlike the Habit
-  // Detail log, which creates a fresh record each time.
-  const setValue = (v: number) =>
-    onLog({
-      id: entryId,
-      trackerId: tracker.id,
-      date: today,
-      value: v,
-      note: null,
-      createdAt: new Date().toISOString()
+    subText = t('today.targetIs', {
+      value: `${fmtCompact(tracker.targetValue ?? 0)}${u}`
     })
+  } else {
+    // target
+    const u = tracker.unit ? ` ${tracker.unit}` : ''
+    const goalVal = `${fmtCompact(tracker.targetValue ?? 0)}${u}`
+    subText = tracker.deadline
+      ? t('today.goalBy', {
+          value: goalVal,
+          date: fmtDeadline(tracker.deadline, i18n.language)
+        })
+      : t('today.goal', { value: goalVal })
+  }
 
   // Habit ring: each tap is its own Yes record (uuid + now), so History shows
   // one row per tap — unlike the stepper's absolute set/overwrite.
@@ -213,35 +229,34 @@ function LogRow({
     if (tracker.type === 'project') {
       return <Icons.Chevron size={20} color={PACE_COLOR.none} />
     }
-    // target / average → stepper
-    const step = quickStep(tracker)
-    const unitLabel = tracker.unit ?? t('common.done')
+    // target / average → read-only value + pace, tap opens the log sheet
+    const isAverage = tracker.type === 'average'
+    const bigValue = isAverage
+      ? fmtCompact(todayLog) // average shows today's logged value
+      : fmtCompact(progress?.current ?? 0) // target shows accumulated current
+    const paceStatus: PaceStatus = progress?.paceStatus ?? 'none'
+    // average → "Avg: <cumulative avg>"; target → "Pace: <expected>" (hidden if none)
+    const paceLine = isAverage
+      ? t('today.avg', { value: fmtCompact(progress?.current ?? 0) })
+      : progress?.expected != null
+      ? t('today.pace', { value: fmtCompact(progress.expected) })
+      : null
     return (
-      <View className='flex-row items-center gap-s2'>
-        <Pressable
-          onPress={() => setValue(Math.max(0, todayLog - step))}
-          className='items-center justify-center rounded-md-k border border-line bg-surface-2 h-[38px] w-[38px]'
-        >
-          <Typography className='text-xl font-bold text-ink'>−</Typography>
-        </Pressable>
-        <View className='items-center min-w-[46px]'>
-          <Typography className='text-lg font-extrabold text-ink'>
-            {fmtNum(todayLog)}
-          </Typography>
+      <Pressable
+        onPress={() => onQuickLog(tracker)}
+        className='items-end min-w-[78px] py-s1'
+      >
+        <Typography className='text-2xl font-extrabold text-brand-ink'>
+          {bigValue}
+        </Typography>
+        {paceLine ? (
           <Typography
-            className='text-ink-3 font-semibold text-[10px]'
-            numberOfLines={1}
+            className={`text-sm font-semibold ${PACE_TEXT_CLASS[paceStatus]}`}
           >
-            {unitLabel}
+            {paceLine}
           </Typography>
-        </View>
-        <Pressable
-          onPress={() => setValue(todayLog + step)}
-          className='items-center justify-center rounded-md-k border border-line bg-surface-2 h-[38px] w-[38px]'
-        >
-          <Typography className='text-xl font-bold text-ink'>+</Typography>
-        </Pressable>
-      </View>
+        ) : null}
+      </Pressable>
     )
   }
 
@@ -357,6 +372,8 @@ export function DailyGoalsScreen() {
     })
     .toUpperCase()
 
+  const [logTarget, setLogTarget] = useState<Tracker | null>(null)
+
   const onLog = (e: Entry) => log.mutate(e)
   const onOpen = (id: string) =>
     nav.navigate('TrackerDetail', { trackerId: id })
@@ -416,8 +433,10 @@ export function DailyGoalsScreen() {
         <Typography className='text-2xl font-extrabold text-ink mt-1'>
           {t(greetKey)}
         </Typography>
+      </View>
 
-        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mt-s4'>
+      <ScrollView contentContainerClassName='pb-8'>
+        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mx-s5 mt-s4'>
           <View className='items-center justify-center h-[52px] w-[52px]'>
             <Ring
               fraction={total ? doneCount / total : 0}
@@ -440,9 +459,7 @@ export function DailyGoalsScreen() {
             </Typography>
           </View>
         </View>
-      </View>
 
-      <ScrollView contentContainerClassName='pb-8'>
         {allDone ? (
           <View className='items-center px-s6 gap-s3 pt-12'>
             <View className='mb-s2 h-24 w-24 items-center justify-center rounded-xl-k bg-brand-weak'>
@@ -459,7 +476,7 @@ export function DailyGoalsScreen() {
 
         {dueRows.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
               {t('today.dueToday')}
             </Typography>
             <View className='px-s5 gap-s3'>
@@ -470,6 +487,7 @@ export function DailyGoalsScreen() {
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
+                  onQuickLog={setLogTarget}
                 />
               ))}
             </View>
@@ -478,7 +496,7 @@ export function DailyGoalsScreen() {
 
         {missed.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
               {t('today.missed')}
             </Typography>
             <View className='px-s5 gap-s3'>
@@ -489,6 +507,7 @@ export function DailyGoalsScreen() {
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
+                  onQuickLog={setLogTarget}
                 />
               ))}
             </View>
@@ -497,7 +516,7 @@ export function DailyGoalsScreen() {
 
         {completed.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
               {t('today.completed')}
             </Typography>
             <View className='px-s5 gap-s3'>
@@ -508,12 +527,25 @@ export function DailyGoalsScreen() {
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
+                  onQuickLog={setLogTarget}
                 />
               ))}
             </View>
           </>
         ) : null}
       </ScrollView>
+      {logTarget ? (
+        <LogEntryModal
+          tracker={logTarget}
+          defaultDate={today}
+          visible={!!logTarget}
+          onClose={() => setLogTarget(null)}
+          onSave={(e) => {
+            onLog(e)
+            setLogTarget(null)
+          }}
+        />
+      ) : null}
     </View>
   )
 }
