@@ -8,7 +8,8 @@ import Svg, { Circle } from 'react-native-svg'
 import {
   useTrackers,
   useLogEntry,
-  useEntriesForDate
+  useEntriesForDate,
+  useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
 import {
@@ -22,6 +23,10 @@ import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
 import type { Tracker, Entry } from '@features/trackers/types'
+import {
+  habitStreakStatus,
+  type StreakStatus
+} from '@features/trackers/calculators/habitStats'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -93,6 +98,20 @@ function Ring({
   )
 }
 
+// Streak status kind → i18n key. Negative ("missed*") kinds render in the
+// behind color with a warning icon; the rest are positive (flame).
+const STREAK_KEY: Record<StreakStatus['kind'], string> = {
+  none: '',
+  greatStart: 'today.streakGreatStart',
+  streakOngoing: 'today.streakOngoing',
+  streakEnded: 'today.streakEnded',
+  missedYesterday: 'today.missedYesterday',
+  missedLastTime: 'today.missedLastTime',
+  missedDays: 'today.missedDays'
+}
+const isMissedKind = (k: StreakStatus['kind']): boolean =>
+  k === 'missedYesterday' || k === 'missedLastTime' || k === 'missedDays'
+
 type Row = {
   tracker: Tracker
   done: boolean
@@ -112,6 +131,11 @@ function LogRow({
 }) {
   const { t } = useTranslation()
   const { tracker, done, todayLog } = row
+  const { data: allEntries = [] } = useEntries(tracker.id)
+  const streak: StreakStatus | null =
+    tracker.type === 'habit'
+      ? habitStreakStatus(tracker, allEntries, today)
+      : null
   const entryId = `${tracker.id}-${today}`
 
   // Sub-line text per type.
@@ -217,6 +241,22 @@ function LogRow({
           />
           <Typography className='text-sm text-ink-2'>{subText}</Typography>
         </View>
+        {streak && streak.kind !== 'none' ? (
+          <View className='flex-row items-center gap-s1 mt-[2px]'>
+            {isMissedKind(streak.kind) ? (
+              <Icons.Warn size={13} color={PACE_COLOR.behind} />
+            ) : (
+              <Icons.Flame size={13} color={PACE_COLOR.on_track} />
+            )}
+            <Typography
+              className={`text-sm font-bold ${
+                isMissedKind(streak.kind) ? 'text-pace-behind' : 'text-pace-on'
+              }`}
+            >
+              {t(STREAK_KEY[streak.kind], { count: streak.n })}
+            </Typography>
+          </View>
+        ) : null}
       </View>
 
       {renderControl()}
