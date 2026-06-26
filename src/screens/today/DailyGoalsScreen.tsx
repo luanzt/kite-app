@@ -260,13 +260,14 @@ function LogRow({
         {streak && streak.kind !== 'none' ? (
           <View className='flex-row items-center gap-s1 mt-[2px]'>
             {isMissedKind(streak.kind) ? (
-              <Icons.Warn size={13} color={PACE_COLOR.behind} />
+              // amber warning icon; the text stays muted (like the cadence line)
+              <Icons.Warn size={13} color='#e8923a' />
             ) : (
               <Icons.Flame size={13} color={PACE_COLOR.on_track} />
             )}
             <Typography
               className={`text-sm font-bold ${
-                isMissedKind(streak.kind) ? 'text-pace-behind' : 'text-pace-on'
+                isMissedKind(streak.kind) ? 'text-ink-2' : 'text-pace-on'
               }`}
             >
               {t(STREAK_KEY[streak.kind], { count: streak.n })}
