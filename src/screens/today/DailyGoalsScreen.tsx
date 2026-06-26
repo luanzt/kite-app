@@ -24,9 +24,11 @@ import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
 import type { Tracker, Entry } from '@features/trackers/types'
 import {
+  classifyTodayRow,
   habitStreakStatus,
   perDayGoal,
-  type StreakStatus
+  type StreakStatus,
+  type TodayRowStatus
 } from '@features/trackers/calculators/habitStats'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -115,6 +117,7 @@ const isMissedKind = (k: StreakStatus['kind']): boolean =>
 
 type Row = {
   tracker: Tracker
+  status: TodayRowStatus
   done: boolean
   todayLog: number
 }
@@ -297,22 +300,27 @@ export function DailyGoalsScreen() {
     todayValue.set(e.trackerId, (todayValue.get(e.trackerId) ?? 0) + e.value)
   }
 
+  // Count of today's "No" logs (value 0) per tracker — used to classify a
+  // habit as missed (attempts filled the goal but not enough were Yes).
+  const todayNo = new Map<string, number>()
+  for (const e of todayEntries) {
+    if (e.value === 0)
+      todayNo.set(e.trackerId, (todayNo.get(e.trackerId) ?? 0) + 1)
+  }
+
   const due = trackers.filter((tr) => isDueToday(tr, today))
   const rows: Row[] = due.map((tracker) => {
     const todayLog = todayValue.get(tracker.id) ?? 0
-    const done =
-      tracker.type === 'project'
-        ? false
-        : tracker.type === 'habit'
-        ? todayLog >= perDayGoal(tracker)
-        : todayLog > 0
-    return { tracker, done, todayLog }
+    const no = todayNo.get(tracker.id) ?? 0
+    const status = classifyTodayRow(tracker, todayLog, no)
+    return { tracker, status, done: status === 'completed', todayLog }
   })
 
   const total = rows.length
-  const doneCount = rows.filter((r) => r.done).length
-  const pending = rows.filter((r) => !r.done)
-  const completed = rows.filter((r) => r.done)
+  const dueRows = rows.filter((r) => r.status === 'due')
+  const missed = rows.filter((r) => r.status === 'missed')
+  const completed = rows.filter((r) => r.status === 'completed')
+  const doneCount = completed.length
 
   const hours = new Date().getHours()
   const greetKey =
@@ -431,7 +439,7 @@ export function DailyGoalsScreen() {
               {t('today.dueToday')}
             </Typography>
             <View className='px-s5 gap-s3'>
-              {pending.map((row) => (
+              {dueRows.map((row) => (
                 <LogRow
                   key={row.tracker.id}
                   row={row}
@@ -443,6 +451,25 @@ export function DailyGoalsScreen() {
             </View>
           </>
         )}
+
+        {missed.length > 0 && !allDone ? (
+          <>
+            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
+              {t('today.missed')}
+            </Typography>
+            <View className='px-s5 gap-s3'>
+              {missed.map((row) => (
+                <LogRow
+                  key={row.tracker.id}
+                  row={row}
+                  today={today}
+                  onLog={onLog}
+                  onOpen={onOpen}
+                />
+              ))}
+            </View>
+          </>
+        ) : null}
 
         {completed.length > 0 && !allDone ? (
           <>
