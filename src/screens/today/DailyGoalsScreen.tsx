@@ -244,7 +244,7 @@ function LogRow({
         onPress={() => onQuickLog(tracker)}
         className='items-end min-w-[78px] py-s1'
       >
-        <Typography className='text-2xl font-extrabold text-brand-ink'>
+        <Typography className='text-lg font-extrabold text-brand-ink'>
           {bigValue}
         </Typography>
         {paceLine ? (
@@ -370,7 +370,17 @@ export function DailyGoalsScreen() {
     })
     .toUpperCase()
 
+  // Quick-log sheet. Mirrors TrackerDetailScreen: the LogEntryModal is ALWAYS
+  // mounted (never gated on the tracker) so its BottomSheet sees a clean
+  // false→true transition; only `logOpen` toggles. `logTarget` remembers which
+  // tracker to log and stays set across closes so the sheet can animate out.
   const [logTarget, setLogTarget] = useState<Tracker | null>(null)
+  const [logOpen, setLogOpen] = useState(false)
+  const openQuickLog = (tracker: Tracker) => {
+    setLogTarget(tracker)
+    setLogOpen(true)
+  }
+  const closeQuickLog = () => setLogOpen(false)
 
   const onLog = (e: Entry) => log.mutate(e)
   const onOpen = (id: string) =>
@@ -485,7 +495,7 @@ export function DailyGoalsScreen() {
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
-                  onQuickLog={setLogTarget}
+                  onQuickLog={openQuickLog}
                 />
               ))}
             </View>
@@ -505,7 +515,7 @@ export function DailyGoalsScreen() {
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
-                  onQuickLog={setLogTarget}
+                  onQuickLog={openQuickLog}
                 />
               ))}
             </View>
@@ -525,22 +535,25 @@ export function DailyGoalsScreen() {
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
-                  onQuickLog={setLogTarget}
+                  onQuickLog={openQuickLog}
                 />
               ))}
             </View>
           </>
         ) : null}
       </ScrollView>
-      {logTarget ? (
+      {/* Always mounted (like TrackerDetailScreen) so the BottomSheet animates
+          on a clean false→true. Falls back to a stable tracker before the first
+          pick; `logOpen` keeps it closed until a value is tapped. */}
+      {logTarget ?? trackers[0] ? (
         <LogEntryModal
-          tracker={logTarget}
+          tracker={(logTarget ?? trackers[0])!}
           defaultDate={today}
-          visible={!!logTarget}
-          onClose={() => setLogTarget(null)}
+          visible={logOpen}
+          onClose={closeQuickLog}
           onSave={(e) => {
             onLog(e)
-            setLogTarget(null)
+            closeQuickLog()
           }}
         />
       ) : null}
