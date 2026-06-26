@@ -289,7 +289,7 @@ function LogRow({
               <Icons.Flame size={13} color={PACE_COLOR.on_track} />
             )}
             <Typography
-              className={`text-sm font-bold ${
+              className={`text-sm ${
                 isMissedKind(streak.kind) ? 'text-ink-2' : 'text-pace-on'
               }`}
             >
