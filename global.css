@@ -53,6 +53,9 @@
   /* ---- brand (deep blue) ---- */
   --color-brand: #2456b5;
   --color-brand-weak: #e6eefb;
+  /* a tint lighter than brand-weak — for completed-card fills that must sit
+     below the brand-weak summary card */
+  --color-brand-faint: #f0f5fd;
   --color-brand-ink: #2456b5;
 
   /* ---- pace palette (classic) — the soul of the app ---- */

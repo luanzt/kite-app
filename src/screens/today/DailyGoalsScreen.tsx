@@ -169,7 +169,7 @@ function LogRow({
     if (tracker.type === 'habit') {
       const goal = perDayGoal(tracker)
       const n = todayLog
-      const ringColor = done ? PACE_COLOR.on_track : colorHex(tracker.color)
+      const ringColor = done ? PACE_COLOR.on_track : PACE_COLOR.ahead
       return (
         <Pressable
           onPress={() => setValue(n + 1)}
@@ -232,7 +232,7 @@ function LogRow({
     <Pressable
       onPress={() => onOpen(tracker.id)}
       className={`flex-row items-center gap-s3 rounded-lg-k border p-s3 px-s4 shadow-sm ${
-        done ? 'bg-pace-on-weak border-pace-on' : 'bg-surface border-line'
+        done ? 'bg-brand-faint border-brand-weak' : 'bg-surface border-line'
       }`}
     >
       <View
