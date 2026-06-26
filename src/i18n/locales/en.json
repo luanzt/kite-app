@@ -10,6 +10,7 @@
     "greetEvening": "Good evening",
     "dueToday": "Due today",
     "completed": "Completed",
+    "missed": "Missed",
     "allClear": "You're all caught up",
     "allClearBody": "Nothing left to log today. Beautiful work.",
     "empty": "No goals yet",
