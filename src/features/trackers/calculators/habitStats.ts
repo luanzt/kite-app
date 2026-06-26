@@ -278,6 +278,29 @@ export function habitStreakStatus(
     : { kind: 'missedLastTime', n: 0 }
 }
 
+export type TodayRowStatus = 'due' | 'missed' | 'completed'
+
+/**
+ * Which Today-screen section a tracker belongs to. `yes` is today's Yes total
+ * (sum of logged values), `no` is today's No count (entries with value 0).
+ * Habit: completed once Yes meets the per-day goal; missed once the attempts
+ * (yes + no) fill the goal but Yes fell short; otherwise still due. Non-habit
+ * (target/average) is completed when anything was logged today (`yes > 0`),
+ * else due — it is never "missed". Project is always due.
+ */
+export function classifyTodayRow(
+  tracker: Tracker,
+  yes: number,
+  no: number
+): TodayRowStatus {
+  if (tracker.type === 'project') return 'due'
+  if (tracker.type !== 'habit') return yes > 0 ? 'completed' : 'due'
+  const goal = perDayGoal(tracker)
+  if (yes >= goal) return 'completed'
+  if (yes + no >= goal) return 'missed'
+  return 'due'
+}
+
 export type PeriodUnit = 'day' | 'week' | 'month' | 'year'
 export type PeriodSessions = {
   bars: WeekBar[] // oldest first; for daily, count = number of logs that day

@@ -6,7 +6,8 @@ import {
   periodSessions,
   buildHistoryRows,
   isoAddDays,
-  habitStreakStatus
+  habitStreakStatus,
+  classifyTodayRow
 } from '../habitStats'
 import type { Tracker, Entry } from '@features/trackers/types'
 
@@ -435,5 +436,49 @@ describe('habitStreakStatus', () => {
       kind: 'missedDays',
       n: 2
     })
+  })
+})
+
+describe('classifyTodayRow', () => {
+  const g5: Tracker = { ...base, targetValue: 5 } // goal 5
+  const g1: Tracker = { ...base, targetValue: 1 } // goal 1
+
+  it('habit completed when yes >= goal', () => {
+    expect(classifyTodayRow(g5, 5, 0)).toBe('completed')
+    expect(classifyTodayRow(g5, 7, 0)).toBe('completed') // overflow still completed
+  })
+
+  it('habit missed when yes+no >= goal but yes < goal', () => {
+    expect(classifyTodayRow(g5, 3, 2)).toBe('missed')
+    expect(classifyTodayRow(g5, 0, 5)).toBe('missed')
+  })
+
+  it('habit due when yes < goal and yes+no < goal', () => {
+    expect(classifyTodayRow(g5, 3, 1)).toBe('due') // room left
+    expect(classifyTodayRow(g5, 0, 0)).toBe('due') // nothing logged
+  })
+
+  it('goal-1 habit: one yes completes, one no (no yes) is missed', () => {
+    expect(classifyTodayRow(g1, 1, 0)).toBe('completed')
+    expect(classifyTodayRow(g1, 0, 1)).toBe('missed')
+    expect(classifyTodayRow(g1, 0, 0)).toBe('due')
+  })
+
+  it('completed takes priority over missed when yes >= goal even with extra logs', () => {
+    // yes 5 (goal 5) plus a stray no → still completed (yes>=goal wins)
+    expect(classifyTodayRow(g5, 5, 1)).toBe('completed')
+  })
+
+  it('project is always due', () => {
+    const project: Tracker = { ...base, type: 'project' }
+    expect(classifyTodayRow(project, 0, 0)).toBe('due')
+  })
+
+  it('target/average: completed when yes>0 (todayLog), else due; never missed', () => {
+    const target: Tracker = { ...base, type: 'target', targetValue: 2000 }
+    expect(classifyTodayRow(target, 0, 0)).toBe('due')
+    expect(classifyTodayRow(target, 500, 0)).toBe('completed')
+    const average: Tracker = { ...base, type: 'average', targetValue: 8 }
+    expect(classifyTodayRow(average, 0, 3)).toBe('due') // no never makes non-habit missed
   })
 })
