@@ -21,7 +21,12 @@
     "streakEnded": "Chuỗi {{count}} ngày",
     "missedYesterday": "Lỡ hôm qua",
     "missedLastTime": "Lỡ lần trước",
-    "missedDays": "Lỡ {{count}} ngày liên tiếp"
+    "missedDays": "Lỡ {{count}} ngày liên tiếp",
+    "goalBy": "Mục tiêu: {{value}} trước {{date}}",
+    "goal": "Mục tiêu: {{value}}",
+    "pace": "Nhịp: {{value}}",
+    "avg": "TB: {{value}}",
+    "targetIs": "Mục tiêu: {{value}}"
   },
   "list": {
     "title": "Mục tiêu",

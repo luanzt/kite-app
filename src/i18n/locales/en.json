@@ -21,7 +21,12 @@
     "streakEnded": "{{count}} day streak",
     "missedYesterday": "Missed yesterday",
     "missedLastTime": "Missed last time",
-    "missedDays": "Missed {{count}} days in a row"
+    "missedDays": "Missed {{count}} days in a row",
+    "goalBy": "Goal: {{value}} by {{date}}",
+    "goal": "Goal: {{value}}",
+    "pace": "Pace: {{value}}",
+    "avg": "Avg: {{value}}",
+    "targetIs": "Target: {{value}}"
   },
   "list": {
     "title": "Trackers",
