@@ -25,6 +25,7 @@ import type { RootStackParamList } from '@navigation/types'
 import type { Tracker, Entry } from '@features/trackers/types'
 import {
   habitStreakStatus,
+  perDayGoal,
   type StreakStatus
 } from '@features/trackers/calculators/habitStats'
 
@@ -166,14 +167,29 @@ function LogRow({
 
   const renderControl = () => {
     if (tracker.type === 'habit') {
+      const goal = perDayGoal(tracker)
+      const n = todayLog
+      const ringColor = done ? PACE_COLOR.on_track : colorHex(tracker.color)
       return (
         <Pressable
-          onPress={() => setValue(done ? 0 : 1)}
-          className={`items-center justify-center rounded-full h-[46px] w-[46px] border-[2.5px] ${
-            done ? 'border-pace-on bg-pace-on' : 'border-line-strong bg-white'
-          }`}
+          onPress={() => setValue(n + 1)}
+          className='h-[46px] w-[46px] items-center justify-center'
         >
-          <Icons.Check size={24} color={done ? '#ffffff' : 'transparent'} />
+          <Ring
+            fraction={goal ? n / goal : 0}
+            color={ringColor}
+            size={46}
+            strokeWidth={4}
+          />
+          <View className='absolute inset-0 items-center justify-center'>
+            <Typography
+              className={`text-xs font-extrabold ${
+                done ? 'text-pace-on' : 'text-ink-2'
+              }`}
+            >
+              {`${n}/${goal}`}
+            </Typography>
+          </View>
         </Pressable>
       )
     }
@@ -283,7 +299,12 @@ export function DailyGoalsScreen() {
   const due = trackers.filter((tr) => isDueToday(tr, today))
   const rows: Row[] = due.map((tracker) => {
     const todayLog = todayValue.get(tracker.id) ?? 0
-    const done = tracker.type === 'project' ? false : todayLog > 0
+    const done =
+      tracker.type === 'project'
+        ? false
+        : tracker.type === 'habit'
+        ? todayLog >= perDayGoal(tracker)
+        : todayLog > 0
     return { tracker, done, todayLog }
   })
 
