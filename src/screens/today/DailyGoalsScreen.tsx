@@ -378,7 +378,9 @@ export function DailyGoalsScreen() {
     )
   }
 
-  const allDone = total > 0 && doneCount === total
+  // "All caught up" — nothing left to log today: no due and no missed rows.
+  // Covers both everything-completed and nothing-due-today (total === 0).
+  const allDone = dueRows.length === 0 && missed.length === 0
 
   return (
     <View className='flex-1 bg-bg'>
@@ -433,7 +435,9 @@ export function DailyGoalsScreen() {
               {t('today.allClearBody')}
             </Typography>
           </View>
-        ) : (
+        ) : null}
+
+        {dueRows.length > 0 && !allDone ? (
           <>
             <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
               {t('today.dueToday')}
@@ -450,7 +454,7 @@ export function DailyGoalsScreen() {
               ))}
             </View>
           </>
-        )}
+        ) : null}
 
         {missed.length > 0 && !allDone ? (
           <>
