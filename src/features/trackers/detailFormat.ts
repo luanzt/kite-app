@@ -29,3 +29,16 @@ export function daysLeft(tracker: Tracker): number | null {
   if (!tracker.deadline) return null
   return Math.max(0, daysBetween(toISODate(new Date()), tracker.deadline))
 }
+
+/** Compact number: 1000→1K, 30000→30K, 3_000_000→3M, 1_500_000→1.5M. */
+export function fmtCompact(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return '0'
+  const abs = Math.abs(n)
+  if (abs < 1000) return fmtNum(n)
+  const [div, suffix] = abs < 1_000_000 ? [1000, 'K'] : [1_000_000, 'M']
+  const scaled = n / div
+  const rounded = Math.round(scaled * 10) / 10
+  // strip a trailing .0 (2.0 → "2"), keep one decimal otherwise (1.5 → "1.5")
+  const text = String(rounded)
+  return `${text}${suffix}`
+}
