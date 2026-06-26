@@ -11,6 +11,7 @@
     "dueToday": "Due today",
     "completed": "Completed",
     "missed": "Missed",
+    "missedEncourage": "You'll get it next time!",
     "allClear": "You're all caught up",
     "allClearBody": "Nothing left to log today. Beautiful work.",
     "empty": "No goals yet",

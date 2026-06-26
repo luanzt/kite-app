@@ -273,7 +273,13 @@ function LogRow({
           />
           <Typography className='text-sm text-ink-2'>{subText}</Typography>
         </View>
-        {streak && streak.kind !== 'none' ? (
+        {row.status === 'missed' ? (
+          // Missed today (attempts filled the goal but not enough Yes) — a muted
+          // encouragement line instead of the streak text.
+          <Typography className='text-sm font-bold text-ink-2 mt-[2px]'>
+            {t('today.missedEncourage')}
+          </Typography>
+        ) : streak && streak.kind !== 'none' ? (
           <View className='flex-row items-center gap-s1 mt-[2px]'>
             {isMissedKind(streak.kind) ? (
               // amber warning icon; the text stays muted (like the cadence line)
