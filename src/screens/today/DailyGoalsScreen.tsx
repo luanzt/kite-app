@@ -146,7 +146,8 @@ function LogRow({
   // Sub-line text per type.
   let subText: string
   if (tracker.type === 'habit') {
-    subText = `${tracker.period ?? 'daily'}`
+    const period = tracker.period ?? 'daily'
+    subText = period.charAt(0).toUpperCase() + period.slice(1)
   } else if (tracker.type === 'average') {
     const target = tracker.targetValue ?? 0
     const u = tracker.unit ? ` ${tracker.unit}` : ''
@@ -276,7 +277,7 @@ function LogRow({
         {row.status === 'missed' ? (
           // Missed today (attempts filled the goal but not enough Yes) — a muted
           // encouragement line instead of the streak text.
-          <Typography className='text-sm font-bold text-ink-2 mt-[2px]'>
+          <Typography className='text-sm text-ink-2 mt-[2px]'>
             {t('today.missedEncourage')}
           </Typography>
         ) : streak && streak.kind !== 'none' ? (
