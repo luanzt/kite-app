@@ -30,6 +30,7 @@ import {
   type StreakStatus,
   type TodayRowStatus
 } from '@features/trackers/calculators/habitStats'
+import { uuid } from '@features/trackers/factory'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -168,6 +169,18 @@ function LogRow({
       createdAt: new Date().toISOString()
     })
 
+  // Habit ring: each tap is its own Yes record (uuid + now), so History shows
+  // one row per tap — unlike the stepper's absolute set/overwrite.
+  const logYes = () =>
+    onLog({
+      id: uuid(),
+      trackerId: tracker.id,
+      date: today,
+      value: 1,
+      note: null,
+      createdAt: new Date().toISOString()
+    })
+
   const renderControl = () => {
     if (tracker.type === 'habit') {
       const goal = perDayGoal(tracker)
@@ -175,7 +188,7 @@ function LogRow({
       const ringColor = done ? PACE_COLOR.on_track : PACE_COLOR.ahead
       return (
         <Pressable
-          onPress={() => setValue(n + 1)}
+          onPress={logYes}
           className='h-[46px] w-[46px] items-center justify-center'
         >
           <Ring
