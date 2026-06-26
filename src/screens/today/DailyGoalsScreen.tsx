@@ -39,7 +39,7 @@ import {
 import { uuid } from '@features/trackers/factory'
 import { calculateTarget } from '@features/trackers/calculators/target'
 import { calculateAverage } from '@features/trackers/calculators/average'
-import { fmtCompact } from '@features/trackers/detailFormat'
+import { fmtCompact, fmtValCompact } from '@features/trackers/detailFormat'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -170,14 +170,12 @@ function LogRow({
     const period = tracker.period ?? 'daily'
     subText = period.charAt(0).toUpperCase() + period.slice(1)
   } else if (tracker.type === 'average') {
-    const u = tracker.unit ? ` ${tracker.unit}` : ''
     subText = t('today.targetIs', {
-      value: `${fmtCompact(tracker.targetValue ?? 0)}${u}`
+      value: fmtValCompact(tracker, tracker.targetValue ?? 0)
     })
   } else {
     // target
-    const u = tracker.unit ? ` ${tracker.unit}` : ''
-    const goalVal = `${fmtCompact(tracker.targetValue ?? 0)}${u}`
+    const goalVal = fmtValCompact(tracker, tracker.targetValue ?? 0)
     subText = tracker.deadline
       ? t('today.goalBy', {
           value: goalVal,
@@ -232,8 +230,8 @@ function LogRow({
     // target / average → read-only value + pace, tap opens the log sheet
     const isAverage = tracker.type === 'average'
     const bigValue = isAverage
-      ? fmtCompact(todayLog) // average shows today's logged value
-      : fmtCompact(progress?.current ?? 0) // target shows accumulated current
+      ? fmtValCompact(tracker, todayLog) // average shows today's logged value
+      : fmtValCompact(tracker, progress?.current ?? 0) // target shows accumulated current
     const paceStatus: PaceStatus = progress?.paceStatus ?? 'none'
     // average → "Avg: <cumulative avg>"; target → "Pace: <expected>" (hidden if none)
     const paceLine = isAverage
