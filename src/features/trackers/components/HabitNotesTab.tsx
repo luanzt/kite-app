@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import type { Tracker, Entry } from '@features/trackers/types'
 import { useSaveTracker } from '@features/trackers/queries'
 import { Icons } from '@features/trackers/icons'
+import { fmtVal } from '@features/trackers/detailFormat'
 
 /** Format an entry date ("18 Jun 2026"), UTC. */
 function entryDate(iso: string, lang: string): string {
@@ -63,19 +64,22 @@ function GoalNoteCard({ tracker }: { tracker: Tracker }) {
   )
 }
 
-/** One log note: Yes/No badge + date + status + the note text. Tap to edit. */
+/** One log note: status badge + date + value/Yes-No + the note text. Tap to edit. */
 function LogNoteCard({
+  tracker,
   entry,
   done,
   lang,
   onPress
 }: {
+  tracker: Tracker
   entry: Entry
   done: boolean
   lang: string
   onPress?: () => void
 }) {
   const { t } = useTranslation()
+  const isHabit = tracker.type === 'habit'
   return (
     <Pressable
       onPress={onPress}
@@ -83,13 +87,17 @@ function LogNoteCard({
     >
       <View
         className={`h-[30px] w-[30px] items-center justify-center rounded-full ${
-          done ? 'bg-brand-weak' : 'bg-pace-behind-weak'
+          isHabit && !done ? 'bg-pace-behind-weak' : 'bg-brand-weak'
         }`}
       >
-        {done ? (
-          <Icons.Check size={16} color='#2456b5' />
+        {isHabit ? (
+          done ? (
+            <Icons.Check size={16} color='#2456b5' />
+          ) : (
+            <Icons.Close size={16} color='#e0564e' />
+          )
         ) : (
-          <Icons.Close size={16} color='#e0564e' />
+          <Icons.Edit size={14} color='#2456b5' />
         )}
       </View>
       <View className='flex-1'>
@@ -100,10 +108,14 @@ function LogNoteCard({
           <Typography className='text-sm font-bold text-ink-3'>--</Typography>
           <Typography
             className={`text-sm font-bold ${
-              done ? 'text-brand' : 'text-pace-behind'
+              isHabit && !done ? 'text-pace-behind' : 'text-brand'
             }`}
           >
-            {done ? t('log.yes') : t('log.no')}
+            {isHabit
+              ? done
+                ? t('log.yes')
+                : t('log.no')
+              : fmtVal(tracker, entry.value)}
           </Typography>
         </View>
         <Typography className='mt-s1 text-body-k text-ink'>
@@ -171,6 +183,7 @@ export function HabitNotesTab({
               {noted.map((e) => (
                 <LogNoteCard
                   key={e.id}
+                  tracker={tracker}
                   entry={e}
                   done={e.value > 0}
                   lang={lang}

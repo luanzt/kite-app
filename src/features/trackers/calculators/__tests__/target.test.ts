@@ -97,4 +97,27 @@ describe('calculateTarget', () => {
     const p = calculateTarget(t, [entry('2026-01-01', 10)], '2026-01-01')
     expect(p.paceStatus).toBe('none')
   })
+
+  test('expected = linear timeline interpolation (start 0, goal 2000, midpoint)', () => {
+    // 2026-01-01 → 2026-12-31 is 364 days; 2026-07-02 ≈ day 182 (~half)
+    const p = calculateTarget(base, [entry('2026-01-02', 100)], '2026-07-02')
+    // expected ≈ 0 + 2000 * (182/364) = 1000 (allow ±20 for day rounding)
+    expect(p.expected).not.toBeNull()
+    expect(p.expected!).toBeGreaterThan(960)
+    expect(p.expected!).toBeLessThan(1040)
+  })
+
+  test('expected respects startValue (non-zero start)', () => {
+    const t = { ...base, startValue: 1000, targetValue: 2000 }
+    const p = calculateTarget(t, [], '2026-07-02')
+    // start 1000, span 1000, ~half → ~1500
+    expect(p.expected!).toBeGreaterThan(1460)
+    expect(p.expected!).toBeLessThan(1540)
+  })
+
+  test('expected is null with no deadline', () => {
+    const t = { ...base, deadline: null }
+    const p = calculateTarget(t, [entry('2026-01-02', 100)], '2026-01-03')
+    expect(p.expected).toBeNull()
+  })
 })

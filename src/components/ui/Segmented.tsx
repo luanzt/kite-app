@@ -12,7 +12,7 @@ export function Segmented<T extends string>({
   onChange: (v: T) => void
 }) {
   return (
-    <View className='flex-row gap-s1 rounded-md-k bg-surface-2 p-s1'>
+    <View className='flex-row gap-s1 rounded-md-k border border-line bg-surface p-s1'>
       {options.map((opt) => {
         const on = opt.value === value
         return (
@@ -20,11 +20,13 @@ export function Segmented<T extends string>({
             key={opt.value}
             onPress={() => onChange(opt.value)}
             className={`h-10 flex-1 items-center justify-center rounded-sm-k ${
-              on ? 'bg-surface shadow-sm' : ''
+              on ? 'bg-brand shadow-sm' : ''
             }`}
           >
             <Typography
-              className={`text-sm font-bold ${on ? 'text-ink' : 'text-ink-2'}`}
+              className={`text-sm font-bold ${
+                on ? 'text-on-accent' : 'text-ink-2'
+              }`}
             >
               {opt.label}
             </Typography>

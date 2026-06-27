@@ -15,6 +15,7 @@ import {
 } from '@features/trackers/queries'
 import { progressFor } from '@features/trackers/components/TrackerCard'
 import { HabitDetailView } from '@features/trackers/components/HabitDetailView'
+import { TargetDetailView } from '@features/trackers/components/TargetDetailView'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
 import { showLogSuccess } from '@features/trackers/components/LogSuccessToast'
 import { DetailAppbar } from '@features/trackers/components/DetailAppbar'
@@ -108,6 +109,22 @@ export function TrackerDetailScreen({
       <View className='flex-1 bg-bg'>
         {appbar}
         <HabitDetailView
+          tracker={tracker}
+          entries={entries}
+          onAddLog={openAddLog}
+          onEditEntry={openEditLog}
+          onLogForDate={openLogForDate}
+        />
+        {logModalEl}
+      </View>
+    )
+  }
+
+  if (tracker.type === 'target') {
+    return (
+      <View className='flex-1 bg-bg'>
+        {appbar}
+        <TargetDetailView
           tracker={tracker}
           entries={entries}
           onAddLog={openAddLog}

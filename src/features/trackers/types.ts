@@ -53,4 +53,5 @@ export type TrackerProgress = {
   paceStatus: PaceStatus
   streak?: number
   successRate?: number // 0..1
+  expected?: number | null // value you should have reached by today (timeline)
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
@@ -8,7 +9,8 @@ import Svg, { Circle } from 'react-native-svg'
 import {
   useTrackers,
   useLogEntry,
-  useEntriesForDate
+  useEntriesForDate,
+  useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
 import {
@@ -21,7 +23,24 @@ import {
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
-import type { Tracker, Entry } from '@features/trackers/types'
+import type {
+  Tracker,
+  Entry,
+  PaceStatus,
+  TrackerProgress
+} from '@features/trackers/types'
+import {
+  classifyTodayRow,
+  habitStreakStatus,
+  perDayGoal,
+  type StreakStatus,
+  type TodayRowStatus
+} from '@features/trackers/calculators/habitStats'
+import { uuid } from '@features/trackers/factory'
+import { calculateTarget } from '@features/trackers/calculators/target'
+import { calculateAverage } from '@features/trackers/calculators/average'
+import { fmtCompact, fmtValCompact } from '@features/trackers/detailFormat'
+import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -30,21 +49,6 @@ function isDueToday(t: Tracker, todayISO: string): boolean {
     return t.repeatDays.includes(weekdayOf(todayISO))
   }
   return true
-}
-
-/** A sensible quick-increment step for stepper trackers. */
-function quickStep(t: Tracker): number {
-  if (t.unit === '$') return 25
-  if (t.unit === 'kg') return 0.1
-  if (t.unit === 'steps') return 500
-  return 1
-}
-
-/** Format a number: integers plain, otherwise max one decimal. */
-function fmtNum(n: number): string {
-  if (!Number.isFinite(n)) return '0'
-  const rounded = Number.isInteger(n) ? n : Math.round(n * 10) / 10
-  return rounded.toLocaleString()
 }
 
 /** Small circular progress ring (-90deg start). */
@@ -93,8 +97,42 @@ function Ring({
   )
 }
 
+// Streak status kind → i18n key. Negative ("missed*") kinds render in the
+// behind color with a warning icon; the rest are positive (flame).
+const STREAK_KEY: Record<StreakStatus['kind'], string> = {
+  none: '',
+  greatStart: 'today.streakGreatStart',
+  streakOngoing: 'today.streakOngoing',
+  streakEnded: 'today.streakEnded',
+  missedYesterday: 'today.missedYesterday',
+  missedLastTime: 'today.missedLastTime',
+  missedDays: 'today.missedDays'
+}
+const isMissedKind = (k: StreakStatus['kind']): boolean =>
+  k === 'missedYesterday' || k === 'missedLastTime' || k === 'missedDays'
+
+// Pace line color by status (literal classes — never interpolate).
+const PACE_TEXT_CLASS: Record<PaceStatus, string> = {
+  on_track: 'text-pace-on',
+  behind: 'text-pace-behind',
+  ahead: 'text-pace-ahead',
+  none: 'text-ink-2'
+}
+
+/** Deadline as "29 Nov 2026" in the active locale. */
+function fmtDeadline(iso: string, lang: string): string {
+  const d = new Date(`${iso}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
 type Row = {
   tracker: Tracker
+  status: TodayRowStatus
   done: boolean
   todayLog: number
 }
@@ -103,88 +141,120 @@ function LogRow({
   row,
   today,
   onLog,
-  onOpen
+  onOpen,
+  onQuickLog
 }: {
   row: Row
   today: string
   onLog: (e: Entry) => void
   onOpen: (id: string) => void
+  onQuickLog: (tracker: Tracker) => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { tracker, done, todayLog } = row
-  const entryId = `${tracker.id}-${today}`
+  const { data: allEntries = [] } = useEntries(tracker.id)
+  const streak: StreakStatus | null =
+    tracker.type === 'habit'
+      ? habitStreakStatus(tracker, allEntries, today)
+      : null
+  const progress: TrackerProgress | null =
+    tracker.type === 'target'
+      ? calculateTarget(tracker, allEntries, today)
+      : tracker.type === 'average'
+      ? calculateAverage(tracker, allEntries, today)
+      : null
 
   // Sub-line text per type.
   let subText: string
   if (tracker.type === 'habit') {
-    subText = `${tracker.period ?? 'daily'}`
+    const period = tracker.period ?? 'daily'
+    subText = period.charAt(0).toUpperCase() + period.slice(1)
   } else if (tracker.type === 'average') {
-    const target = tracker.targetValue ?? 0
-    const u = tracker.unit ? ` ${tracker.unit}` : ''
-    subText = `${t('detail.target')} ${fmtNum(target)}${u}`
+    subText = t('today.targetIs', {
+      value: fmtValCompact(tracker, tracker.targetValue ?? 0)
+    })
   } else {
-    const u = tracker.unit ? ` ${tracker.unit}` : ''
-    subText = `${fmtNum(todayLog)}${u}`
+    // target
+    const goalVal = fmtValCompact(tracker, tracker.targetValue ?? 0)
+    subText = tracker.deadline
+      ? t('today.goalBy', {
+          value: goalVal,
+          date: fmtDeadline(tracker.deadline, i18n.language)
+        })
+      : t('today.goal', { value: goalVal })
   }
 
-  // Today's quick-set keeps a stable per-day id so tapping again overwrites the
-  // day's value (on/off, set) rather than stacking records — unlike the Habit
-  // Detail log, which creates a fresh record each time.
-  const setValue = (v: number) =>
+  // Habit ring: each tap is its own Yes record (uuid + now), so History shows
+  // one row per tap — unlike the stepper's absolute set/overwrite.
+  const logYes = () =>
     onLog({
-      id: entryId,
+      id: uuid(),
       trackerId: tracker.id,
       date: today,
-      value: v,
+      value: 1,
       note: null,
       createdAt: new Date().toISOString()
     })
 
   const renderControl = () => {
     if (tracker.type === 'habit') {
+      const goal = perDayGoal(tracker)
+      const n = todayLog
+      const ringColor = done ? PACE_COLOR.on_track : PACE_COLOR.ahead
       return (
         <Pressable
-          onPress={() => setValue(done ? 0 : 1)}
-          className={`items-center justify-center rounded-full h-[46px] w-[46px] border-[2.5px] ${
-            done ? 'border-pace-on bg-pace-on' : 'border-line-strong bg-white'
-          }`}
+          onPress={logYes}
+          className='h-[46px] w-[46px] items-center justify-center'
         >
-          <Icons.Check size={24} color={done ? '#ffffff' : 'transparent'} />
+          <Ring
+            fraction={goal ? n / goal : 0}
+            color={ringColor}
+            size={46}
+            strokeWidth={4}
+          />
+          <View className='absolute inset-0 items-center justify-center'>
+            <Typography
+              className={`text-xs font-extrabold ${
+                done ? 'text-pace-on' : 'text-ink-2'
+              }`}
+            >
+              {`${n}/${goal}`}
+            </Typography>
+          </View>
         </Pressable>
       )
     }
     if (tracker.type === 'project') {
       return <Icons.Chevron size={20} color={PACE_COLOR.none} />
     }
-    // target / average → stepper
-    const step = quickStep(tracker)
-    const unitLabel = tracker.unit ?? t('common.done')
+    // target / average → read-only value + pace, tap opens the log sheet
+    const isAverage = tracker.type === 'average'
+    const bigValue = isAverage
+      ? fmtValCompact(tracker, todayLog) // average shows today's logged value
+      : fmtValCompact(tracker, progress?.current ?? 0) // target shows accumulated current
+    const paceStatus: PaceStatus = progress?.paceStatus ?? 'none'
+    // average → "Avg: <cumulative avg>"; target → "Pace: <expected>" (hidden if none)
+    const paceLine = isAverage
+      ? t('today.avg', { value: fmtCompact(progress?.current ?? 0) })
+      : progress?.expected != null
+      ? t('today.pace', { value: fmtCompact(progress.expected) })
+      : null
     return (
-      <View className='flex-row items-center gap-s2'>
-        <Pressable
-          onPress={() => setValue(Math.max(0, todayLog - step))}
-          className='items-center justify-center rounded-md-k border border-line bg-surface-2 h-[38px] w-[38px]'
-        >
-          <Typography className='text-xl font-bold text-ink'>−</Typography>
-        </Pressable>
-        <View className='items-center min-w-[46px]'>
-          <Typography className='text-lg font-extrabold text-ink'>
-            {fmtNum(todayLog)}
-          </Typography>
+      <Pressable
+        onPress={() => onQuickLog(tracker)}
+        className='items-end min-w-[78px] py-s1'
+      >
+        <Typography className='text-lg font-extrabold text-brand-ink'>
+          {bigValue}
+        </Typography>
+        {paceLine ? (
           <Typography
-            className='text-ink-3 font-semibold text-[10px]'
-            numberOfLines={1}
+            className={`text-sm font-semibold ${PACE_TEXT_CLASS[paceStatus]}`}
           >
-            {unitLabel}
+            {paceLine}
           </Typography>
-        </View>
-        <Pressable
-          onPress={() => setValue(todayLog + step)}
-          className='items-center justify-center rounded-md-k border border-line bg-surface-2 h-[38px] w-[38px]'
-        >
-          <Typography className='text-xl font-bold text-ink'>+</Typography>
-        </Pressable>
-      </View>
+        ) : null}
+      </Pressable>
     )
   }
 
@@ -192,7 +262,7 @@ function LogRow({
     <Pressable
       onPress={() => onOpen(tracker.id)}
       className={`flex-row items-center gap-s3 rounded-lg-k border p-s3 px-s4 shadow-sm ${
-        done ? 'bg-pace-on-weak border-pace-on' : 'bg-surface border-line'
+        done ? 'bg-brand-faint border-brand-weak' : 'bg-surface border-line'
       }`}
     >
       <View
@@ -217,6 +287,29 @@ function LogRow({
           />
           <Typography className='text-sm text-ink-2'>{subText}</Typography>
         </View>
+        {row.status === 'missed' ? (
+          // Missed today (attempts filled the goal but not enough Yes) — a muted
+          // encouragement line instead of the streak text.
+          <Typography className='text-sm text-ink-2 mt-[2px]'>
+            {t('today.missedEncourage')}
+          </Typography>
+        ) : streak && streak.kind !== 'none' ? (
+          <View className='flex-row items-center gap-s1 mt-[2px]'>
+            {isMissedKind(streak.kind) ? (
+              // amber warning icon; the text stays muted (like the cadence line)
+              <Icons.Warn size={13} color='#e8923a' />
+            ) : (
+              <Icons.Flame size={13} color={PACE_COLOR.on_track} />
+            )}
+            <Typography
+              className={`text-sm ${
+                isMissedKind(streak.kind) ? 'text-ink-2' : 'text-pace-on'
+              }`}
+            >
+              {t(STREAK_KEY[streak.kind], { count: streak.n })}
+            </Typography>
+          </View>
+        ) : null}
       </View>
 
       {renderControl()}
@@ -240,17 +333,27 @@ export function DailyGoalsScreen() {
     todayValue.set(e.trackerId, (todayValue.get(e.trackerId) ?? 0) + e.value)
   }
 
+  // Count of today's "No" logs (value 0) per tracker — used to classify a
+  // habit as missed (attempts filled the goal but not enough were Yes).
+  const todayNo = new Map<string, number>()
+  for (const e of todayEntries) {
+    if (e.value === 0)
+      todayNo.set(e.trackerId, (todayNo.get(e.trackerId) ?? 0) + 1)
+  }
+
   const due = trackers.filter((tr) => isDueToday(tr, today))
   const rows: Row[] = due.map((tracker) => {
     const todayLog = todayValue.get(tracker.id) ?? 0
-    const done = tracker.type === 'project' ? false : todayLog > 0
-    return { tracker, done, todayLog }
+    const no = todayNo.get(tracker.id) ?? 0
+    const status = classifyTodayRow(tracker, todayLog, no)
+    return { tracker, status, done: status === 'completed', todayLog }
   })
 
   const total = rows.length
-  const doneCount = rows.filter((r) => r.done).length
-  const pending = rows.filter((r) => !r.done)
-  const completed = rows.filter((r) => r.done)
+  const dueRows = rows.filter((r) => r.status === 'due')
+  const missed = rows.filter((r) => r.status === 'missed')
+  const completed = rows.filter((r) => r.status === 'completed')
+  const doneCount = completed.length
 
   const hours = new Date().getHours()
   const greetKey =
@@ -266,6 +369,18 @@ export function DailyGoalsScreen() {
       day: 'numeric'
     })
     .toUpperCase()
+
+  // Quick-log sheet. Mirrors TrackerDetailScreen: the LogEntryModal is ALWAYS
+  // mounted (never gated on the tracker) so its BottomSheet sees a clean
+  // false→true transition; only `logOpen` toggles. `logTarget` remembers which
+  // tracker to log and stays set across closes so the sheet can animate out.
+  const [logTarget, setLogTarget] = useState<Tracker | null>(null)
+  const [logOpen, setLogOpen] = useState(false)
+  const openQuickLog = (tracker: Tracker) => {
+    setLogTarget(tracker)
+    setLogOpen(true)
+  }
+  const closeQuickLog = () => setLogOpen(false)
 
   const onLog = (e: Entry) => log.mutate(e)
   const onOpen = (id: string) =>
@@ -308,7 +423,9 @@ export function DailyGoalsScreen() {
     )
   }
 
-  const allDone = total > 0 && doneCount === total
+  // "All caught up" — nothing left to log today: no due and no missed rows.
+  // Covers both everything-completed and nothing-due-today (total === 0).
+  const allDone = dueRows.length === 0 && missed.length === 0
 
   return (
     <View className='flex-1 bg-bg'>
@@ -324,8 +441,10 @@ export function DailyGoalsScreen() {
         <Typography className='text-2xl font-extrabold text-ink mt-1'>
           {t(greetKey)}
         </Typography>
+      </View>
 
-        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mt-s4'>
+      <ScrollView contentContainerClassName='pb-8'>
+        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mx-s5 mt-s4'>
           <View className='items-center justify-center h-[52px] w-[52px]'>
             <Ring
               fraction={total ? doneCount / total : 0}
@@ -348,9 +467,7 @@ export function DailyGoalsScreen() {
             </Typography>
           </View>
         </View>
-      </View>
 
-      <ScrollView contentContainerClassName='pb-8'>
         {allDone ? (
           <View className='items-center px-s6 gap-s3 pt-12'>
             <View className='mb-s2 h-24 w-24 items-center justify-center rounded-xl-k bg-brand-weak'>
@@ -363,28 +480,51 @@ export function DailyGoalsScreen() {
               {t('today.allClearBody')}
             </Typography>
           </View>
-        ) : (
+        ) : null}
+
+        {dueRows.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
               {t('today.dueToday')}
             </Typography>
             <View className='px-s5 gap-s3'>
-              {pending.map((row) => (
+              {dueRows.map((row) => (
                 <LogRow
                   key={row.tracker.id}
                   row={row}
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
+                  onQuickLog={openQuickLog}
                 />
               ))}
             </View>
           </>
-        )}
+        ) : null}
+
+        {missed.length > 0 && !allDone ? (
+          <>
+            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
+              {t('today.missed')}
+            </Typography>
+            <View className='px-s5 gap-s3'>
+              {missed.map((row) => (
+                <LogRow
+                  key={row.tracker.id}
+                  row={row}
+                  today={today}
+                  onLog={onLog}
+                  onOpen={onOpen}
+                  onQuickLog={openQuickLog}
+                />
+              ))}
+            </View>
+          </>
+        ) : null}
 
         {completed.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
               {t('today.completed')}
             </Typography>
             <View className='px-s5 gap-s3'>
@@ -395,12 +535,28 @@ export function DailyGoalsScreen() {
                   today={today}
                   onLog={onLog}
                   onOpen={onOpen}
+                  onQuickLog={openQuickLog}
                 />
               ))}
             </View>
           </>
         ) : null}
       </ScrollView>
+      {/* Always mounted (like TrackerDetailScreen) so the BottomSheet animates
+          on a clean false→true. Falls back to a stable tracker before the first
+          pick; `logOpen` keeps it closed until a value is tapped. */}
+      {logTarget ?? trackers[0] ? (
+        <LogEntryModal
+          tracker={(logTarget ?? trackers[0])!}
+          defaultDate={today}
+          visible={logOpen}
+          onClose={closeQuickLog}
+          onSave={(e) => {
+            onLog(e)
+            closeQuickLog()
+          }}
+        />
+      ) : null}
     </View>
   )
 }

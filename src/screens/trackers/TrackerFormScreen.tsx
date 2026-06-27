@@ -22,7 +22,9 @@ import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import {
   DateField,
   FieldLabel,
+  FieldLabelRow,
   FormInput,
+  InfoTooltip,
   Segmented,
   SelectField,
   TimeField,
@@ -90,6 +92,9 @@ export function TrackerFormScreen({
   const [target, setTarget] = useState(
     editing?.targetValue != null ? String(editing.targetValue) : ''
   )
+  const [startValue, setStartValue] = useState(
+    editing?.startValue != null ? String(editing.startValue) : ''
+  )
   const [accum, setAccum] = useState<Accumulation>(
     editing?.accumulation ?? 'sum'
   )
@@ -120,6 +125,7 @@ export function TrackerFormScreen({
     setColor(editing.color)
     setUnit(editing.unit ?? '')
     setTarget(editing.targetValue != null ? String(editing.targetValue) : '')
+    setStartValue(editing.startValue != null ? String(editing.startValue) : '')
     setAccum(editing.accumulation ?? 'sum')
     setDir(editing.direction ?? 'good')
     setPeriod(editing.period ?? 'daily')
@@ -135,14 +141,15 @@ export function TrackerFormScreen({
 
   const onSave = () => {
     const isHabit = type === 'habit'
+    const isTarget = type === 'target'
 
-    // Habit-only required fields: a goal count > 0 and at least one Due day.
-    if (isHabit) {
+    // Required fields: habit & target both need a goal > 0; habit also needs a Due day.
+    if (isHabit || isTarget) {
       const goalNum = Number(target)
       const problems: string[] = []
       if (!target.trim() || !Number.isFinite(goalNum) || goalNum <= 0)
         problems.push(t('form.errGoal'))
-      if (repeatDays.length === 0) problems.push(t('form.errDue'))
+      if (isHabit && repeatDays.length === 0) problems.push(t('form.errDue'))
       if (problems.length) {
         alert({
           title: t('form.errTitle'),
@@ -160,12 +167,15 @@ export function TrackerFormScreen({
       color,
       unit: unit.trim() || null,
       targetValue: target ? Number(target) : null,
-      accumulation: type === 'target' ? accum : undefined,
+      startValue: isTarget ? Number(startValue) || 0 : undefined,
+      accumulation: isTarget ? accum : undefined,
       period: type === 'average' || isHabit ? period : undefined,
-      startDate: isHabit ? startDate.trim() || undefined : undefined,
-      repeatDays: isHabit ? repeatDays : undefined,
+      startDate:
+        isHabit || isTarget ? startDate.trim() || undefined : undefined,
+      repeatDays: isHabit || isTarget ? repeatDays : undefined,
       routine: isHabit ? routine : undefined,
-      reminderTime: isHabit && reminderOn ? reminderTime.trim() || null : null
+      reminderTime:
+        (isHabit || isTarget) && reminderOn ? reminderTime.trim() || null : null
     })
     const tracker: Tracker = {
       ...base,
@@ -173,9 +183,10 @@ export function TrackerFormScreen({
       id: editing?.id ?? base.id,
       createdAt: editing?.createdAt ?? base.createdAt,
       goalNote: editing?.goalNote ?? base.goalNote,
-      startDate: isHabit
-        ? base.startDate
-        : editing?.startDate ?? base.startDate,
+      startDate:
+        isHabit || isTarget
+          ? base.startDate
+          : editing?.startDate ?? base.startDate,
       direction: type === 'target' || isHabit ? dir : base.direction,
       deadline: deadline.trim() ? deadline.trim() : null
     }
@@ -304,26 +315,44 @@ export function TrackerFormScreen({
         {type === 'target' ? (
           <>
             <View className='flex-row gap-s3'>
-              <View className='flex-[2] gap-s2'>
-                <FieldLabel>{t('form.target')}</FieldLabel>
+              <View className='flex-1 gap-s2'>
+                <FieldLabel>{t('form.startValueLabel')}</FieldLabel>
                 <FormInput
-                  value={target}
-                  onChangeText={setTarget}
-                  placeholder='2000'
+                  value={startValue}
+                  onChangeText={setStartValue}
+                  placeholder={t('form.startValuePh')}
                   keyboardType='decimal-pad'
                 />
               </View>
               <View className='flex-1 gap-s2'>
-                <FieldLabel>{t('form.unit')}</FieldLabel>
+                <FieldLabel>{t('form.goalValue')}</FieldLabel>
                 <FormInput
-                  value={unit}
-                  onChangeText={setUnit}
-                  placeholder={t('form.unitPh')}
+                  value={target}
+                  onChangeText={setTarget}
+                  placeholder={t('form.goalValuePh')}
+                  keyboardType='decimal-pad'
                 />
               </View>
             </View>
             <View className='gap-s2'>
-              <FieldLabel>{t('form.mode')}</FieldLabel>
+              <FieldLabel>{t('form.unit')}</FieldLabel>
+              <FormInput
+                value={unit}
+                onChangeText={setUnit}
+                placeholder={t('form.unitPh')}
+              />
+            </View>
+            <View className='gap-s2'>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.modeHelp')}
+                  />
+                }
+              >
+                {t('form.mode')}
+              </FieldLabelRow>
               <Segmented<Accumulation>
                 value={accum}
                 onChange={setAccum}
@@ -334,7 +363,16 @@ export function TrackerFormScreen({
               />
             </View>
             <View className='gap-s2'>
-              <FieldLabel>{t('form.direction')}</FieldLabel>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.directionHelp')}
+                  />
+                }
+              >
+                {t('form.direction')}
+              </FieldLabelRow>
               <Segmented<HabitDirection>
                 value={dir}
                 onChange={setDir}
@@ -344,9 +382,50 @@ export function TrackerFormScreen({
                 ]}
               />
             </View>
+            <View className='flex-row gap-s3'>
+              <View className='flex-1 gap-s2'>
+                <FieldLabel>{t('form.startDate')}</FieldLabel>
+                <DateField value={startDate} onChange={setStartDate} />
+              </View>
+              <View className='flex-1 gap-s2'>
+                <FieldLabel>{t('form.goalDate')}</FieldLabel>
+                <DateField value={deadline} onChange={setDeadline} />
+              </View>
+            </View>
             <View className='gap-s2'>
-              <FieldLabel>{t('form.deadline')}</FieldLabel>
-              <DateField value={deadline} onChange={setDeadline} />
+              <FieldLabel>{t('form.due')}</FieldLabel>
+              <WeekdayPicker
+                value={repeatDays}
+                onChange={setRepeatDays}
+                labels={{
+                  mon: t('form.wd.mon'),
+                  tue: t('form.wd.tue'),
+                  wed: t('form.wd.wed'),
+                  thu: t('form.wd.thu'),
+                  fri: t('form.wd.fri'),
+                  sat: t('form.wd.sat'),
+                  sun: t('form.wd.sun')
+                }}
+              />
+            </View>
+            <View className='gap-s2'>
+              <View className='flex-row items-center justify-between'>
+                <View className='flex-row items-center gap-s2'>
+                  <Icons.Bell size={18} color={TYPE_COLOR.target} />
+                  <FieldLabel>{t('form.reminders')}</FieldLabel>
+                </View>
+                <Toggle value={reminderOn} onChange={setReminderOn} />
+              </View>
+              {reminderOn ? (
+                <View className='gap-s2'>
+                  <FieldLabel>{t('form.alert')}</FieldLabel>
+                  <TimeField
+                    value={reminderTime}
+                    onChange={setReminderTime}
+                    placeholder='18:00'
+                  />
+                </View>
+              ) : null}
             </View>
           </>
         ) : null}
@@ -376,7 +455,16 @@ export function TrackerFormScreen({
               </View>
             </View>
             <View className='gap-s2'>
-              <FieldLabel>{t('form.period')}</FieldLabel>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.periodHelp')}
+                  />
+                }
+              >
+                {t('form.period')}
+              </FieldLabelRow>
               <Segmented<Period>
                 value={period}
                 onChange={setPeriod}

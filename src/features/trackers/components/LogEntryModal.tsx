@@ -44,6 +44,7 @@ export function LogEntryModal({
   const isEdit = !!entry
 
   const [done, setDone] = useState(true)
+  const [value, setValue] = useState('')
   const [note, setNote] = useState('')
   const [dateISO, setDateISO] = useState('')
   const [timeHHMM, setTimeHHMM] = useState('')
@@ -52,6 +53,7 @@ export function LogEntryModal({
   useEffect(() => {
     if (!visible) return
     setDone(entry ? entry.value > 0 : true)
+    setValue(entry ? String(entry.value) : '')
     setNote(entry?.note ?? '')
     setDateISO(entry?.date ?? defaultDate ?? toISODate(new Date()))
     // editing → use the record's logged time; new → now
@@ -72,7 +74,7 @@ export function LogEntryModal({
       id: entry?.id ?? uuid(),
       trackerId: tracker.id,
       date: dateISO,
-      value: done ? 1 : 0,
+      value: tracker.type === 'habit' ? (done ? 1 : 0) : Number(value) || 0,
       note: note.trim() ? note.trim() : null,
       createdAt: combineDateTime(dateISO, timeHHMM)
     })
@@ -101,7 +103,7 @@ export function LogEntryModal({
     // it changes, or Save fires with stale (empty) date/time. (Was the cause of
     // records saving with date="" + a 1899 createdAt.)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [insets.bottom, done, note, dateISO, timeHHMM, entry, defaultDate, t]
+    [insets.bottom, done, value, note, dateISO, timeHHMM, entry, defaultDate, t]
   )
 
   return (
@@ -159,49 +161,70 @@ export function LogEntryModal({
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps='handled'
           >
-            {/* did you do it */}
-            <View>
-              <Typography className='mt-s4 text-center text-h3-k font-bold text-ink'>
-                {t('log.prompt')}
-              </Typography>
-              <View className='mt-s4 flex-row gap-s3'>
-                <Pressable
-                  onPress={() => setDone(true)}
-                  className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
-                    done ? 'border-brand bg-brand' : 'border-line bg-surface'
-                  }`}
-                >
-                  <Icons.Check size={28} color={done ? '#ffffff' : '#8a8e80'} />
-                  <Typography
-                    className={`text-body-k font-bold ${
-                      done ? 'text-on-accent' : 'text-ink-2'
+            {/* habit: Yes/No · others: numeric value */}
+            {tracker.type === 'habit' ? (
+              <View>
+                <Typography className='mt-s4 text-center text-h3-k font-bold text-ink'>
+                  {t('log.prompt')}
+                </Typography>
+                <View className='mt-s4 flex-row gap-s3'>
+                  <Pressable
+                    onPress={() => setDone(true)}
+                    className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
+                      done ? 'border-brand bg-brand' : 'border-line bg-surface'
                     }`}
                   >
-                    {t('log.yes')}
-                  </Typography>
-                </Pressable>
-                <Pressable
-                  onPress={() => setDone(false)}
-                  className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
-                    !done
-                      ? 'border-pace-behind bg-pace-behind-weak'
-                      : 'border-line bg-surface'
-                  }`}
-                >
-                  <Icons.Close
-                    size={28}
-                    color={!done ? '#e0564e' : '#8a8e80'}
-                  />
-                  <Typography
-                    className={`text-body-k font-bold ${
-                      !done ? 'text-pace-behind' : 'text-ink-2'
+                    <Icons.Check
+                      size={28}
+                      color={done ? '#ffffff' : '#8a8e80'}
+                    />
+                    <Typography
+                      className={`text-body-k font-bold ${
+                        done ? 'text-on-accent' : 'text-ink-2'
+                      }`}
+                    >
+                      {t('log.yes')}
+                    </Typography>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setDone(false)}
+                    className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
+                      !done
+                        ? 'border-pace-behind bg-pace-behind-weak'
+                        : 'border-line bg-surface'
                     }`}
                   >
-                    {t('log.no')}
-                  </Typography>
-                </Pressable>
+                    <Icons.Close
+                      size={28}
+                      color={!done ? '#e0564e' : '#8a8e80'}
+                    />
+                    <Typography
+                      className={`text-body-k font-bold ${
+                        !done ? 'text-pace-behind' : 'text-ink-2'
+                      }`}
+                    >
+                      {t('log.no')}
+                    </Typography>
+                  </Pressable>
+                </View>
               </View>
-            </View>
+            ) : (
+              <View className='mt-s4 overflow-hidden rounded-xl-k border border-line bg-surface'>
+                <Typography className='px-s5 pt-s4 text-xs-k font-bold uppercase text-ink-3'>
+                  {tracker.unit
+                    ? `${t('log.value')} (${tracker.unit})`
+                    : t('log.value')}
+                </Typography>
+                <BottomSheetTextInput
+                  value={value}
+                  onChangeText={setValue}
+                  placeholder={t('log.valuePh')}
+                  placeholderTextColor='#8a8e80'
+                  keyboardType='decimal-pad'
+                  className='px-s5 pb-s5 pt-s2 text-h2-k font-bold text-ink'
+                />
+              </View>
+            )}
 
             {/* notes */}
             <View className='overflow-hidden rounded-xl-k border border-line bg-surface'>

@@ -24,6 +24,7 @@ export function calculateTarget(
     span === 0 ? 0 : Math.max(0, Math.min(1, (current - start) / span))
 
   let paceStatus: TrackerProgress['paceStatus'] = 'none'
+  let expected: number | null = null
   if (tracker.deadline) {
     const total = daysBetween(tracker.startDate, tracker.deadline)
     if (total <= 0) {
@@ -34,6 +35,7 @@ export function calculateTarget(
         Math.min(total, daysBetween(tracker.startDate, todayISO))
       )
       const timeFrac = elapsed / total
+      expected = start + span * timeFrac
       const madeFrac = span === 0 ? 1 : (current - start) / span
       if (madeFrac >= timeFrac + AHEAD_MARGIN) paceStatus = 'ahead'
       else if (madeFrac >= timeFrac) paceStatus = 'on_track'
@@ -41,5 +43,5 @@ export function calculateTarget(
     }
   }
 
-  return { current, goal, percent, paceStatus }
+  return { current, goal, percent, paceStatus, expected }
 }
