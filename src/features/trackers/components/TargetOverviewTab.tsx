@@ -1,16 +1,15 @@
 import { ScrollView } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { Tracker, Entry } from '@features/trackers/types'
-import { useMilestones } from '@features/trackers/queries'
-import { progressFor } from '@features/trackers/components/TrackerCard'
-import { DetailHero } from './DetailHero'
-import { DetailStatGrid } from './DetailStatGrid'
-import { DetailBody } from './DetailBody'
+import { TargetHero } from './TargetHero'
+import { TargetProgressBar } from './TargetProgressBar'
+import { TargetTrajectoryChart } from './TargetTrajectoryChart'
 
 /**
- * Target Overview tab — the current target detail (pace hero, stat grid, body
- * with pace line / chart / milestones) lifted into the first tab. Logging is
- * done from the History tab, so there's no Log-today button here.
+ * Target Overview tab — redesigned to the "Save Money Detail" mockup: a blue
+ * gradient hero (ring + daily-goal/projected), a progress-bar card with a pace
+ * marker, and an actual/ideal/projected trajectory chart. Logging happens from
+ * the History tab, so there is no Log-today button here.
  */
 export function TargetOverviewTab({
   tracker,
@@ -20,21 +19,14 @@ export function TargetOverviewTab({
   entries: Entry[]
 }) {
   const insets = useSafeAreaInsets()
-  const { data: milestones = [] } = useMilestones(tracker.id)
-  const p = progressFor(tracker, entries, milestones)
   return (
     <ScrollView
       contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} // safe-area, runtime
       showsVerticalScrollIndicator={false}
     >
-      <DetailHero tracker={tracker} progress={p} />
-      <DetailStatGrid tracker={tracker} progress={p} milestones={milestones} />
-      <DetailBody
-        tracker={tracker}
-        entries={entries}
-        milestones={milestones}
-        paceStatus={p.paceStatus}
-      />
+      <TargetHero tracker={tracker} entries={entries} />
+      <TargetProgressBar tracker={tracker} entries={entries} />
+      <TargetTrajectoryChart tracker={tracker} entries={entries} />
     </ScrollView>
   )
 }
