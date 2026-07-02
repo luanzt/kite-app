@@ -46,7 +46,7 @@ export function TargetHero({
   const traj = buildTargetTrajectory(tracker, entries, today)
   const frac = Math.max(0, Math.min(1, p.percent))
   const remain = daysLeft(tracker)
-  const toGo = Math.max(0, p.goal - p.current)
+  const toGo = Math.abs(p.goal - p.current)
 
   const hasPace = p.paceStatus !== 'none'
   const aheadAmount =

@@ -84,12 +84,29 @@ export function TargetTrajectoryChart({
       : ''
   const last = pts.length ? pts[pts.length - 1] : null
 
-  // projected dashed line from last actual point to the projected goal point
+  // Projected dashed line: draw to the value the CURRENT RATE actually
+  // reaches by the deadline (capped at the goal), not to the goal-crossing
+  // point. Otherwise a behind-pace trajectory would still visually end at
+  // the goal on the deadline edge (xr clamps X there), implying on-track.
+  let projectedEnd: readonly [number, number] | null = null
+  if (last && traj.projected && tracker.deadline) {
+    const daysElapsed = daysBetween(tracker.startDate, today)
+    if (daysElapsed > 0) {
+      const rate = (p.current - start) / daysElapsed
+      const daysToDeadline = daysBetween(today, tracker.deadline)
+      const projectedAtDeadline = p.current + rate * daysToDeadline
+      const cappedValue =
+        goal >= start
+          ? Math.min(goal, projectedAtDeadline)
+          : Math.max(goal, projectedAtDeadline)
+      projectedEnd = [xr(tracker.deadline), yr(cappedValue)] as const
+    }
+  }
   const projectedPath =
-    last && traj.projected
-      ? `M ${last[0].toFixed(1)} ${last[1].toFixed(1)} L ${xr(
-          traj.projected.date
-        ).toFixed(1)} ${yr(traj.projected.value).toFixed(1)}`
+    last && projectedEnd
+      ? `M ${last[0].toFixed(1)} ${last[1].toFixed(
+          1
+        )} L ${projectedEnd[0].toFixed(1)} ${projectedEnd[1].toFixed(1)}`
       : ''
 
   // ideal dotted diagonal
