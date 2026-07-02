@@ -118,7 +118,7 @@
     "chartProjected": "Dự phóng",
     "chartIdeal": "Lý tưởng"
   },
-  "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu", "ok": "OK", "close": "Đóng" },
+  "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu", "ok": "OK", "close": "Đóng", "progress": "Tiến độ" },
   "log": {
     "prompt": "Bạn đã làm habit này chưa?", "yes": "Có", "no": "Không", "value": "Giá trị", "valuePh": "0",
     "notesPh": "Thêm ghi chú cho lần này — cảm giác, quãng đường, tốc độ…",
