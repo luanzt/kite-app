@@ -229,9 +229,10 @@ function LogRow({
     }
     // target / average → read-only value + pace, tap opens the log sheet
     const isAverage = tracker.type === 'average'
+    // Big value drops the unit (the goal sub-line already carries it) — just the number.
     const bigValue = isAverage
-      ? fmtValCompact(tracker, todayLog) // average shows today's logged value
-      : fmtValCompact(tracker, progress?.current ?? 0) // target shows accumulated current
+      ? fmtCompact(todayLog) // average shows today's logged value
+      : fmtCompact(progress?.current ?? 0) // target shows accumulated current
     const paceStatus: PaceStatus = progress?.paceStatus ?? 'none'
     // average → "Avg: <cumulative avg>"; target → "Pace: <expected>" (hidden if none)
     const paceLine = isAverage
@@ -244,7 +245,7 @@ function LogRow({
         onPress={() => onQuickLog(tracker)}
         className='items-end min-w-[78px] py-s1'
       >
-        <Typography className='text-lg font-extrabold text-brand-ink'>
+        <Typography className='text-base font-extrabold text-brand-ink'>
           {bigValue}
         </Typography>
         {paceLine ? (
@@ -276,7 +277,7 @@ function LogRow({
       </View>
 
       <View className='flex-1 min-w-0'>
-        <Typography numberOfLines={1} className='text-lg font-bold text-ink'>
+        <Typography numberOfLines={1} className='text-base font-bold text-ink'>
           {tracker.name}
         </Typography>
         <View className='flex-row items-center gap-s2 mt-[2px]'>
@@ -484,10 +485,10 @@ export function DailyGoalsScreen() {
 
         {dueRows.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s4 pt-5 pb-2'>
               {t('today.dueToday')}
             </Typography>
-            <View className='px-s5 gap-s3'>
+            <View className='px-s4 gap-s3'>
               {dueRows.map((row) => (
                 <LogRow
                   key={row.tracker.id}

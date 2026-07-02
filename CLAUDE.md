@@ -40,8 +40,16 @@ yarn test src/features/trackers/calculators/__tests__/target.test.ts   # Single 
 yarn build:android:prod   # Release APK (also :staging)
 ```
 
-After adding a native dependency, run `cd ios && pod install`. op-sqlite, notifee,
-react-native-localize, and react-native-haptic-feedback all have native modules.
+After adding a native dependency, run `cd ios && pod install`. op-sqlite, notifee
+(reminders), react-native-mmkv, react-native-svg, react-native-bootsplash, and
+react-native-localize all have native modules — a JS-only Metro reload won't pick
+up a native change (an "Unimplemented component …" error means a stale native
+build; rebuild with `yarn ios`/`yarn android`).
+
+Some native modules are patched via **patch-package** (`patches/` dir, run on
+`postinstall`): a `heroui-native+1.0.4.patch` (fixes a `SelectField` BottomSheet
+snap bug) and a gradle-plugin patch. Re-run `yarn install` after cloning so the
+patches apply.
 
 ## Architecture — offline-first, SQLite is the source of truth
 
@@ -53,30 +61,63 @@ Data flows: **UI → TanStack Query hooks → repository functions → SQLite (o
 
 Almost all domain code lives under **`src/features/trackers/`**:
 
-- `types.ts` — the domain model: `Tracker`, `Entry`, `Milestone`, `TrackerProgress`, and the unions `TrackerType` (`habit|target|average|project`), `PaceStatus` (`on_track|behind|ahead|none`), `Accumulation` (`sum|latest`), `Period`.
-- `db/schema.ts` — opens the DB and runs `migrate()` (3 tables: `trackers`, `entries`, `milestones` + index). `getDb()` is memoized and called once from `App.tsx` on launch.
-- `db/repository.ts` — SQL wrapper + pure row-mapping functions (`trackerToRow`/`rowToTracker`). **op-sqlite v16 API:** use `executeSync()` (its `execute()` is async) and read `res.rows` as a plain array — there is NO `rows._array` wrapper.
-- `calculators/` — pure functions, one per type (`calculateTarget`, `calculateHabit`, `calculateAverage`, `calculateProject`), each returning `TrackerProgress`. **This is the core engine and the most-tested code.** The pace-line math lives here; note `calculateTarget` handles decreasing goals (start > goal, e.g. weight loss) by comparing progress-toward-goal fraction vs. time fraction.
-- `queries/index.ts` — TanStack Query hooks over the repository.
+- `types.ts` — the domain model. `Tracker` carries: `id, name, type, icon, color, unit, direction, targetValue, startValue, accumulation, startDate, deadline, period, repeatDays (number[] 0=Sun..6=Sat), routine, reminderTime ("HH:MM" | null), goalNote, createdAt, archived`. `Entry` = `{ id, trackerId, date (YYYY-MM-DD), value, note, createdAt }` — `createdAt` orders multiple logs on the same day. `Milestone` = `{ id, trackerId, title, dueDate, progress (0..1), orderIndex }`. `TrackerProgress` = `{ current, goal, percent (0..1), paceStatus, streak?, successRate?, expected? }` where `expected` is the timeline value you should have reached by today. Unions: `TrackerType` (`habit|target|average|project`), `HabitDirection` (`good|bad`), `Period` (`daily|weekly|monthly|yearly`), `Accumulation` (`sum|latest`), `PaceStatus` (`on_track|behind|ahead|none`), `Routine` (`any|morning|afternoon|evening`, time-of-day grouping for habits).
+- `db/schema.ts` — **self-describing, auto-migrating schema.** Tables are declared as `TableSpec { name, columns: ColumnSpec[], extras? }` (3 tables: `trackers` (19 cols), `entries` (+ `idx_entries_tracker_date` index), `milestones`). `migrateTable()` runs `CREATE TABLE IF NOT EXISTS`, then diffs live columns (`PRAGMA table_info`) against the spec via `missingColumns()` and `ALTER TABLE … ADD COLUMN` for each missing one — so a DB from an older app version picks up later-added columns automatically. **To add a column, just append a `ColumnSpec` to the right array** (it must be nullable or carry a DEFAULT — SQLite can't ADD a bare `NOT NULL`); do not hand-write migration steps. `getDb()` is memoized and called once from `App.tsx` on launch; `setDb()` injects a test DB.
+- `db/repository.ts` — SQL wrapper + pure row-mapping (`trackerToRow`/`rowToTracker`, `entryToRow`/`rowToEntry`; `repeatDays` is JSON-stringified, `archived` ↔ 0/1). `listTrackers()` filters `archived = 0`; `deleteTracker()` cascades entries + milestones. **op-sqlite v16 API:** use `executeSync()` (its `execute()` is async) and read `res.rows` as a plain array — there is NO `rows._array` wrapper.
+- `calculators/` — pure functions, one per type (`calculateTarget`, `calculateHabit`, `calculateAverage`, `calculateProject`; barreled in `index.ts`), each returning `TrackerProgress`. **This is the core engine and the most-tested code.** The pace-line math lives here; `calculateTarget` handles decreasing goals (start > goal, e.g. weight loss) by comparing progress-toward-goal fraction vs. time fraction, and populates `expected`. Note `calculateProject` takes `milestones[]` (not entries) — see `progressFor()` in `TrackerCard.tsx` for the type→calculator dispatch.
+- `calculators/habitStats.ts` — the **habit-detail engine**: pure, DB-free, unit-tested helpers feeding the Habit Detail screen and the Today card. Key exports: `perDayGoal`, `isDueOn`, `doneDatesOf`, `bestStreak`, `buildCalendarMonth`, `weeklyGoalOf`, `buildHistoryRows`, `habitStreakStatus` (motivational Today copy), `classifyTodayRow` (which Today section a tracker belongs to: `due|missed|completed`), `periodSessions` (cadence-adapted bar series). `calculateHabit` imports `isDueOn`/`doneDatesOf`/`isoAddDays` from here so the "done/due" rule has a single source of truth.
+- `queries/index.ts` — TanStack Query hooks over the repository. Queries: `useTrackers`, `useTracker(id)`, `useEntries(id)`, `useEntriesForDate(date)`, `useMilestones(id)`. Mutations: `useSaveTracker` / `useDeleteTracker` (these also (re)schedule / cancel reminders via `notifications.ts`), `useLogEntry`, `useDeleteEntry`, `useSaveMilestone`. Mutations invalidate the relevant keys — including the whole `['entries','date']` subtree — so both the detail and Today screens refresh.
 - `factory.ts` — `buildTracker(input)` is the single source of truth for constructing a `Tracker` (type-appropriate defaults + collision-resistant `uuid()`). Both the form and quick-starts use it; do not hand-build `Tracker` objects elsewhere.
-- `components/` — `TrackerCard` (and the `progressFor()` dispatcher), `PaceBar`, `HistoryChart`, `MilestoneList`.
-- `quickStarts.ts` — the 6–8 empty-state suggestions.
+- `icons.ts` — the visual single-source-of-truth: `PACE_COLOR`/`PACE_WEAK`/`PACE_DOT_CLASS` (pace palette), `Icons` (lucide chrome-icon map), `TAB_ICON` (bottom-tab SVGs), `TYPE_ICON`/`TYPE_COLOR` (per tracker type), and the icon/color resolvers `iconEmoji(key)`, `iconKey(value)`, `colorHex(color)`, `hexA(hex, alpha)`. **A tracker's `icon` is persisted as an ASCII keyword (e.g. `"lotus"`, `"drop"`), NEVER a raw emoji** — op-sqlite v16 corrupts non-BMP (surrogate-pair) string bind params on write, so the emoji glyph exists only at render time via `iconEmoji()`. `iconSets.ts` holds `ICONSET` (the per-type keyword lists shown in the form picker) + `defaultIcon(type)`.
+- `notifications.ts` — on-device notifee reminder scheduling (fully offline: local weekly-repeating triggers, one per due weekday at `reminderTime`, habits only). `initNotifications()` runs at launch; `scheduleTrackerReminders`/`cancelTrackerReminders` are called from the save/delete mutations. All functions swallow errors so a denied permission never crashes a save.
+- `detailFormat.ts` — number/value formatters: `fmtNum`, `fmtVal` (`$` prefix / unit suffix), `fmtCompact` (1K/30K/3M/1.5M), `fmtValCompact`, plus timeline helpers `pacePercent`/`daysLeft`.
+- `habitLabels.ts` — `cadenceLabel(tracker, t)` → human cadence string ("Every day", "5 times a week", …) via i18n.
+- `components/` — the shared `TrackerCard` (+ `progressFor()` dispatcher), `PaceBar`/`PaceChip`, `HistoryChart`, `MilestoneList`, `Stat`, plus the **tracker-detail subsystem** — see below.
+- `quickStarts.ts` — `QUICK_STARTS`, the empty-state one-tap suggestions (fed through `buildTracker`).
+
+### Tracker-detail architecture
+
+`TrackerDetailScreen` (`src/screens/trackers/`) is the orchestrator: it loads
+tracker/entries/milestones, shows `DetailLoading` while resolving, renders the
+shared `DetailAppbar`, and **delegates the body by type**:
+
+- **habit → `HabitDetailView`** and **target → `TargetDetailView`** — both a
+  3-tab `@react-navigation/material-top-tabs` navigator (Charts/Overview,
+  History, Notes) with a custom `HabitTabBar`. Because material-top-tabs renders
+  its own screens, shared props are passed via `HabitDetailContext`
+  (`HabitDetailProvider` / `useHabitDetail()`), not React props. Habit tab 1 is
+  `HabitChartsTab` (`AchievementHero` + `HabitCalendar` + `WeeklyChart`); target
+  tab 1 is `TargetOverviewTab`. History (`HabitHistoryTab`, a FlashList off
+  `buildHistoryRows`) and Notes (`HabitNotesTab`, editable `goalNote`) are shared.
+- **average / project → inline** `ScrollView` of `DetailHero` + `DetailStatGrid`
+  + `DetailBody` (projects → `MilestoneList`, else → `HistoryChart`), plus a
+  `LogTodayButton` for average.
+
+Logging goes through `LogEntryModal` (a HeroUI `BottomSheet`; habit = Yes/No →
+value 1/0, non-habit = numeric input), with a `LogSuccessToast` / `showLogSuccess`
+confirmation. `NoData` and `KiteLogo` are the empty-state / branding visuals.
 
 ### Testing strategy
 
-Pure logic is unit-tested (calculators, `date.ts`, repository row-mapping). **op-sqlite is unavailable in Jest** (native module), so it is mocked via `jest.config.js` `moduleNameMapper` → `jest/op-sqlite-mock.js`; DB-calling functions are NOT unit-tested — verify them on a device/simulator. Tests follow TDD: write the failing test first.
+Pure logic is unit-tested (calculators incl. `habitStats`, `detailFormat`,
+`date.ts`, factory, icon mapping, repository row-mapping). **op-sqlite is
+unavailable in Jest** (native module), so it is mocked via `jest.config.js`
+`moduleNameMapper` → `jest/op-sqlite-mock.js`; DB-calling functions are NOT
+unit-tested — verify them on a device/simulator. Tests follow TDD: write the
+failing test first. Run one file with e.g.
+`yarn test src/features/trackers/calculators/__tests__/habitStats.test.ts`.
 
 ### Navigation
 
-`src/navigation/`: `RootNavigator` (native-stack) wraps `MainNavigator` (bottom tabs: Today / Trackers / Settings) plus pushed stack screens (`TrackerDetail`, `TrackerForm`, `TrackerTypePicker`). There is no auth flow. Param types are in `navigation/types.ts`.
+`src/navigation/`: `RootNavigator` (native-stack, all `headerShown: false`) wraps `MainNavigator` (bottom tabs: Today → `DailyGoalsScreen`, Trackers → `TrackerListScreen`, Settings → `SettingsScreen`; tab icons from `TAB_ICON`, labels i18n'd) plus pushed stack screens: `TrackerDetail { trackerId }`, `TrackerForm { trackerId?; type }` (`trackerId` present = edit, absent = create), `TrackerTypePicker`. There is no auth flow. Param types (`RootStackParamList`, `MainTabParamList`) are in `navigation/types.ts`.
 
 ### i18n (English + Vietnamese)
 
-`src/i18n/` uses i18next + react-i18next. On first launch the OS locale is detected via `react-native-localize` (`vi` → Vietnamese, else English); the choice persists in MMKV via `useAppStore` (`language` is nullable so "no choice yet" triggers OS detection). Use `const { t } = useTranslation()` and `t('key')` — never hardcode visible strings. Strings live in `locales/{en,vi}.json`; keep both files key-for-key in sync. **User-entered data (tracker names, notes) is stored verbatim, never translated.**
+`src/i18n/` uses i18next + react-i18next (`initI18n()` runs at module load in `App.tsx`). On first launch the OS locale is detected via `react-native-localize` (`vi` → Vietnamese, else English); the choice persists in MMKV via `useAppStore` (`language` is nullable so "no choice yet" triggers OS detection). `changeLanguage(lang)` updates both i18next and the store. Use `const { t } = useTranslation()` and `t('key')` — never hardcode visible strings. Strings live in `src/i18n/locales/{en,vi}.json`, organized under top-level namespaces (`common, tabs, today, list, detail, form, log, toast, quickStart, settings, set, type, types`); **keep both files key-for-key in sync.** **User-entered data (tracker names, notes) is stored verbatim, never translated.**
 
 ## Path Aliases
 
-`@api/`, `@components/`, `@config/`, `@features/`, `@hooks/`, `@i18n/`, `@navigation/`, `@screens/`, `@store/`, `@theme/`, `@utils/`. Global types use `@app-types/` (not `@types/` — that conflicts with npm @types). Defined in `babel.config.js` and `tsconfig.json` — add new aliases to both.
+`@api/`, `@assets/`, `@components/`, `@config/`, `@features/`, `@hooks/`, `@i18n/`, `@navigation/`, `@screens/`, `@store/`, `@theme/`, `@utils/`. Global types use `@app-types/` (not `@types/` — that conflicts with npm @types). Defined in `babel.config.js` and `tsconfig.json` — add new aliases to both.
 
 ## Styling & Text Conventions (MANDATORY)
 
@@ -275,6 +316,41 @@ HeroUI Native uses compound components, NOT flat props. This is critical:
 </Card>
 ```
 
+## Shared UI primitives (`src/components/ui/`)
+
+Reusable form/UI primitives built on HeroUI Native (barreled in `index.ts`) —
+**reach for these before hand-rolling form controls**, especially in
+`TrackerFormScreen`:
+
+- `FormInput` — styled bordered text field (`keyboardType` `default`|`decimal-pad`).
+- `Segmented<T>` — 2–3 option segmented control; `SelectField<T>` — trigger →
+  BottomSheet option list (for 4+ options).
+- `DateField` / `TimeField` — trigger → BottomSheet calendar / time-wheel
+  (react-native-ui-datepicker); values are `YYYY-MM-DD` / `HH:mm` strings.
+- `WeekdayPicker` — Mon-first weekday chips storing JS day numbers (0=Sun..6=Sat).
+- `Toggle` — on/off switch; `FieldLabel` / `FieldLabelRow` — form labels;
+  `InfoTooltip` — "?" → Popover.
+- `AlertProvider` + `useAlert()` — **imperative alert/confirm** built on HeroUI
+  `Dialog`. `AlertProvider` is mounted once in the root provider tree; call
+  `const alert = useAlert()` then `alert({ title, message?, variant, onConfirm })`.
+  Prefer this over react-native `Alert`.
+
+## Theme & design tokens
+
+Design tokens live in **`global.css`** at the repo root (Tailwind v4 `@theme`
+block, imported first in `App.tsx`) — NOT in `src/theme/`. That's where the
+surface/ink/brand/pace color tokens, radius scale (`rounded-lg-k`), and spacing
+scale (`p-s5`) come from; HeroUI's `--accent` is overridden there to Kite blue.
+`src/theme/index.ts` only exports `makeHeroUIConfig(topInset)` (HeroUI runtime
+config: toast placement, font-scaling caps). `global.css` also `@source`s
+`heroui-native/lib` so Tailwind generates the classes HeroUI's overlay components
+reference — without it, Dialog/Toast render unstyled.
+
+**Dark mode is scaffolded but not themed.** The store (`themeMode`), `useTheme()`
+(bridges to `Uniwind.setTheme`), and the Settings toggle all exist, but
+`global.css` defines only a light palette ("Light mode only") — there is no dark
+token set yet. Treat full dark-mode tokens as a deferred follow-up.
+
 ## Environment
 
 `.env.development`, `.env.staging`, `.env.production`. Access via `import Config from 'react-native-config'`. Never commit `.env.*` files with secrets.
@@ -284,11 +360,18 @@ HeroUI Native uses compound components, NOT flat props. This is critical:
 - Named exports for components and hooks (no default exports except `App.tsx`).
 - Screens in `screens/<feature>/` folders; domain logic in `features/trackers/`.
 - Construct `Tracker` objects only via `buildTracker()` in `features/trackers/factory.ts`.
-- Zod schemas in `utils/validators.ts`.
+- Zod lives in `utils/validators.ts` but is currently minimal (`trackerBaseSchema` = name + type). The `TrackerForm` does its real validation inline via `useAlert`, not Zod — grow the schema if you add shared validation.
 - TypeScript strict mode is enabled; `yarn tsc` must be clean before committing.
 
-## Known follow-ups (deferred, see `docs/superpowers/plans/`)
+## Known follow-ups (deferred)
 
-Reminders (notifee installed, not wired), haptics, richer TrackerForm (deadline/period/accumulation/milestone editors), quick-log number entry on Today (currently logs value 1), and dark-mode color tokens.
+Full **dark-mode color tokens** (the toggle/plumbing exist but `global.css` is
+light-only — see Theme above), **haptics**, a **milestone editor** in the
+TrackerForm (projects can't yet edit milestones from the form), and wiring the
+Settings **Data → Export / Clear** rows (currently presentational). Note that
+several items the old docs listed here are now DONE: reminders are wired
+(`notifications.ts` + save/delete mutations), the TrackerForm has
+deadline/period/accumulation/weekday/reminder editors, and Today logs real
+numeric values for target/average via `LogEntryModal`.
 
 The iOS/Android project has been renamed from `RnHeroUITemplate` to **Kite**: RN/AppRegistry name is `Kite`, the iOS target/scheme/folder is `Kite` (`ios/Kite/`, `Kite.xcodeproj`, `Kite.xcworkspace`), the Android Java package is `com.kite.app`, and the bundle id / `applicationId` is **`com.kite.app`** on both platforms.
