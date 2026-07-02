@@ -106,7 +106,17 @@
     "logNotes": "Log notes", "notesCount": "{{count}} notes",
     "noHistory": "No entries yet", "recentEntries": "Recent entries",
     "logHistory": "Log History", "addLog": "Add Log", "logShort": "Log", "notLogged": "not logged",
-    "weekLogged": "{{logged}}/{{goal}} logged"
+    "weekLogged": "{{logged}}/{{goal}} logged",
+    "dailyGoal": "Daily goal",
+    "projected": "Projected",
+    "toGo": "to go",
+    "paceMarker": "Pace marker",
+    "left": "left",
+    "pace": "Pace",
+    "perDay": "/ day",
+    "chartActual": "Actual",
+    "chartProjected": "Projected",
+    "chartIdeal": "Ideal"
   },
   "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close" },
   "log": {
