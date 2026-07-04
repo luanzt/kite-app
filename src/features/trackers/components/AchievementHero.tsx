@@ -41,8 +41,8 @@ export function AchievementHero({
       <Svg style={styles.gradient} width='100%' height='100%'>
         <Defs>
           <LinearGradient id='kite-hero-grad' x1='0' y1='0' x2='1' y2='1'>
-            <Stop offset='0' stopColor={c.brandProjected} />
-            <Stop offset='1' stopColor={c.brand} />
+            <Stop offset='0' stopColor={c.heroGradientFrom} />
+            <Stop offset='1' stopColor={c.heroGradientTo} />
           </LinearGradient>
         </Defs>
         <Rect

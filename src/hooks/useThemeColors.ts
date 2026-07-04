@@ -18,7 +18,11 @@ const LIGHT = {
   lineStrong: '#d2d5c8',
   gridFaint: '#eef1f5',
   surface: '#ffffff',
-  onAccent: '#ffffff'
+  onAccent: '#ffffff',
+  // Two-tone brand gradient for the hero header cards (AchievementHero /
+  // TargetHero) — a distinct lighter→darker brand blend, not the flat brand.
+  heroGradientFrom: '#3d7dd8',
+  heroGradientTo: '#2f63b3'
 }
 
 const DARK: typeof LIGHT = {
@@ -31,7 +35,10 @@ const DARK: typeof LIGHT = {
   lineStrong: '#3a3e47',
   gridFaint: '#24272d',
   surface: '#1c1f24',
-  onAccent: '#ffffff'
+  onAccent: '#ffffff',
+  // Deepened so the hero card doesn't glare against the dark app background.
+  heroGradientFrom: '#2f63b3',
+  heroGradientTo: '#1b3a6b'
 }
 
 export function useThemeColors() {
