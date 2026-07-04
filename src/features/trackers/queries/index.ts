@@ -5,6 +5,7 @@ import {
   cancelTrackerReminders,
   scheduleTrackerReminders
 } from '@features/trackers/notifications'
+import { useAppStore } from '@store/useAppStore'
 import type { Tracker, Entry, Milestone } from '@features/trackers/types'
 
 const keys = {
@@ -52,12 +53,18 @@ export function useSaveTracker() {
   return useMutation({
     mutationFn: async (t: Tracker) => {
       repo.insertTracker(t)
-      // Pass the translated reminder body so notifications.ts stays i18n-free.
-      const body =
-        t.type === 'target'
-          ? tr('notification.targetBody')
-          : tr('notification.habitBody')
-      await scheduleTrackerReminders(t, body)
+      // Only schedule when the user has notifications enabled; always safe to
+      // cancel-then-(maybe)-reschedule via scheduleTrackerReminders.
+      const enabled = useAppStore.getState().notifyEnabled
+      if (enabled) {
+        const body =
+          t.type === 'target'
+            ? tr('notification.targetBody')
+            : tr('notification.habitBody')
+        await scheduleTrackerReminders(t, body)
+      } else {
+        await cancelTrackerReminders(t.id)
+      }
     },
     onSuccess: (_d, t) => {
       qc.invalidateQueries({ queryKey: keys.trackers })
