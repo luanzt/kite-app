@@ -109,7 +109,7 @@ function pad2(n: number): string {
 
 /**
  * Build a month's calendar with each day's habit status. Status priority:
- * done > today > rest (not scheduled) > future > none (a plain past day).
+ * done > rest (not scheduled) > today > future > none (a plain past day).
  */
 export function buildCalendarMonth(
   tracker: Tracker,
@@ -130,8 +130,8 @@ export function buildCalendarMonth(
     const iso = `${year}-${pad2(month + 1)}-${pad2(d)}`
     let status: CalendarStatus
     if (done.has(iso)) status = 'done'
-    else if (iso === todayISO) status = 'today'
     else if (!isDueOn(tracker, iso)) status = 'rest'
+    else if (iso === todayISO) status = 'today'
     else if (iso > todayISO) status = 'future'
     else status = 'none'
     cells.push({ day: d, status, iso, value: totals.get(iso) ?? 0, goal })

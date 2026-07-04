@@ -120,6 +120,14 @@ describe('buildCalendarMonth', () => {
     expect(status(10)).toBe('today')
     expect(status(12)).toBe('future') // Friday after today
   })
+
+  test('today on a non-scheduled day is rest, not today', () => {
+    // Mon/Wed/Fri schedule; today = 2026-06-09 is a Tuesday (not scheduled).
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(mwf, [], 2026, 5, '2026-06-09')
+    const cell = m.cells.find((c) => c.day === 9)!
+    expect(cell.status).toBe('rest')
+  })
 })
 
 describe('dayTotalsOf', () => {
