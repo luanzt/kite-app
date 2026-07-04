@@ -12,9 +12,9 @@ import { resolveTheme } from '@hooks/resolveTheme'
 export function useTheme() {
   const themeMode = useAppStore((s) => s.themeMode)
   const setThemeMode = useAppStore((s) => s.setThemeMode)
-  const colorScheme = useColorScheme() // 'light' | 'dark' | 'unspecified' | null
+  const colorScheme = useColorScheme()
   const systemScheme = (colorScheme === 'light' || colorScheme === 'dark') ? colorScheme : null
-  const resolvedTheme = resolveTheme(themeMode, systemScheme)
+  const resolvedTheme = resolveTheme(themeMode, systemScheme ?? null)
 
   useEffect(() => {
     Uniwind.setTheme(resolvedTheme)
