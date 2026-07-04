@@ -115,6 +115,21 @@ export function HabitChartsTab({
       }
     )
 
+  const onLogDay = (iso: string) =>
+    log.mutate(
+      {
+        id: uuid(),
+        trackerId: tracker.id,
+        date: iso,
+        value: 1,
+        note: null,
+        createdAt: new Date().toISOString()
+      },
+      {
+        onSuccess: () => showLogSuccess(toast, t('toast.logSuccess'))
+      }
+    )
+
   return (
     <View className='flex-1'>
       <ScrollView
@@ -155,7 +170,11 @@ export function HabitChartsTab({
               </Pressable>
             </View>
           </View>
-          <HabitCalendar month={calendar} />
+          <HabitCalendar
+            month={calendar}
+            todayISO={today}
+            onLogDay={onLogDay}
+          />
         </View>
 
         {/* sessions trend — adapts to the habit's cadence */}
