@@ -34,7 +34,11 @@ export function MainNavigator() {
         headerShown: false,
         tabBarActiveTintColor: c.brand,
         tabBarInactiveTintColor: c.ink3,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' }
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        // The tab bar background comes from React Navigation's own theme (white
+        // by default), NOT Uniwind — so it must be themed here explicitly or it
+        // stays light in dark mode.
+        tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.line }
       }}
     >
       <Tab.Screen
