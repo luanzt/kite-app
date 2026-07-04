@@ -185,8 +185,10 @@ export function TargetTrajectoryChart({
         </View>
       </View>
 
-      {/* chart */}
-      <Svg width='100%' viewBox={`0 0 ${VB_W} ${VB_H}`}>
+      {/* chart — height is required: react-native-svg does NOT derive height
+          from viewBox (unlike web SVG), so width='100%' alone collapses to
+          height 0 and nothing renders. Fixed viewBox-height px keeps aspect. */}
+      <Svg width='100%' height={VB_H} viewBox={`0 0 ${VB_W} ${VB_H}`}>
         <Defs>
           <LinearGradient id='kite-traj-area' x1='0' y1='0' x2='0' y2='1'>
             <Stop offset='0' stopColor='#2456b5' stopOpacity={0.28} />
