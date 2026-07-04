@@ -6,6 +6,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets
 } from 'react-native-safe-area-context'
+import { useTheme } from '@hooks/useTheme'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { HeroUINativeProvider } from 'heroui-native'
 import { AlertProvider } from '@components/ui'
@@ -65,6 +66,7 @@ export default function App() {
 // HeroUI's toast config (toasts render in a full-window overlay → no auto inset).
 function AppShell() {
   const insets = useSafeAreaInsets()
+  useTheme() // applies persisted/system theme to Uniwind on launch + live
   return (
     <HeroUINativeProvider config={makeHeroUIConfig(insets.top)}>
       <AlertProvider>
