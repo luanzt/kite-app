@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { MaterialTopTabBarProps } from '@react-navigation/material-top-tabs'
 import type { LucideIcon } from 'lucide-react-native'
 import { Icons } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 type TabKey = 'charts' | 'history' | 'notes'
 
@@ -22,6 +23,7 @@ export const TAB_META: Record<TabKey, { labelKey: string; Icon: LucideIcon }> =
  */
 export function HabitTabBar({ state, navigation }: MaterialTopTabBarProps) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   return (
     <View className='flex-row gap-s1 bg-bg px-s4 pb-s3 mt-s3'>
       {state.routes.map((route, index) => {
@@ -49,7 +51,7 @@ export function HabitTabBar({ state, navigation }: MaterialTopTabBarProps) {
               on ? 'bg-brand' : 'bg-transparent'
             }`}
           >
-            <Icon size={16} color={on ? '#ffffff' : '#565a4f'} />
+            <Icon size={16} color={on ? c.onAccent : c.ink2} />
             <Typography
               className={`text-xs ${on ? 'font-bold' : 'font-medium'} ${
                 on ? 'text-on-accent' : 'text-ink-2'

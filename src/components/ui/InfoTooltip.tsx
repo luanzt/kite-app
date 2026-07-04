@@ -1,6 +1,7 @@
 import { Pressable } from 'react-native'
 import { Popover } from 'heroui-native'
 import { CircleHelp } from 'lucide-react-native'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
  * A circular "?" button that opens a Popover explaining a field. Used beside
@@ -14,6 +15,7 @@ export function InfoTooltip({
   title: string
   description: string
 }) {
+  const c = useThemeColors()
   return (
     <Popover>
       {/* asChild over a real Pressable — the proven trigger pattern in this app
@@ -24,7 +26,7 @@ export function InfoTooltip({
           would double the ring. */}
       <Popover.Trigger asChild>
         <Pressable className='h-6 w-6 items-center justify-center active:opacity-70'>
-          <CircleHelp size={20} color='#8a8e80' />
+          <CircleHelp size={20} color={c.ink3} />
         </Pressable>
       </Popover.Trigger>
       <Popover.Portal>
