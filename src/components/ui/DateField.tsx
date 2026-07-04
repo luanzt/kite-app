@@ -97,7 +97,9 @@ function CalendarSheet({
 }) {
   const c = useThemeColors()
   const { onOpenChange } = useBottomSheet()
-  const defaultStyles = useDefaultStyles()
+  // Follow Kite's own theme setting, not just the OS scheme — themeMode can
+  // be an explicit Light/Dark override that diverges from useColorScheme().
+  const defaultStyles = useDefaultStyles(c.isDark ? 'dark' : 'light')
   const selected = fromISODate(value)
 
   const select = (date: DateType) => {

@@ -83,7 +83,9 @@ function TimeSheet({
   const { t } = useTranslation()
   const c = useThemeColors()
   const { onOpenChange } = useBottomSheet()
-  const defaultStyles = useDefaultStyles()
+  // Follow Kite's own theme setting, not just the OS scheme — themeMode can
+  // be an explicit Light/Dark override that diverges from useColorScheme().
+  const defaultStyles = useDefaultStyles(c.isDark ? 'dark' : 'light')
   const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'))
   // react-native-ui-datepicker fires a spurious onChange on mount with the
   // time reset to midnight, which would clobber our correct initial draft.
