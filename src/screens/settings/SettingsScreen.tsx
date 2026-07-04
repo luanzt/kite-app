@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { AppState, Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -6,6 +7,15 @@ import { useAppStore } from '@store/useAppStore'
 import { changeLanguage, type Language } from '@i18n/index'
 import { Icons, PACE_COLOR } from '@features/trackers/icons'
 import { KiteLogo } from '@features/trackers/components/KiteLogo'
+import { useAlert, Toggle } from '@components/ui'
+import { decideToggleAction } from '@features/trackers/notificationToggle'
+import {
+  getPermissionStatus,
+  requestNotificationPermission,
+  openSystemNotificationSettings,
+  cancelAllReminders,
+  rescheduleAllReminders
+} from '@features/trackers/notifications'
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -43,10 +53,65 @@ function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
 
 export function SettingsScreen() {
   const { t } = useTranslation()
+  const alert = useAlert()
   const insets = useSafeAreaInsets()
   const themeMode = useAppStore((s) => s.themeMode)
   const toggleTheme = useAppStore((s) => s.toggleTheme)
   const language = useAppStore((s) => s.language)
+  const notifyEnabled = useAppStore((s) => s.notifyEnabled)
+  const setNotifyEnabled = useAppStore((s) => s.setNotifyEnabled)
+  const [osGranted, setOsGranted] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    const refresh = () =>
+      getPermissionStatus().then((g) => active && setOsGranted(g))
+    refresh()
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refresh()
+    })
+    return () => {
+      active = false
+      sub.remove()
+    }
+  }, [])
+
+  // Body used when (re)scheduling all reminders, translated per tracker type.
+  const reminderBodyFor = (tr: { type: string }) =>
+    tr.type === 'target'
+      ? t('notification.targetBody')
+      : t('notification.habitBody')
+
+  const conflict = notifyEnabled && !osGranted
+
+  const onToggleNotifications = async () => {
+    const action = decideToggleAction(osGranted, notifyEnabled)
+    if (action === 'toggle') {
+      const next = !notifyEnabled
+      setNotifyEnabled(next)
+      if (next) {
+        await rescheduleAllReminders(reminderBodyFor)
+      } else {
+        await cancelAllReminders()
+      }
+      return
+    }
+    // action === 'request' → OS denied and currently off; try to request.
+    const granted = await requestNotificationPermission()
+    setOsGranted(granted)
+    if (granted) {
+      setNotifyEnabled(true)
+      await rescheduleAllReminders(reminderBodyFor)
+    } else {
+      alert({
+        title: t('set.notifBlockedTitle'),
+        message: t('set.notifBlockedMsg'),
+        confirmLabel: t('set.openSettings'),
+        onConfirm: openSystemNotificationSettings,
+        cancelLabel: t('common.close')
+      })
+    }
+  }
 
   const langs: { value: Language; label: string }[] = [
     { value: 'en', label: 'EN' },
@@ -93,6 +158,40 @@ export function SettingsScreen() {
                 {t('set.theme')}
               </Typography>
               <Switch on={themeMode === 'dark'} onPress={toggleTheme} />
+            </View>
+            <View className='gap-s1 border-b border-line'>
+              <View className='flex-row items-center gap-s3 p-s4'>
+                <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
+                  <Icons.Bell size={18} color='#1b1e18' />
+                </View>
+                <Typography className='flex-1 text-base font-semibold text-ink'>
+                  {t('set.notifications')}
+                </Typography>
+                {conflict ? (
+                  <View className='mr-s2'>
+                    <Icons.Warn size={18} color={PACE_COLOR.behind} />
+                  </View>
+                ) : null}
+                <Toggle
+                  value={notifyEnabled}
+                  onChange={onToggleNotifications}
+                />
+              </View>
+              {conflict ? (
+                <View className='flex-row flex-wrap items-center gap-s1 px-s4 pb-s3'>
+                  <Typography className='text-xs text-pace-behind'>
+                    {t('set.notifOsOff')}
+                  </Typography>
+                  <Pressable
+                    onPress={openSystemNotificationSettings}
+                    hitSlop={6}
+                  >
+                    <Typography className='text-xs font-bold text-brand underline'>
+                      {t('set.goSettings')}
+                    </Typography>
+                  </Pressable>
+                </View>
+              ) : null}
             </View>
             <View className='flex-row items-center gap-s3 p-s4'>
               <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
