@@ -306,7 +306,11 @@ export function TargetTrajectoryChart({
             key={`xlab-${i}`}
             x={x.x}
             y={205}
-            textAnchor='middle'
+            // anchor the edge labels inward so the last date (at X1, near the
+            // viewBox right edge) isn't clipped; middle for interior ticks
+            textAnchor={
+              i === 0 ? 'start' : i === X_TICKS - 1 ? 'end' : 'middle'
+            }
             fontSize={10}
             fontWeight='700'
             fill='#8a8e80'
