@@ -55,6 +55,28 @@ export const PACE_WEAK: Record<PaceStatus, string> = {
   none: '#eceee8'
 }
 
+/** Dark-theme pace palette — brightened for contrast on the dark base. */
+export const PACE_COLOR_DARK: Record<PaceStatus, string> = {
+  on_track: '#3ec27a',
+  behind: '#f0736b',
+  ahead: '#5b8def',
+  none: '#6f757e'
+}
+
+export const PACE_WEAK_DARK: Record<PaceStatus, string> = {
+  on_track: '#13291d',
+  behind: '#331917',
+  ahead: '#1b2b47',
+  none: '#24272d'
+}
+
+/** Pick the pace palette (solid + weak) for a resolved theme. */
+export function paceColorsFor(theme: 'light' | 'dark') {
+  return theme === 'dark'
+    ? { color: PACE_COLOR_DARK, weak: PACE_WEAK_DARK }
+    : { color: PACE_COLOR, weak: PACE_WEAK }
+}
+
 /**
  * Pace-status as a solid-background Tailwind class. Use this instead of an
  * inline `style={{ backgroundColor: PACE_COLOR[status] }}` — the status is a
