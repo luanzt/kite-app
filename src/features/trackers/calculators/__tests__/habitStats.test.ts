@@ -134,9 +134,30 @@ describe('dayTotalsOf', () => {
   const tracker = { targetValue: 5, period: 'daily', repeatDays: [] } as any
   it('sums multiple entries on the same day', () => {
     const entries = [
-      { id: 'a', trackerId: 't', date: '2026-07-01', value: 2, note: null, createdAt: '2026-07-01T01:00:00Z' },
-      { id: 'b', trackerId: 't', date: '2026-07-01', value: 3, note: null, createdAt: '2026-07-01T02:00:00Z' },
-      { id: 'c', trackerId: 't', date: '2026-07-02', value: 1, note: null, createdAt: '2026-07-02T01:00:00Z' }
+      {
+        id: 'a',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 2,
+        note: null,
+        createdAt: '2026-07-01T01:00:00Z'
+      },
+      {
+        id: 'b',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 3,
+        note: null,
+        createdAt: '2026-07-01T02:00:00Z'
+      },
+      {
+        id: 'c',
+        trackerId: 't',
+        date: '2026-07-02',
+        value: 1,
+        note: null,
+        createdAt: '2026-07-02T01:00:00Z'
+      }
     ] as any
     const totals = dayTotalsOf(tracker, entries)
     expect(totals.get('2026-07-01')).toBe(5)
@@ -146,10 +167,29 @@ describe('dayTotalsOf', () => {
 })
 
 describe('buildCalendarMonth cell progress fields', () => {
-  const tracker = { startDate: '2026-07-01', targetValue: 5, period: 'daily', repeatDays: [] } as any
+  const tracker = {
+    startDate: '2026-07-01',
+    targetValue: 5,
+    period: 'daily',
+    repeatDays: []
+  } as any
   const entries = [
-    { id: 'a', trackerId: 't', date: '2026-07-01', value: 2, note: null, createdAt: '2026-07-01T01:00:00Z' }, // partial 2/5
-    { id: 'b', trackerId: 't', date: '2026-07-02', value: 5, note: null, createdAt: '2026-07-02T01:00:00Z' }  // done 5/5
+    {
+      id: 'a',
+      trackerId: 't',
+      date: '2026-07-01',
+      value: 2,
+      note: null,
+      createdAt: '2026-07-01T01:00:00Z'
+    }, // partial 2/5
+    {
+      id: 'b',
+      trackerId: 't',
+      date: '2026-07-02',
+      value: 5,
+      note: null,
+      createdAt: '2026-07-02T01:00:00Z'
+    } // done 5/5
   ] as any
   const month = buildCalendarMonth(tracker, entries, 2026, 6, '2026-07-03') // month 6 = July
 
