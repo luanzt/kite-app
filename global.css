@@ -10,64 +10,83 @@
    @source './node_modules/heroui-native/lib'". */
 @source './node_modules/heroui-native/lib';
 
-/* ============================================================
-   Override HeroUI Native's accent so `<Button variant="primary">`,
-   focus rings, and other accent-driven components use Kite's deep
-   blue (#2456b5) instead of HeroUI's default blue. Matches the
-   --color-brand token below. Defined for both light & dark so the
-   two stay in sync. (#2456b5 ≈ oklch(0.476 0.160 261.6).)
-   ============================================================ */
 @layer theme {
   :root {
     @variant light {
-      --accent: oklch(0.476 0.16 261.6);
+      /* HeroUI accent → Kite brand */
+      --accent: #2456b5;
+
+      /* surfaces & neutrals */
+      --color-bg: #eef1f6;
+      --color-surface: #ffffff;
+      --color-surface-2: #eeefe9;
+      --color-surface-3: #e6e8df;
+      --color-line: #e3e5dc;
+      --color-line-strong: #d2d5c8;
+
+      /* text */
+      --color-ink: #1b1e18;
+      --color-ink-2: #565a4f;
+      --color-ink-3: #8a8e80;
+      --color-on-accent: #ffffff;
+
+      /* brand */
+      --color-brand: #2456b5;
+      --color-brand-weak: #e6eefb;
+      --color-brand-faint: #f0f5fd;
+      --color-brand-ink: #2456b5;
+
+      /* pace */
+      --color-pace-on: #1f9d57;
+      --color-pace-on-weak: #e3f3ea;
+      --color-pace-behind: #e0564e;
+      --color-pace-behind-weak: #fbe7e5;
+      --color-pace-ahead: #2456b5;
+      --color-pace-ahead-weak: #e6eefb;
+      --color-pace-none: #a3a8a0;
+      --color-pace-none-weak: #eceee8;
     }
+
     @variant dark {
-      --accent: oklch(0.476 0.16 261.6);
+      --accent: #5b8def;
+
+      --color-bg: #121417;
+      --color-surface: #1c1f24;
+      --color-surface-2: #252932;
+      --color-surface-3: #2e333d;
+      --color-line: #2c2f36;
+      --color-line-strong: #3a3e47;
+
+      --color-ink: #e8eaed;
+      --color-ink-2: #a8adb5;
+      --color-ink-3: #6f757e;
+      --color-on-accent: #ffffff;
+
+      --color-brand: #5b8def;
+      --color-brand-weak: #1b2b47;
+      --color-brand-faint: #161f30;
+      --color-brand-ink: #5b8def;
+
+      --color-pace-on: #3ec27a;
+      --color-pace-on-weak: #13291d;
+      --color-pace-behind: #f0736b;
+      --color-pace-behind-weak: #331917;
+      --color-pace-ahead: #5b8def;
+      --color-pace-ahead-weak: #1b2b47;
+      --color-pace-none: #6f757e;
+      --color-pace-none-weak: #24272d;
     }
   }
 }
 
 /* ============================================================
    KITE — Design System tokens (from Claude Design handoff)
-   Direction = Calm (default), Accent = Classic. Light mode only.
-   Exposed as Tailwind utilities via @theme, e.g. bg-bg, text-brand,
-   text-pace-on, rounded-lg-k, p-s5. Kept under distinct names so they
-   compose with HeroUI's own --color-* tokens rather than clashing.
+   Direction = Calm (default), Accent = Classic.
+   Color tokens are per-theme (see @layer theme above).
+   Non-color tokens (radius, spacing, type, fonts) are global.
+   Exposed as Tailwind utilities via @theme, e.g. rounded-lg-k, p-s5.
    ============================================================ */
 @theme {
-  /* ---- surfaces & neutrals (calm) ---- */
-  --color-bg: #eef1f6;
-  --color-surface: #ffffff;
-  --color-surface-2: #eeefe9;
-  --color-surface-3: #e6e8df;
-  --color-line: #e3e5dc;
-  --color-line-strong: #d2d5c8;
-
-  /* ---- text ---- */
-  --color-ink: #1b1e18;
-  --color-ink-2: #565a4f;
-  --color-ink-3: #8a8e80;
-  --color-on-accent: #ffffff;
-
-  /* ---- brand (deep blue) ---- */
-  --color-brand: #2456b5;
-  --color-brand-weak: #e6eefb;
-  /* a tint lighter than brand-weak — for completed-card fills that must sit
-     below the brand-weak summary card */
-  --color-brand-faint: #f0f5fd;
-  --color-brand-ink: #2456b5;
-
-  /* ---- pace palette (classic) — the soul of the app ---- */
-  --color-pace-on: #1f9d57;
-  --color-pace-on-weak: #e3f3ea;
-  --color-pace-behind: #e0564e;
-  --color-pace-behind-weak: #fbe7e5;
-  --color-pace-ahead: #2456b5;
-  --color-pace-ahead-weak: #e6eefb;
-  --color-pace-none: #a3a8a0;
-  --color-pace-none-weak: #eceee8;
-
   /* ---- radius scale (r=6 baseline from the design) ---- */
   --radius-xs-k: 6px;
   --radius-sm-k: 10px;
