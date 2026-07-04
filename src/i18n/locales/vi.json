@@ -39,6 +39,25 @@
     "heading": "Bắt đầu với một mục tiêu",
     "items": { "water": "Uống nước", "exercise": "Tập thể dục", "save": "Tiết kiệm tiền", "read": "Đọc sách", "sleep": "Ngủ đủ giấc", "meditate": "Thiền", "steps": "Đi bộ", "weight": "Theo dõi cân nặng" }
   },
+  "templates": {
+    "title": "Thêm mục theo dõi",
+    "search": "Tìm mẫu",
+    "heading": "Mẫu có sẵn",
+    "create": "Tạo mục theo dõi",
+    "createDesc": "Tạo mục tiêu hoặc thói quen riêng.",
+    "cat": {
+      "health": "Sức khỏe",
+      "fitness": "Thể hình",
+      "wellness": "Tinh thần",
+      "productivity": "Năng suất",
+      "money": "Tài chính",
+      "education": "Học tập",
+      "hobbies": "Sở thích",
+      "relationships": "Mối quan hệ",
+      "chores": "Việc nhà",
+      "business": "Công việc"
+    }
+  },
   "types": { "habit": "Thói quen", "target": "Mục tiêu", "average": "Trung bình", "project": "Dự án" },
   "type": {
     "title": "Bạn muốn theo dõi điều gì?",

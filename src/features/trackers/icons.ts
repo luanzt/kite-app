@@ -223,7 +223,20 @@ const ICON_EMOJI: Record<string, string> = {
   film: '🎬',
   home: '🏡',
   work: '💼',
-  grad: '🎓'
+  grad: '🎓',
+  // template set (Health category) — keywords used by templates.ts; these are
+  // NOT offered in the form icon picker (ICONSET), only pre-filled by templates.
+  grin: '😁',
+  broccoli: '🥦',
+  apple: '🍎',
+  zap: '⚡',
+  muscle: '💪',
+  candy: '🍬',
+  fries: '🍟',
+  cup: '🥤',
+  beer: '🍺',
+  popcorn: '🍿',
+  fingerscrossed: '🤞'
 }
 
 /**

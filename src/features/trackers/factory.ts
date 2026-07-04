@@ -3,7 +3,8 @@ import type {
   TrackerType,
   Accumulation,
   Period,
-  Routine
+  Routine,
+  HabitDirection
 } from '@features/trackers/types'
 import { toISODate } from '@utils/date'
 
@@ -30,12 +31,15 @@ export type BuildTrackerInput = {
   repeatDays?: number[] | null
   routine?: Routine | null
   reminderTime?: string | null
+  direction?: HabitDirection | null
 }
 
 /**
  * Build a fully-formed Tracker from minimal input, applying type-appropriate
  * defaults (habit gets direction/repeatDays/daily period; target gets startValue 0
- * and sum accumulation unless overridden). Always assigns a fresh collision-resistant id.
+ * and sum accumulation unless overridden). A habit defaults to a 'good' direction
+ * but templates can pass `direction: 'bad'` for quit/avoid habits (e.g. No Sugar).
+ * Always assigns a fresh collision-resistant id.
  */
 export function buildTracker(input: BuildTrackerInput): Tracker {
   const { type } = input
@@ -47,7 +51,7 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     icon: input.icon ?? 'star',
     color: input.color ?? 'blue',
     unit: input.unit ?? null,
-    direction: isHabit ? 'good' : null,
+    direction: isHabit ? input.direction ?? 'good' : null,
     targetValue: input.targetValue ?? null,
     startValue: type === 'target' ? input.startValue ?? 0 : null,
     accumulation: type === 'target' ? input.accumulation ?? 'sum' : null,

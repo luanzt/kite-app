@@ -39,6 +39,25 @@
     "heading": "Start with a goal",
     "items": { "water": "Drink water", "exercise": "Exercise", "save": "Save money", "read": "Read books", "sleep": "Sleep well", "meditate": "Meditate", "steps": "Walk", "weight": "Track weight" }
   },
+  "templates": {
+    "title": "Add Tracker",
+    "search": "Search Templates",
+    "heading": "Templates",
+    "create": "Create Tracker",
+    "createDesc": "Add custom goal or habit.",
+    "cat": {
+      "health": "Health",
+      "fitness": "Fitness",
+      "wellness": "Wellness",
+      "productivity": "Productivity",
+      "money": "Money",
+      "education": "Education",
+      "hobbies": "Hobbies",
+      "relationships": "Relationships",
+      "chores": "Chores",
+      "business": "Business"
+    }
+  },
   "types": { "habit": "Habit", "target": "Target", "average": "Average", "project": "Project" },
   "type": {
     "title": "What do you want to track?",
