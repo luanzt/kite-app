@@ -128,7 +128,13 @@
     "appearance": "Appearance", "theme": "Dark mode", "themeSoon": "Coming soon", "language": "Language",
     "data": "Data", "export": "Export data", "exportSub": "Save a JSON backup",
     "clear": "Clear all data", "clearSub": "Delete every tracker & entry",
-    "about": "About", "version": "Version", "offline": "Works fully offline"
+    "about": "About", "version": "Version", "offline": "Works fully offline",
+    "notifications": "Notifications",
+    "notifOsOff": "Notifications are turned off in system settings.",
+    "goSettings": "Go to settings",
+    "notifBlockedTitle": "Enable notifications",
+    "notifBlockedMsg": "Notifications are turned off for Kite. Open Settings to allow reminders.",
+    "openSettings": "Open Settings"
   },
   "toast": { "saved": "Tracker saved", "logged": "Logged", "logSuccess": "Logged successfully", "deleted": "Tracker deleted" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" },
