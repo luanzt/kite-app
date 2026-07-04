@@ -346,10 +346,25 @@ config: toast placement, font-scaling caps). `global.css` also `@source`s
 `heroui-native/lib` so Tailwind generates the classes HeroUI's overlay components
 reference — without it, Dialog/Toast render unstyled.
 
-**Dark mode is scaffolded but not themed.** The store (`themeMode`), `useTheme()`
-(bridges to `Uniwind.setTheme`), and the Settings toggle all exist, but
-`global.css` defines only a light palette ("Light mode only") — there is no dark
-token set yet. Treat full dark-mode tokens as a deferred follow-up.
+**Dark mode is implemented (light + dark).** Color tokens live under
+`@layer theme { :root { @variant light {…} @variant dark {…} } }` in `global.css`
+(surface/ink/brand/pace + `--accent`), so every `bg-*`/`text-*`/`border-*` class
+flips with the theme automatically; non-color tokens (radius/spacing/type/font)
+stay in the theme-agnostic `@theme {}` block. The store's `themeMode` is
+`'light' | 'dark' | 'system'` (default `'system'`); `useTheme()` resolves
+`system` via RN `useColorScheme()` through the pure `resolveTheme()` helper
+(`src/hooks/resolveTheme.ts`) and applies it with `Uniwind.setTheme`. `App.tsx`'s
+`AppShell` calls `useTheme()` so the theme applies on launch. Settings shows a
+Light/Dark/System `Segmented` selector. For colors a Tailwind class can't reach
+— react-native-svg `fill`/`stroke` and lucide `color=` props — use
+**`useThemeColors()`** (`src/hooks/useThemeColors.ts`), which returns concrete
+hex for the active theme (its `LIGHT`/`DARK` maps intentionally MIRROR the
+`global.css` tokens — svg can't read CSS vars — so keep the two in sync when a
+token changes). Rule of thumb for white elements: white on a brand/accent/gradient
+background → `c.onAccent` (stays white in dark); white on a card `bg-surface` →
+`c.surface` (goes dark). Per-tracker identity colors (`TYPE_COLOR`,
+`colorHex(tracker.color)`, `hexA`) are NOT theme chrome — never route them
+through `useThemeColors`.
 
 ## Environment
 
@@ -365,11 +380,14 @@ token set yet. Treat full dark-mode tokens as a deferred follow-up.
 
 ## Known follow-ups (deferred)
 
-Full **dark-mode color tokens** (the toggle/plumbing exist but `global.css` is
-light-only — see Theme above), **haptics**, a **milestone editor** in the
-TrackerForm (projects can't yet edit milestones from the form), and wiring the
-Settings **Data → Export / Clear** rows (currently presentational). Note that
-several items the old docs listed here are now DONE: reminders are wired
+**Haptics**, a **milestone editor** in the TrackerForm (projects can't yet edit
+milestones from the form), and wiring the Settings **Data → Export / Clear** rows
+(currently presentational). One dark-mode nuance remains: the
+`react-native-ui-datepicker` (DateField/TimeField) follows the app theme via
+`useDefaultStyles(c.isDark ? 'dark' : 'light')`, but its internal neutral palette
+(day/weekday labels, borders) isn't swappable for Kite's tokens without overriding
+~25 style keys — deferred. Note that several items the old docs listed here are
+now DONE: **dark mode** is implemented (see Theme above), reminders are wired
 (`notifications.ts` + save/delete mutations), the TrackerForm has
 deadline/period/accumulation/weekday/reminder editors, and Today logs real
 numeric values for target/average via `LogEntryModal`.
