@@ -15,6 +15,7 @@ import { Icons } from '@features/trackers/icons'
 import { useLogEntry } from '@features/trackers/queries'
 import { uuid } from '@features/trackers/factory'
 import { toISODate } from '@utils/date'
+import { useThemeColors } from '@hooks/useThemeColors'
 import { AchievementHero } from './AchievementHero'
 import { HabitCalendar } from './HabitCalendar'
 import { WeeklyChart } from './WeeklyChart'
@@ -68,6 +69,7 @@ export function HabitChartsTab({
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const today = toISODate(new Date())
   const log = useLogEntry()
@@ -139,7 +141,7 @@ export function HabitChartsTab({
                 hitSlop={6}
                 className='h-[32px] w-[32px] items-center justify-center rounded-sm-k border border-line bg-surface active:opacity-80'
               >
-                <Icons.Back size={16} color='#565a4f' />
+                <Icons.Back size={16} color={c.ink2} />
               </Pressable>
               <Typography className='w-[112px] text-center text-sm font-bold text-ink'>
                 {monthLabel(ym.year, ym.month, lang)}
@@ -149,7 +151,7 @@ export function HabitChartsTab({
                 hitSlop={6}
                 className='h-[32px] w-[32px] items-center justify-center rounded-sm-k border border-line bg-surface active:opacity-80'
               >
-                <Icons.Chevron size={16} color='#565a4f' />
+                <Icons.Chevron size={16} color={c.ink2} />
               </Pressable>
             </View>
           </View>
@@ -181,7 +183,7 @@ export function HabitChartsTab({
             log.isPending ? 'opacity-60' : 'opacity-100'
           }`}
         >
-          <Icons.Plus size={20} color='#ffffff' />
+          <Icons.Plus size={20} color={c.onAccent} />
           <Typography className='text-base font-bold text-on-accent'>
             {t('detail.logToday')}
           </Typography>

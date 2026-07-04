@@ -7,6 +7,7 @@ import { calculateTarget } from '@features/trackers/calculators/target'
 import { buildTargetTrajectory } from '@features/trackers/calculators'
 import { fmtValCompact, daysLeft } from '@features/trackers/detailFormat'
 import { toISODate } from '@utils/date'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 const RING_SIZE = 128
 const RING_STROKE = 12
@@ -41,6 +42,7 @@ export function TargetHero({
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
+  const c = useThemeColors()
   const today = toISODate(new Date())
   const p = calculateTarget(tracker, entries, today)
   const traj = buildTargetTrajectory(tracker, entries, today)
@@ -63,8 +65,8 @@ export function TargetHero({
       <Svg style={styles.gradient} width='100%' height='100%'>
         <Defs>
           <LinearGradient id='kite-target-hero' x1='0' y1='0' x2='1' y2='1'>
-            <Stop offset='0' stopColor='#3d7dd8' />
-            <Stop offset='1' stopColor='#2f63b3' />
+            <Stop offset='0' stopColor={c.heroGradientFrom} />
+            <Stop offset='1' stopColor={c.heroGradientTo} />
           </LinearGradient>
         </Defs>
         <Rect
@@ -109,7 +111,7 @@ export function TargetHero({
                 cx={RING_SIZE / 2}
                 cy={RING_SIZE / 2}
                 r={RING_R}
-                stroke='#ffffff'
+                stroke={c.onAccent}
                 strokeWidth={RING_STROKE}
                 strokeLinecap='round'
                 fill='none'
