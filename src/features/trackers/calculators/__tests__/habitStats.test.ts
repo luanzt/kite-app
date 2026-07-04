@@ -1,6 +1,7 @@
 import {
   doneDatesOf,
   dayTotalsOf,
+  dayCountsOf,
   bestStreak,
   buildCalendarMonth,
   weeklyGoalOf,
@@ -128,6 +129,22 @@ describe('buildCalendarMonth', () => {
     const cell = m.cells.find((c) => c.day === 9)!
     expect(cell.status).toBe('rest')
   })
+
+  test('cells carry hasEntry: true only for days with at least one log', () => {
+    // June 4 has a No entry (value 0), June 5 has a Yes, June 6 has nothing.
+    const m = buildCalendarMonth(
+      base,
+      [log('2026-06-04', 0), log('2026-06-05', 1)],
+      2026,
+      5,
+      '2026-06-10'
+    )
+    const cell = (day: number) => m.cells.find((c) => c.day === day)!
+    expect(cell(4).hasEntry).toBe(true) // a No entry still counts as an entry
+    expect(cell(4).value).toBe(0)
+    expect(cell(5).hasEntry).toBe(true)
+    expect(cell(6).hasEntry).toBe(false) // no entry at all
+  })
 })
 
 describe('dayTotalsOf', () => {
@@ -163,6 +180,41 @@ describe('dayTotalsOf', () => {
     expect(totals.get('2026-07-01')).toBe(5)
     expect(totals.get('2026-07-02')).toBe(1)
     expect(totals.get('2026-07-03')).toBeUndefined()
+  })
+})
+
+describe('dayCountsOf', () => {
+  it('counts entries per day regardless of value (No entries count too)', () => {
+    const entries = [
+      {
+        id: 'a',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 0,
+        note: null,
+        createdAt: '2026-07-01T01:00:00Z'
+      }, // No
+      {
+        id: 'b',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 0,
+        note: null,
+        createdAt: '2026-07-01T02:00:00Z'
+      }, // No
+      {
+        id: 'c',
+        trackerId: 't',
+        date: '2026-07-02',
+        value: 1,
+        note: null,
+        createdAt: '2026-07-02T01:00:00Z'
+      } // Yes
+    ] as any
+    const counts = dayCountsOf({} as any, entries)
+    expect(counts.get('2026-07-01')).toBe(2) // two No entries still count
+    expect(counts.get('2026-07-02')).toBe(1)
+    expect(counts.get('2026-07-03')).toBeUndefined()
   })
 })
 

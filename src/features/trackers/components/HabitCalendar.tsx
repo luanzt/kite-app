@@ -14,12 +14,14 @@ const R = (CELL - STROKE) / 2
 const CIRC = 2 * Math.PI * R
 
 /**
- * One calendar day. Render-state derives from status + value/goal:
- *  done (value>=goal)  → filled green pill, white number
- *  partial (0<value<goal, due, today-or-past) → blue arc ring, number
- *  empty (value===0, due, today-or-past)      → faint track ring, number
+ * One calendar day. Render-state derives from status + value/goal/hasEntry:
+ *  done (value>=goal)                     → filled green pill, white number
+ *  partial (0<value<goal, due)            → blue arc ring, number
+ *  failed (value===0 & hasEntry, due)     → filled red pill, white number
+ *                                            (logged only "No", no "Yes" yet)
+ *  empty (value===0 & no entry, due)      → plain number, no ring
  *  rest → muted grey pill; future → muted number (no ring)
- * A due, not-done, today-or-past cell is tappable (adds one log to its day).
+ * A due, not-done, today-or-past cell is tappable (adds one "Yes" to its day).
  */
 function DayCell({
   cell,
@@ -38,8 +40,13 @@ function DayCell({
   const due = !isRest && !isFuture && isPastOrToday
   const frac = cell.goal > 0 ? Math.min(1, cell.value / cell.goal) : 0
   const tappable = due && !done && !!onLogDay
+  // due day with progress → show the ring; logged only "No" → red pill
+  const isPartial = due && !done && cell.value > 0
+  const isFailed = due && !done && cell.value === 0 && cell.hasEntry
 
   const numberClass = done
+    ? 'text-on-accent'
+    : isFailed
     ? 'text-on-accent'
     : isRest
     ? 'text-ink-3'
@@ -50,6 +57,13 @@ function DayCell({
   const inner = done ? (
     // goal met → filled green pill
     <View className='h-[34px] w-[34px] items-center justify-center rounded-full bg-pace-on'>
+      <Typography className={`text-sm font-bold ${numberClass}`}>
+        {cell.day}
+      </Typography>
+    </View>
+  ) : isFailed ? (
+    // logged only "No" (no "Yes" yet) → filled red pill
+    <View className='h-[34px] w-[34px] items-center justify-center rounded-full bg-pace-behind'>
       <Typography className={`text-sm font-bold ${numberClass}`}>
         {cell.day}
       </Typography>
@@ -68,8 +82,8 @@ function DayCell({
         {cell.day}
       </Typography>
     </View>
-  ) : (
-    // due, today-or-past, not done → track ring + (partial) blue arc
+  ) : isPartial ? (
+    // due, has "Yes" progress but below goal → track ring + blue arc
     <View className='h-[34px] w-[34px] items-center justify-center'>
       <Svg width={CELL} height={CELL}>
         <Circle
@@ -80,28 +94,33 @@ function DayCell({
           strokeWidth={STROKE}
           fill='none'
         />
-        {frac > 0 ? (
-          <Circle
-            cx={CELL / 2}
-            cy={CELL / 2}
-            r={R}
-            stroke={c.brand}
-            strokeWidth={STROKE}
-            strokeLinecap='round'
-            fill='none'
-            strokeDasharray={CIRC}
-            strokeDashoffset={CIRC * (1 - frac)}
-            rotation={-90}
-            originX={CELL / 2}
-            originY={CELL / 2}
-          />
-        ) : null}
+        <Circle
+          cx={CELL / 2}
+          cy={CELL / 2}
+          r={R}
+          stroke={c.brand}
+          strokeWidth={STROKE}
+          strokeLinecap='round'
+          fill='none'
+          strokeDasharray={CIRC}
+          strokeDashoffset={CIRC * (1 - frac)}
+          rotation={-90}
+          originX={CELL / 2}
+          originY={CELL / 2}
+        />
       </Svg>
       <View className='absolute inset-0 items-center justify-center'>
         <Typography className={`text-sm font-bold ${numberClass}`}>
           {cell.day}
         </Typography>
       </View>
+    </View>
+  ) : (
+    // due but nothing logged yet → plain number, no ring
+    <View className='h-[34px] w-[34px] items-center justify-center'>
+      <Typography className={`text-sm font-bold ${numberClass}`}>
+        {cell.day}
+      </Typography>
     </View>
   )
 
@@ -183,12 +202,13 @@ export function HabitCalendar({
         </View>
       ))}
 
-      <View className='mt-s4 flex-row gap-s4 border-t border-line pt-s4'>
+      <View className='mt-s4 flex-row flex-wrap gap-s4 border-t border-line pt-s4'>
         <LegendItem dotClass='bg-pace-on' label={t('detail.completed')} />
         <LegendItem
           dotClass='border-2 border-brand'
           label={t('detail.inProgress')}
         />
+        <LegendItem dotClass='bg-pace-behind' label={t('detail.missed')} />
         <LegendItem
           dotClass='bg-surface-2 border border-line-strong'
           label={t('detail.restDay')}

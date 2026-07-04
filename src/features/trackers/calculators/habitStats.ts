@@ -47,6 +47,23 @@ export function dayTotalsOf(
   return totals
 }
 
+/**
+ * Number of log records per ISO day (YYYY-MM-DD), regardless of value — so a
+ * "No" entry (value 0) still counts. Lets the calendar tell "logged only No"
+ * (value 0 with count > 0) apart from "not logged at all" (count 0).
+ */
+export function dayCountsOf(
+  tracker: Tracker,
+  entries: Entry[]
+): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const e of entries) {
+    const day = e.date.slice(0, 10)
+    counts.set(day, (counts.get(day) ?? 0) + 1)
+  }
+  return counts
+}
+
 /** The set of ISO dates whose summed logged value met the per-day goal. */
 export function doneDatesOf(tracker: Tracker, entries: Entry[]): Set<string> {
   const goal = perDayGoal(tracker)
@@ -91,8 +108,9 @@ export type CalendarCell = {
   day: number
   status: CalendarStatus
   iso: string // full YYYY-MM-DD, for tap-to-log
-  value: number // summed logged value that day
+  value: number // summed logged value that day (Yes = 1, No = 0)
   goal: number // perDayGoal(tracker)
+  hasEntry: boolean // at least one log record that day (value 0 "No" counts)
 }
 export type CalendarMonth = {
   year: number
@@ -120,6 +138,7 @@ export function buildCalendarMonth(
 ): CalendarMonth {
   const done = doneDatesOf(tracker, entries)
   const totals = dayTotalsOf(tracker, entries)
+  const counts = dayCountsOf(tracker, entries)
   const goal = perDayGoal(tracker)
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const firstISO = `${year}-${pad2(month + 1)}-01`
@@ -134,7 +153,14 @@ export function buildCalendarMonth(
     else if (iso === todayISO) status = 'today'
     else if (iso > todayISO) status = 'future'
     else status = 'none'
-    cells.push({ day: d, status, iso, value: totals.get(iso) ?? 0, goal })
+    cells.push({
+      day: d,
+      status,
+      iso,
+      value: totals.get(iso) ?? 0,
+      goal,
+      hasEntry: (counts.get(iso) ?? 0) > 0
+    })
   }
   return { year, month, daysInMonth, firstWeekdayMon, cells }
 }
