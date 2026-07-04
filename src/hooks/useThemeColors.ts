@@ -9,6 +9,7 @@ import { useTheme } from '@hooks/useTheme'
  * same light/dark values here.
  */
 const LIGHT = {
+  bg: '#eef1f6',
   ink: '#1b1e18',
   ink2: '#565a4f',
   ink3: '#8a8e80',
@@ -26,6 +27,7 @@ const LIGHT = {
 }
 
 const DARK: typeof LIGHT = {
+  bg: '#121417',
   ink: '#e8eaed',
   ink2: '#a8adb5',
   ink3: '#6f757e',
