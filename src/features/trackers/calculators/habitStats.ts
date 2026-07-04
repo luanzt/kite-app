@@ -34,14 +34,23 @@ export function isDueOn(tracker: Tracker, iso: string): boolean {
   return tracker.repeatDays.includes(weekdayOf(iso))
 }
 
-/** The set of ISO dates whose summed logged value met the per-day goal. */
-export function doneDatesOf(tracker: Tracker, entries: Entry[]): Set<string> {
-  const goal = perDayGoal(tracker)
+/** Summed logged value per ISO day (YYYY-MM-DD). Single source of daily totals. */
+export function dayTotalsOf(
+  tracker: Tracker,
+  entries: Entry[]
+): Map<string, number> {
   const totals = new Map<string, number>()
   for (const e of entries) {
     const day = e.date.slice(0, 10)
     totals.set(day, (totals.get(day) ?? 0) + e.value)
   }
+  return totals
+}
+
+/** The set of ISO dates whose summed logged value met the per-day goal. */
+export function doneDatesOf(tracker: Tracker, entries: Entry[]): Set<string> {
+  const goal = perDayGoal(tracker)
+  const totals = dayTotalsOf(tracker, entries)
   return new Set(
     [...totals].filter(([, total]) => total >= goal).map(([day]) => day)
   )
@@ -78,7 +87,13 @@ export function bestStreak(
 }
 
 export type CalendarStatus = 'done' | 'today' | 'rest' | 'future' | 'none'
-export type CalendarCell = { day: number; status: CalendarStatus }
+export type CalendarCell = {
+  day: number
+  status: CalendarStatus
+  iso: string // full YYYY-MM-DD, for tap-to-log
+  value: number // summed logged value that day
+  goal: number // perDayGoal(tracker)
+}
 export type CalendarMonth = {
   year: number
   month: number // 0-based
@@ -104,6 +119,8 @@ export function buildCalendarMonth(
   todayISO: string
 ): CalendarMonth {
   const done = doneDatesOf(tracker, entries)
+  const totals = dayTotalsOf(tracker, entries)
+  const goal = perDayGoal(tracker)
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const firstISO = `${year}-${pad2(month + 1)}-01`
   const firstWeekdayMon = (weekdayOf(firstISO) + 6) % 7
@@ -117,7 +134,7 @@ export function buildCalendarMonth(
     else if (!isDueOn(tracker, iso)) status = 'rest'
     else if (iso > todayISO) status = 'future'
     else status = 'none'
-    cells.push({ day: d, status })
+    cells.push({ day: d, status, iso, value: totals.get(iso) ?? 0, goal })
   }
   return { year, month, daysInMonth, firstWeekdayMon, cells }
 }

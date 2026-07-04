@@ -1,5 +1,6 @@
 import {
   doneDatesOf,
+  dayTotalsOf,
   bestStreak,
   buildCalendarMonth,
   weeklyGoalOf,
@@ -118,6 +119,47 @@ describe('buildCalendarMonth', () => {
     expect(status(6)).toBe('rest') // Saturday, not scheduled
     expect(status(10)).toBe('today')
     expect(status(12)).toBe('future') // Friday after today
+  })
+})
+
+describe('dayTotalsOf', () => {
+  const tracker = { targetValue: 5, period: 'daily', repeatDays: [] } as any
+  it('sums multiple entries on the same day', () => {
+    const entries = [
+      { id: 'a', trackerId: 't', date: '2026-07-01', value: 2, note: null, createdAt: '2026-07-01T01:00:00Z' },
+      { id: 'b', trackerId: 't', date: '2026-07-01', value: 3, note: null, createdAt: '2026-07-01T02:00:00Z' },
+      { id: 'c', trackerId: 't', date: '2026-07-02', value: 1, note: null, createdAt: '2026-07-02T01:00:00Z' }
+    ] as any
+    const totals = dayTotalsOf(tracker, entries)
+    expect(totals.get('2026-07-01')).toBe(5)
+    expect(totals.get('2026-07-02')).toBe(1)
+    expect(totals.get('2026-07-03')).toBeUndefined()
+  })
+})
+
+describe('buildCalendarMonth cell progress fields', () => {
+  const tracker = { startDate: '2026-07-01', targetValue: 5, period: 'daily', repeatDays: [] } as any
+  const entries = [
+    { id: 'a', trackerId: 't', date: '2026-07-01', value: 2, note: null, createdAt: '2026-07-01T01:00:00Z' }, // partial 2/5
+    { id: 'b', trackerId: 't', date: '2026-07-02', value: 5, note: null, createdAt: '2026-07-02T01:00:00Z' }  // done 5/5
+  ] as any
+  const month = buildCalendarMonth(tracker, entries, 2026, 6, '2026-07-03') // month 6 = July
+
+  it('carries iso, value and goal on each cell', () => {
+    const d1 = month.cells.find((c) => c.day === 1)!
+    expect(d1.iso).toBe('2026-07-01')
+    expect(d1.value).toBe(2)
+    expect(d1.goal).toBe(5)
+  })
+  it('a below-goal day is not "done"', () => {
+    const d1 = month.cells.find((c) => c.day === 1)!
+    expect(d1.status).not.toBe('done')
+    expect(d1.value).toBeLessThan(d1.goal)
+  })
+  it('an at-or-above-goal day is "done"', () => {
+    const d2 = month.cells.find((c) => c.day === 2)!
+    expect(d2.status).toBe('done')
+    expect(d2.value).toBeGreaterThanOrEqual(d2.goal)
   })
 })
 
