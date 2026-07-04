@@ -11,6 +11,9 @@ import {
 } from '@features/trackers/calculators/habitStats'
 import { toISODate } from '@utils/date'
 import { fmtNum } from '@features/trackers/detailFormat'
+import { useThemeColors } from '@hooks/useThemeColors'
+
+type ThemeColors = ReturnType<typeof useThemeColors>
 
 /** Render an ISO date as a UTC Date for locale formatting. */
 function isoToDate(iso: string): Date {
@@ -57,7 +60,8 @@ function RowShell({
   isFirst,
   isLast,
   lang,
-  onPress
+  onPress,
+  c
 }: {
   iso: string
   meta: string
@@ -67,6 +71,7 @@ function RowShell({
   isLast: boolean
   lang: string
   onPress: () => void
+  c: ThemeColors
 }) {
   const wk = weekdayLabel(iso, lang)
   // FlashList renders each row standalone, so the row itself carries the card
@@ -114,7 +119,7 @@ function RowShell({
 
       <View className='flex-row items-center gap-s2'>
         {status}
-        <Icons.Chevron size={16} color='#d2d5c8' />
+        <Icons.Chevron size={16} color={c.lineStrong} />
       </View>
     </Pressable>
   )
@@ -128,7 +133,8 @@ function RecordRow({
   isLast,
   lang,
   t,
-  onPress
+  onPress,
+  c
 }: {
   tracker: Tracker
   entry: Entry
@@ -137,6 +143,7 @@ function RecordRow({
   lang: string
   t: (k: string) => string
   onPress: () => void
+  c: ThemeColors
 }) {
   const yes = entry.value > 0
   const wk = weekdayLabel(entry.date, lang)
@@ -153,18 +160,19 @@ function RecordRow({
       isLast={isLast}
       lang={lang}
       onPress={onPress}
+      c={c}
       status={
         isHabit ? (
           yes ? (
             <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-brand-weak px-s3 py-s1'>
-              <Icons.Check size={12} color='#2456b5' />
+              <Icons.Check size={12} color={c.brand} />
               <Typography className='text-xs-k font-bold text-brand-ink'>
                 {t('log.yes')}
               </Typography>
             </View>
           ) : (
             <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-pace-behind-weak px-s3 py-s1'>
-              <Icons.Close size={12} color='#e0564e' />
+              <Icons.Close size={12} color={c.pace.behind} />
               <Typography className='text-xs-k font-bold text-pace-behind'>
                 {t('log.no')}
               </Typography>
@@ -189,7 +197,8 @@ function EmptyRow({
   isLast,
   lang,
   t,
-  onPress
+  onPress,
+  c
 }: {
   iso: string
   isFirst: boolean
@@ -197,6 +206,7 @@ function EmptyRow({
   lang: string
   t: (k: string) => string
   onPress: () => void
+  c: ThemeColors
 }) {
   const wk = weekdayLabel(iso, lang)
   return (
@@ -208,6 +218,7 @@ function EmptyRow({
       isLast={isLast}
       lang={lang}
       onPress={onPress}
+      c={c}
       status={
         // border (1px, not 1.5) renders shorter, tighter dashes than a thick one;
         // min-w matches the Yes/No pill width so all three line up.
@@ -242,6 +253,7 @@ export function HabitHistoryTab({
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const insets = useSafeAreaInsets()
+  const c = useThemeColors()
   const rows: HistoryRowItem[] = buildHistoryRows(
     tracker,
     entries,
@@ -258,7 +270,7 @@ export function HabitHistoryTab({
         onPress={onAddLog}
         className='flex-row items-center gap-s2 rounded-full bg-brand-weak px-s4 py-s2 active:opacity-80'
       >
-        <Icons.Plus size={17} color='#2456b5' />
+        <Icons.Plus size={17} color={c.brand} />
         <Typography className='text-sm-k font-bold text-brand-ink'>
           {t('detail.addLog')}
         </Typography>
@@ -268,7 +280,7 @@ export function HabitHistoryTab({
 
   const empty = (
     <View className='m-s5 items-center rounded-xl-k border border-line bg-surface p-s7'>
-      <Icons.History size={28} color='#8a8e80' />
+      <Icons.History size={28} color={c.ink3} />
       <Typography className='mt-s3 text-sm font-medium text-ink-3'>
         {t('detail.noHistory')}
       </Typography>
@@ -293,6 +305,7 @@ export function HabitHistoryTab({
             lang={lang}
             t={t}
             onPress={() => onEditEntry?.(item.entry)}
+            c={c}
           />
         ) : (
           <EmptyRow
@@ -302,6 +315,7 @@ export function HabitHistoryTab({
             lang={lang}
             t={t}
             onPress={() => onLogForDate?.(item.iso)}
+            c={c}
           />
         )
       }}

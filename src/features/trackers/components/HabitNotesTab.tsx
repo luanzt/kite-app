@@ -7,6 +7,9 @@ import type { Tracker, Entry } from '@features/trackers/types'
 import { useSaveTracker } from '@features/trackers/queries'
 import { Icons } from '@features/trackers/icons'
 import { fmtVal } from '@features/trackers/detailFormat'
+import { useThemeColors } from '@hooks/useThemeColors'
+
+type ThemeColors = ReturnType<typeof useThemeColors>
 
 /** Format an entry date ("18 Jun 2026"), UTC. */
 function entryDate(iso: string, lang: string): string {
@@ -19,7 +22,7 @@ function entryDate(iso: string, lang: string): string {
 }
 
 /** Editable motivation note pinned to the habit; saves on blur if changed. */
-function GoalNoteCard({ tracker }: { tracker: Tracker }) {
+function GoalNoteCard({ tracker, c }: { tracker: Tracker; c: ThemeColors }) {
   const { t } = useTranslation()
   const saveTracker = useSaveTracker()
   const [draft, setDraft] = useState(tracker.goalNote ?? '')
@@ -50,11 +53,11 @@ function GoalNoteCard({ tracker }: { tracker: Tracker }) {
           onChangeText={setDraft}
           onBlur={onBlur}
           placeholder={t('detail.goalNotePlaceholder')}
-          placeholderTextColor='#8a8e80'
+          placeholderTextColor={c.ink3}
           className='min-h-[72px] text-x-k font-medium text-ink'
         />
         <View className='mt-s3 flex-row items-center gap-s2'>
-          <Icons.Edit size={14} color='#8a8e80' />
+          <Icons.Edit size={14} color={c.ink3} />
           <Typography className='text-xs font-regular text-ink-3'>
             {t('detail.goalNoteHint')}
           </Typography>
@@ -70,13 +73,15 @@ function LogNoteCard({
   entry,
   done,
   lang,
-  onPress
+  onPress,
+  c
 }: {
   tracker: Tracker
   entry: Entry
   done: boolean
   lang: string
   onPress?: () => void
+  c: ThemeColors
 }) {
   const { t } = useTranslation()
   const isHabit = tracker.type === 'habit'
@@ -92,12 +97,12 @@ function LogNoteCard({
       >
         {isHabit ? (
           done ? (
-            <Icons.Check size={16} color='#2456b5' />
+            <Icons.Check size={16} color={c.brand} />
           ) : (
-            <Icons.Close size={16} color='#e0564e' />
+            <Icons.Close size={16} color={c.pace.behind} />
           )
         ) : (
-          <Icons.Edit size={14} color='#2456b5' />
+          <Icons.Edit size={14} color={c.brand} />
         )}
       </View>
       <View className='flex-1'>
@@ -143,6 +148,7 @@ export function HabitNotesTab({
   const { t, i18n } = useTranslation()
   const lang = i18n.language
   const insets = useSafeAreaInsets()
+  const c = useThemeColors()
 
   const noted = entries
     .filter((e) => e.note && e.note.trim().length > 0)
@@ -154,7 +160,7 @@ export function HabitNotesTab({
       showsVerticalScrollIndicator={false}
     >
       <View className='m-s5 gap-s6'>
-        <GoalNoteCard tracker={tracker} />
+        <GoalNoteCard tracker={tracker} c={c} />
 
         <View>
           <View className='mb-s3 flex-row items-center justify-between px-s2'>
@@ -170,7 +176,7 @@ export function HabitNotesTab({
 
           {noted.length === 0 ? (
             <View className='items-center rounded-lg-k border border-dashed border-line-strong p-s7'>
-              <Icons.Notes size={28} color='#8a8e80' />
+              <Icons.Notes size={28} color={c.ink3} />
               <Typography className='mt-s3 text-sm font-medium text-ink-2'>
                 {t('detail.noNotes')}
               </Typography>
@@ -188,6 +194,7 @@ export function HabitNotesTab({
                   done={e.value > 0}
                   lang={lang}
                   onPress={onEditEntry ? () => onEditEntry(e) : undefined}
+                  c={c}
                 />
               ))}
             </View>

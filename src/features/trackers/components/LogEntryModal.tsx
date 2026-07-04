@@ -15,6 +15,7 @@ import { cadenceLabel } from '@features/trackers/habitLabels'
 import { uuid } from '@features/trackers/factory'
 import { toISODate, toHHMM, combineDateTime } from '@utils/date'
 import { DateField, TimeField } from '@components/ui'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
  * LogEntryModal — a HeroUI BottomSheet to create or edit one habit log record.
@@ -41,6 +42,7 @@ export function LogEntryModal({
 }) {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
+  const c = useThemeColors()
   const isEdit = !!entry
 
   const [done, setDone] = useState(true)
@@ -91,7 +93,7 @@ export function LogEntryModal({
             onPress={handleSave}
             className='h-[56px] flex-row items-center justify-center gap-s2 rounded-lg-k bg-brand active:opacity-90'
           >
-            <Icons.Check size={20} color='#ffffff' />
+            <Icons.Check size={20} color={c.onAccent} />
             <Typography className='text-h3-k font-bold text-on-accent'>
               {t('log.save')}
             </Typography>
@@ -128,7 +130,7 @@ export function LogEntryModal({
               onPress={dismissAndClose}
               className='h-[44px] w-[44px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
             >
-              <Icons.Close size={22} color='#1b1e18' />
+              <Icons.Close size={22} color={c.ink} />
             </Pressable>
             <View className='flex-1 items-center'>
               <Typography
@@ -149,7 +151,7 @@ export function LogEntryModal({
                 }}
                 className='h-[44px] w-[44px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
               >
-                <Icons.Trash size={20} color='#e0564e' />
+                <Icons.Trash size={20} color={c.pace.behind} />
               </Pressable>
             ) : (
               <View className='h-[44px] w-[44px]' />
@@ -174,10 +176,7 @@ export function LogEntryModal({
                       done ? 'border-brand bg-brand' : 'border-line bg-surface'
                     }`}
                   >
-                    <Icons.Check
-                      size={28}
-                      color={done ? '#ffffff' : '#8a8e80'}
-                    />
+                    <Icons.Check size={28} color={done ? c.onAccent : c.ink3} />
                     <Typography
                       className={`text-body-k font-bold ${
                         done ? 'text-on-accent' : 'text-ink-2'
@@ -196,7 +195,7 @@ export function LogEntryModal({
                   >
                     <Icons.Close
                       size={28}
-                      color={!done ? '#e0564e' : '#8a8e80'}
+                      color={!done ? c.pace.behind : c.ink3}
                     />
                     <Typography
                       className={`text-body-k font-bold ${
@@ -219,7 +218,7 @@ export function LogEntryModal({
                   value={value}
                   onChangeText={setValue}
                   placeholder={t('log.valuePh')}
-                  placeholderTextColor='#8a8e80'
+                  placeholderTextColor={c.ink3}
                   keyboardType='decimal-pad'
                   className='px-s4 pb-s5 pt-s2 text-h2-k font-bold text-ink'
                 />
@@ -235,7 +234,7 @@ export function LogEntryModal({
                 value={note}
                 onChangeText={setNote}
                 placeholder={t('log.notesPh')}
-                placeholderTextColor='#8a8e80'
+                placeholderTextColor={c.ink3}
                 multiline
                 textAlignVertical='top'
                 className='min-h-[120px] px-s4 pb-s5 pt-s2 text-body-k text-ink'
