@@ -86,7 +86,7 @@ function RowShell({
     >
       <View
         className={`h-[44px] w-[42px] items-center justify-center rounded-md-k ${
-          tileDone ? 'bg-brand' : 'bg-[#eaedf4]'
+          tileDone ? 'bg-brand' : 'bg-surface-2'
         }`}
       >
         <Typography
@@ -222,7 +222,7 @@ function EmptyRow({
       status={
         // border (1px, not 1.5) renders shorter, tighter dashes than a thick one;
         // min-w matches the Yes/No pill width so all three line up.
-        <View className='min-w-[72px] items-center rounded-full border border-dashed border-[#eaedf4] px-s3 py-s1'>
+        <View className='min-w-[72px] items-center rounded-full border border-dashed border-line-strong px-s3 py-s1'>
           <Typography className='text-xs-k font-bold text-ink-3'>
             {t('detail.logShort')}
           </Typography>
