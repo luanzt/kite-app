@@ -9,6 +9,7 @@ import DateTimePicker, {
   type DateType
 } from 'react-native-ui-datepicker'
 import { toHHMM, fromHHMM } from '@utils/date'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
  * A field that opens a bottom sheet with a scrollable time wheel to pick an
@@ -32,6 +33,7 @@ export function TimeField({
   onChange: (hhmm: string) => void
   placeholder?: string
 }) {
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const [open, setOpen] = useState(false)
   const display = value ? value : placeholder ?? 'HH:mm'
@@ -44,7 +46,7 @@ export function TimeField({
           >
             {display}
           </Typography>
-          <Clock size={20} color='#8a8e80' />
+          <Clock size={20} color={c.ink3} />
         </Pressable>
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
@@ -79,6 +81,7 @@ function TimeSheet({
   onChange: (hhmm: string) => void
 }) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const { onOpenChange } = useBottomSheet()
   const defaultStyles = useDefaultStyles()
   const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'))
@@ -110,8 +113,8 @@ function TimeSheet({
         hideHeader
         styles={{
           ...defaultStyles,
-          selected: { backgroundColor: '#2456b5' },
-          selected_label: { color: '#ffffff' }
+          selected: { backgroundColor: c.brand },
+          selected_label: { color: c.onAccent }
         }}
       />
       <Button variant='primary' feedbackVariant='none' onPress={confirm}>

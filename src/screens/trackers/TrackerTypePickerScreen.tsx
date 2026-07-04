@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { RootStackProps } from '@navigation/types'
 import type { TrackerType } from '@features/trackers/types'
 import { Icons, hexA, TYPE_ICON, TYPE_COLOR } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 type TypeMeta = {
   k: TrackerType
@@ -22,6 +23,7 @@ export function TrackerTypePickerScreen({
   navigation
 }: RootStackProps<'TrackerTypePicker'>) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
 
   return (
@@ -36,7 +38,7 @@ export function TrackerTypePickerScreen({
           onPress={() => navigation.goBack()}
           className='h-10 w-10 items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
         >
-          <Icons.Back size={22} color='#1b1e18' />
+          <Icons.Back size={22} color={c.ink} />
         </Pressable>
         <Typography className='text-lg font-bold text-ink'>
           {t('list.create')}
@@ -96,7 +98,7 @@ export function TrackerTypePickerScreen({
                   </View>
                 </View>
                 <View className='self-center'>
-                  <Icons.Chevron size={18} color='#8a8e80' />
+                  <Icons.Chevron size={18} color={c.ink3} />
                 </View>
               </Pressable>
             )

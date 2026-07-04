@@ -5,6 +5,7 @@ import DateTimePicker, {
   useDefaultStyles,
   type DateType
 } from 'react-native-ui-datepicker'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
  * A field that opens a bottom sheet with a calendar to pick a single date.
@@ -31,6 +32,7 @@ export function DateField({
   minDate?: Date
   maxDate?: Date
 }) {
+  const c = useThemeColors()
   const display = value ? value : placeholder ?? 'YYYY-MM-DD'
   return (
     <BottomSheet>
@@ -41,7 +43,7 @@ export function DateField({
           >
             {display}
           </Typography>
-          <Calendar size={20} color='#8a8e80' />
+          <Calendar size={20} color={c.ink3} />
         </Pressable>
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
@@ -93,6 +95,7 @@ function CalendarSheet({
   minDate?: Date
   maxDate?: Date
 }) {
+  const c = useThemeColors()
   const { onOpenChange } = useBottomSheet()
   const defaultStyles = useDefaultStyles()
   const selected = fromISODate(value)
@@ -113,9 +116,9 @@ function CalendarSheet({
       maxDate={maxDate}
       styles={{
         ...defaultStyles,
-        today: { borderColor: '#2456b5', borderWidth: 1 },
-        selected: { backgroundColor: '#2456b5' },
-        selected_label: { color: '#ffffff' }
+        today: { borderColor: c.brand, borderWidth: 1 },
+        selected: { backgroundColor: c.brand },
+        selected_label: { color: c.onAccent }
       }}
     />
   )

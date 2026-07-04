@@ -6,12 +6,9 @@ import { DailyGoalsScreen } from '@screens/today/DailyGoalsScreen'
 import { TrackerListScreen } from '@screens/trackers/TrackerListScreen'
 import { SettingsScreen } from '@screens/settings/SettingsScreen'
 import { TAB_ICON } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
-
-// design tokens: active = brand ink (soft blue), inactive = muted ink-3
-const ACTIVE = '#2456b5'
-const INACTIVE = '#8a8e80'
 
 /**
  * Stable `tabBarIcon` factory for a given tab. Defined at module scope (not
@@ -30,12 +27,13 @@ const tabIcon =
 
 export function MainNavigator() {
   const { t } = useTranslation()
+  const c = useThemeColors()
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: ACTIVE,
-        tabBarInactiveTintColor: INACTIVE,
+        tabBarActiveTintColor: c.brand,
+        tabBarInactiveTintColor: c.ink3,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' }
       }}
     >
