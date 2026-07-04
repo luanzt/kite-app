@@ -2,6 +2,7 @@ import { View, StyleSheet } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 const RING_SIZE = 128
 const RING_STROKE = 12
@@ -32,6 +33,7 @@ export function AchievementHero({
   bestStreak: number // days
 }) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const frac = Math.max(0, Math.min(1, percent / 100))
 
   return (
@@ -39,8 +41,8 @@ export function AchievementHero({
       <Svg style={styles.gradient} width='100%' height='100%'>
         <Defs>
           <LinearGradient id='kite-hero-grad' x1='0' y1='0' x2='1' y2='1'>
-            <Stop offset='0' stopColor='#3d7dd8' />
-            <Stop offset='1' stopColor='#2f63b3' />
+            <Stop offset='0' stopColor={c.brandProjected} />
+            <Stop offset='1' stopColor={c.brand} />
           </LinearGradient>
         </Defs>
         <Rect
@@ -67,7 +69,7 @@ export function AchievementHero({
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               r={RING_R}
-              stroke='#ffffff'
+              stroke={c.onAccent}
               strokeWidth={RING_STROKE}
               strokeLinecap='round'
               fill='none'

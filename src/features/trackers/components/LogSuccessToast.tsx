@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native'
 import { Toast } from 'heroui-native'
 import type { ToastComponentProps } from 'heroui-native'
 import { Icons } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 // HeroUI's --shadow-overlay is extremely faint (≤0.03 opacity) and RN renders
 // only one shadow layer, so the toast looks shadow-less. Apply a stronger,
@@ -25,6 +26,7 @@ export function LogSuccessToast({
   label,
   ...props
 }: ToastComponentProps & { label: string }) {
+  const c = useThemeColors()
   return (
     <Toast
       {...props}
@@ -33,7 +35,7 @@ export function LogSuccessToast({
       className='flex-row items-center gap-s3'
     >
       <View className='h-[28px] w-[28px] items-center justify-center rounded-full bg-pace-on-weak'>
-        <Icons.Check size={16} color='#1f9d57' />
+        <Icons.Check size={16} color={c.pace.on_track} />
       </View>
       <Toast.Title className='font-bold text-ink'>{label}</Toast.Title>
     </Toast>
