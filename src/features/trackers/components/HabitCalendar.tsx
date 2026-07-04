@@ -52,7 +52,7 @@ function DayCell({
     ? 'text-ink-3'
     : isFuture
     ? 'text-ink-3 opacity-50'
-    : 'text-ink'
+    : 'text-brand' // active day (partial ring / not-yet-logged) → brand color
 
   const inner = done ? (
     // goal met → filled green pill
