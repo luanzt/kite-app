@@ -29,7 +29,7 @@ function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
     <Pressable
       onPress={onPress}
       className={`h-[30px] w-[50px] rounded-full ${
-        on ? 'bg-[#2e7d5b]' : 'bg-[#e6e8df]'
+        on ? 'bg-brand' : 'bg-[#e6e8df]'
       }`}
     >
       <View
@@ -57,7 +57,7 @@ export function SettingsScreen() {
     <View className='flex-1 bg-bg'>
       {/* appbar */}
       <View
-        className='bg-surface px-s5 pb-s3'
+        className='bg-surface px-s4 pb-s3'
         style={{ paddingTop: insets.top + 12 }} // safe-area, runtime
       >
         <Typography className='text-lg font-bold text-ink'>
@@ -66,7 +66,7 @@ export function SettingsScreen() {
       </View>
 
       <ScrollView
-        contentContainerClassName='gap-s6 p-5'
+        contentContainerClassName='gap-s6 px-s4 pt-s4'
         // runtime: safe-area inset + static offset
         contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
       >

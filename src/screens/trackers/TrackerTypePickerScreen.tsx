@@ -48,7 +48,7 @@ export function TrackerTypePickerScreen({
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       >
         {/* heading */}
-        <View className='px-s5 pt-s6 pb-s3'>
+        <View className='px-s4 pt-s6 pb-s3'>
           <Typography className='text-2xl font-extrabold text-ink'>
             {t('type.title')}
           </Typography>
@@ -58,7 +58,7 @@ export function TrackerTypePickerScreen({
         </View>
 
         {/* type cards */}
-        <View className='px-s5 gap-s4'>
+        <View className='px-s4 gap-s4'>
           {TYPES.map((ty) => {
             const TypeIcon = TYPE_ICON[ty.k]
             const color = TYPE_COLOR[ty.k]

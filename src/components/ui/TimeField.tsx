@@ -52,7 +52,7 @@ export function TimeField({
         <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
           {/* runtime: safe-area inset */}
-          <View className='px-s5' style={{ paddingBottom: insets.bottom }}>
+          <View className='px-s4' style={{ paddingBottom: insets.bottom }}>
             {/* Mount the wheel only while open and key it by `value`, so its
                 draft (and the picker's internal initial state) is always seeded
                 from the current value rather than a stale mount-time snapshot. */}

@@ -155,7 +155,7 @@ export function TargetTrajectoryChart({
   })
 
   return (
-    <View className='mx-s5 mb-s5 rounded-xl-k border border-line bg-surface p-s5 shadow-md'>
+    <View className='mx-s4 mb-s5 rounded-xl-k border border-line bg-surface p-s5 shadow-md'>
       {/* header */}
       <View className='mb-s3 flex-row items-start justify-between'>
         <View>

@@ -14,10 +14,17 @@ const styles = StyleSheet.create({
   scene: { backgroundColor: 'transparent' }
 })
 
-/** Overview screen — reads shared data from context. */
+/** Overview screen — reads shared data + log callbacks from context. */
 function OverviewScreen() {
-  const { tracker, entries } = useHabitDetail()
-  return <TargetOverviewTab tracker={tracker} entries={entries} />
+  const { tracker, entries, onAddLog, onEditEntry } = useHabitDetail()
+  return (
+    <TargetOverviewTab
+      tracker={tracker}
+      entries={entries}
+      onAddLog={onAddLog}
+      onEditEntry={onEditEntry}
+    />
+  )
 }
 
 /** History screen — reads shared data + callbacks from context. */

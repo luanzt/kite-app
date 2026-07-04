@@ -31,7 +31,7 @@ export function DetailStatGrid({
   if (tracker.type === 'project') {
     const doneMilestones = milestones.filter((m) => m.progress >= 1).length
     return (
-      <View className='flex-row gap-s3 px-s5'>
+      <View className='flex-row gap-s3 px-s4'>
         <Stat num={`${percentInt}%`} cap={t('common.done')} />
         <Stat
           num={`${doneMilestones}/${milestones.length}`}
@@ -43,7 +43,7 @@ export function DetailStatGrid({
   }
 
   return (
-    <View className='flex-row gap-s3 px-s5'>
+    <View className='flex-row gap-s3 px-s4'>
       <Stat num={fmtVal(tracker, p.current)} cap={t('common.done')} />
       <Stat num={`${percentInt}%`} cap={t('detail.target')} />
       <Stat num={daysVal} cap={t('detail.days')} />

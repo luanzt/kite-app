@@ -75,7 +75,7 @@ function RowShell({
   return (
     <Pressable
       onPress={onPress}
-      className={`mx-s4 flex-row items-center gap-s4 border-l border-r border-line bg-surface px-s5 py-[10px] active:bg-surface-2 ${
+      className={`mx-s4 flex-row items-center gap-s4 border-l border-r border-line bg-surface px-s4 py-[10px] active:bg-surface-2 ${
         isFirst ? 'rounded-t-xl-k border-t' : 'border-t'
       } ${isLast ? 'rounded-b-xl-k border-b' : ''}`}
     >
@@ -250,7 +250,7 @@ export function HabitHistoryTab({
 
   // "Log History" title + Add Log button — scrolls with the list.
   const header = (
-    <View className='flex-row items-center justify-between px-s5 pb-s2 pt-s1'>
+    <View className='flex-row items-center justify-between px-s4 pb-s2 pt-s1'>
       <Typography className='text-h3-k font-bold text-ink'>
         {t('detail.logHistory')}
       </Typography>

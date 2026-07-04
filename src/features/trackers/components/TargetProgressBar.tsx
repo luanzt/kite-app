@@ -36,7 +36,7 @@ export function TargetProgressBar({
   )
 
   return (
-    <View className='mx-s5 mb-s5 rounded-xl-k border border-line bg-surface p-s5 shadow-md'>
+    <View className='mx-s4 mb-s5 rounded-xl-k border border-line bg-surface p-s5 shadow-md'>
       <View className='mb-s3 flex-row items-baseline justify-between'>
         <Typography className='text-h3-k font-bold text-ink'>
           {t('common.progress', 'Progress')}

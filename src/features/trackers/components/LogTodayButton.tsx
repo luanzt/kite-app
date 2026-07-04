@@ -7,7 +7,7 @@ import { Icons } from '@features/trackers/icons'
 export function LogTodayButton({ onPress }: { onPress: () => void }) {
   const { t } = useTranslation()
   return (
-    <View className='px-s5 pb-[8px]'>
+    <View className='px-s4 pb-[8px]'>
       <Pressable
         onPress={onPress}
         className='h-[52px] flex-row items-center justify-center gap-s2 rounded-md-k bg-brand active:opacity-90'

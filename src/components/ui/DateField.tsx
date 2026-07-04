@@ -48,7 +48,7 @@ export function DateField({
         {/* Explicit scrim — see SelectField for why the token override didn't work. */}
         <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
-          <View className='px-s5'>
+          <View className='px-s4'>
             <CalendarSheet
               value={value}
               onChange={onChange}

@@ -39,7 +39,7 @@ export function TrackerListScreen() {
 
   const header = (
     <View
-      className='flex-row items-center bg-surface px-s5 pb-s3'
+      className='flex-row items-center bg-surface px-s4 pb-s3'
       // safe-area, runtime
       style={{ paddingTop: insets.top + 12 }}
     >
@@ -69,11 +69,11 @@ export function TrackerListScreen() {
             </Typography>
           </View>
 
-          <Typography className='text-xs font-bold uppercase text-ink-3 px-s5 pt-5 pb-2'>
+          <Typography className='text-xs font-bold uppercase text-ink-3 px-s4 pt-5 pb-2'>
             {t('list.quickHint')}
           </Typography>
 
-          <View className='flex-row flex-wrap px-s5 gap-s3'>
+          <View className='flex-row flex-wrap px-s4 gap-s3'>
             {QUICK_STARTS.map((qs) => (
               <Pressable
                 key={qs.key}
@@ -93,7 +93,7 @@ export function TrackerListScreen() {
             ))}
           </View>
 
-          <View className='px-s5 pt-5'>
+          <View className='px-s4 pt-5'>
             <CreateButton
               label={t('list.create')}
               onPress={() => nav.navigate('TrackerTypePicker')}
@@ -112,7 +112,7 @@ export function TrackerListScreen() {
       <FlatList
         data={trackers}
         keyExtractor={(item) => item.id}
-        contentContainerClassName='p-5 pb-[100px]'
+        contentContainerClassName='px-s4 pt-s4 pb-[100px]'
         ItemSeparatorComponent={() => <View className='h-s3' />}
         renderItem={({ item }) => (
           <TrackerCard
