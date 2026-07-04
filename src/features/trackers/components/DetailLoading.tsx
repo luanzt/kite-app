@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '@navigation/types'
 import { Icons } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -18,6 +19,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>
 export function DetailLoading() {
   const nav = useNavigation<Nav>()
   const insets = useSafeAreaInsets()
+  const c = useThemeColors()
   return (
     <View className='flex-1 bg-bg'>
       <View
@@ -28,7 +30,7 @@ export function DetailLoading() {
           onPress={() => nav.goBack()}
           className='h-[40px] w-[40px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
         >
-          <Icons.Back size={22} color='#1b1e18' />
+          <Icons.Back size={22} color={c.ink} />
         </Pressable>
         <View className='flex-1 items-center'>
           <Skeleton className='h-[20px] w-[140px] rounded-md' />

@@ -12,12 +12,14 @@ import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import { buildTracker } from '@features/trackers/factory'
 import { Icons, iconEmoji } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
 export function TrackerListScreen() {
   const nav = useNavigation<Nav>()
   const { t } = useTranslation()
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const { data: trackers = [] } = useTrackers()
   const save = useSaveTracker()
@@ -131,7 +133,7 @@ export function TrackerListScreen() {
         onPress={() => nav.navigate('TrackerTypePicker')}
         className='absolute items-center justify-center bg-brand shadow-md active:opacity-90 right-[18px] bottom-[18px] h-[58px] w-[58px] rounded-[20px]'
       >
-        <Icons.Plus size={28} color='#ffffff' />
+        <Icons.Plus size={28} color={c.onAccent} />
       </Pressable>
     </View>
   )

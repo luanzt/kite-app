@@ -23,6 +23,7 @@ import {
   iconEmoji
 } from '@features/trackers/icons'
 import { fmtVal } from '@features/trackers/detailFormat'
+import { useThemeColors } from '@hooks/useThemeColors'
 import { PaceBar } from './PaceBar'
 
 export function progressFor(
@@ -49,18 +50,20 @@ export function progressFor(
 function Ring({
   fraction,
   color,
+  trackColor,
   size = 40,
   strokeWidth = 5
 }: {
   fraction: number
   color: string
+  trackColor: string
   size?: number
   strokeWidth?: number
 }) {
   const r = (size - strokeWidth) / 2
-  const c = 2 * Math.PI * r
+  const circumference = 2 * Math.PI * r
   const clamped = Math.max(0, Math.min(1, fraction))
-  const offset = c * (1 - clamped)
+  const offset = circumference * (1 - clamped)
   return (
     <Svg
       width={size}
@@ -73,7 +76,7 @@ function Ring({
         cy={size / 2}
         r={r}
         fill='none'
-        stroke='#e6e8df'
+        stroke={trackColor}
         strokeWidth={strokeWidth}
       />
       <Circle
@@ -84,7 +87,7 @@ function Ring({
         stroke={color}
         strokeWidth={strokeWidth}
         strokeLinecap='round'
-        strokeDasharray={c}
+        strokeDasharray={circumference}
         strokeDashoffset={offset}
       />
     </Svg>
@@ -102,6 +105,7 @@ export function TrackerCard({
   milestones: Milestone[]
   onPress: () => void
 }) {
+  const c = useThemeColors()
   const p = progressFor(tracker, entries, milestones)
   const showBar = tracker.type !== 'habit'
 
@@ -182,7 +186,11 @@ export function TrackerCard({
         {/* right rail */}
         {tracker.type === 'habit' ? (
           <View className='h-[40px] w-[40px] items-center justify-center'>
-            <Ring fraction={p.successRate ?? 0} color={PACE_COLOR.on_track} />
+            <Ring
+              fraction={p.successRate ?? 0}
+              color={PACE_COLOR.on_track}
+              trackColor={c.line}
+            />
             <View className='absolute inset-0 items-center justify-center'>
               <Typography className='text-xs font-extrabold text-ink'>
                 {Math.round((p.successRate ?? 0) * 100)}

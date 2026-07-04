@@ -6,6 +6,7 @@ import { Icons, iconEmoji } from '@features/trackers/icons'
 import { cadenceLabel } from '@features/trackers/habitLabels'
 import { fmtValCompact } from '@features/trackers/detailFormat'
 import type { Tracker } from '@features/trackers/types'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /** Deadline as "1 Apr 2027" in the active locale. */
 function fmtDeadline(iso: string, lang: string): string {
@@ -33,6 +34,7 @@ export function DetailAppbar({
   onEdit: () => void
 }) {
   const { t, i18n } = useTranslation()
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const isHabit = tracker.type === 'habit'
 
@@ -62,7 +64,7 @@ export function DetailAppbar({
         onPress={onBack}
         className='h-[40px] w-[40px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
       >
-        <Icons.Back size={22} color='#1b1e18' />
+        <Icons.Back size={22} color={c.ink} />
       </Pressable>
       <View className='flex-1 items-center'>
         <Typography className='text-lg font-bold text-ink' numberOfLines={1}>
@@ -81,7 +83,7 @@ export function DetailAppbar({
         onPress={onEdit}
         className='h-[40px] w-[40px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
       >
-        <Icons.Edit size={20} color='#1b1e18' />
+        <Icons.Edit size={20} color={c.ink} />
       </Pressable>
     </View>
   )

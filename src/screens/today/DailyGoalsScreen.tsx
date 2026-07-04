@@ -13,13 +13,7 @@ import {
   useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
-import {
-  Icons,
-  PACE_COLOR,
-  hexA,
-  iconEmoji,
-  colorHex
-} from '@features/trackers/icons'
+import { Icons, hexA, iconEmoji, colorHex } from '@features/trackers/icons'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
@@ -41,6 +35,7 @@ import { calculateTarget } from '@features/trackers/calculators/target'
 import { calculateAverage } from '@features/trackers/calculators/average'
 import { fmtCompact, fmtValCompact } from '@features/trackers/detailFormat'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -63,8 +58,9 @@ function Ring({
   size: number
   strokeWidth: number
 }) {
+  const theme = useThemeColors()
   const r = (size - strokeWidth) / 2
-  const c = 2 * Math.PI * r
+  const circumference = 2 * Math.PI * r
   const clamped = Math.max(0, Math.min(1, fraction))
   return (
     <Svg
@@ -79,7 +75,7 @@ function Ring({
         cy={size / 2}
         r={r}
         fill='none'
-        stroke='#e6e8df'
+        stroke={theme.line}
         strokeWidth={strokeWidth}
       />
       <Circle
@@ -90,8 +86,8 @@ function Ring({
         stroke={color}
         strokeWidth={strokeWidth}
         strokeLinecap='round'
-        strokeDasharray={c}
-        strokeDashoffset={c * (1 - clamped)}
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference * (1 - clamped)}
       />
     </Svg>
   )
@@ -151,6 +147,7 @@ function LogRow({
   onQuickLog: (tracker: Tracker) => void
 }) {
   const { t, i18n } = useTranslation()
+  const c = useThemeColors()
   const { tracker, done, todayLog } = row
   const { data: allEntries = [] } = useEntries(tracker.id)
   const streak: StreakStatus | null =
@@ -201,7 +198,7 @@ function LogRow({
     if (tracker.type === 'habit') {
       const goal = perDayGoal(tracker)
       const n = todayLog
-      const ringColor = done ? PACE_COLOR.on_track : PACE_COLOR.ahead
+      const ringColor = done ? c.pace.on_track : c.pace.ahead
       return (
         <Pressable
           onPress={logYes}
@@ -226,7 +223,7 @@ function LogRow({
       )
     }
     if (tracker.type === 'project') {
-      return <Icons.Chevron size={20} color={PACE_COLOR.none} />
+      return <Icons.Chevron size={20} color={c.pace.none} />
     }
     // target / average → read-only value + pace, tap opens the log sheet
     const isAverage = tracker.type === 'average'
@@ -301,7 +298,7 @@ function LogRow({
               // amber warning icon; the text stays muted (like the cadence line)
               <Icons.Warn size={13} color='#e8923a' />
             ) : (
-              <Icons.Flame size={13} color={PACE_COLOR.on_track} />
+              <Icons.Flame size={13} color={c.pace.on_track} />
             )}
             <Typography
               className={`text-sm ${
@@ -321,6 +318,7 @@ function LogRow({
 
 export function DailyGoalsScreen() {
   const { t, i18n } = useTranslation()
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const nav = useNavigation<Nav>()
   const today = toISODate(new Date())
@@ -450,7 +448,7 @@ export function DailyGoalsScreen() {
           <View className='items-center justify-center h-[52px] w-[52px]'>
             <Ring
               fraction={total ? doneCount / total : 0}
-              color='#2456b5'
+              color={c.brand}
               size={52}
               strokeWidth={6}
             />

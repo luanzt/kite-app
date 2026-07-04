@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native'
 import { Button, Dialog } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { Icons } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /** Options accepted by the imperative `alert(...)` function. */
 export type AlertOptions = {
@@ -38,6 +39,7 @@ const AlertContext = createContext<AlertFn | null>(null)
  */
 export function AlertProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const [open, setOpen] = useState(false)
   const [opts, setOpts] = useState<AlertOptions | null>(null)
   // Hold the latest options across the close animation so the dialog keeps its
@@ -88,7 +90,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
               accessibilityLabel={t('common.close')}
               className='absolute right-s3 top-s3 z-10 h-8 w-8 items-center justify-center rounded-full active:opacity-60'
             >
-              <Icons.Close size={24} color='#8a8e80' />
+              <Icons.Close size={24} color={c.ink3} />
             </Pressable>
             <View className='mb-s4 gap-s2 pr-s6'>
               <Dialog.Title className='text-lg font-bold text-ink'>

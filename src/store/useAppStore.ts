@@ -2,8 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { mmkvZustandStorage } from '@utils/storage'
 import type { Language } from '@i18n/index'
-
-type ThemeMode = 'light' | 'dark'
+import type { ThemeMode } from '@hooks/resolveTheme'
 
 type AppState = {
   themeMode: ThemeMode
@@ -11,7 +10,6 @@ type AppState = {
   notifyEnabled: boolean
   permissionAsked: boolean
   setThemeMode: (mode: ThemeMode) => void
-  toggleTheme: () => void
   setLanguage: (lang: Language) => void
   setNotifyEnabled: (v: boolean) => void
   markPermissionAsked: () => void
@@ -20,12 +18,8 @@ type AppState = {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      themeMode: 'light',
+      themeMode: 'system',
       setThemeMode: (mode: ThemeMode) => set({ themeMode: mode }),
-      toggleTheme: () =>
-        set((state) => ({
-          themeMode: state.themeMode === 'light' ? 'dark' : 'light'
-        })),
       language: null,
       setLanguage: (lang: Language) => set({ language: lang }),
       notifyEnabled: false,

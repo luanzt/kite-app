@@ -19,6 +19,7 @@ import {
   iconKey
 } from '@features/trackers/icons'
 import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
+import { useThemeColors } from '@hooks/useThemeColors'
 import {
   DateField,
   FieldLabel,
@@ -61,6 +62,7 @@ export function TrackerFormScreen({
   const { type, trackerId } = route.params
   const { t } = useTranslation()
   const alert = useAlert()
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const save = useSaveTracker()
   const del = useDeleteTracker()
@@ -220,7 +222,7 @@ export function TrackerFormScreen({
           onPress={() => navigation.goBack()}
           className='h-10 w-10 items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
         >
-          <Icons.Back size={22} color='#1b1e18' />
+          <Icons.Back size={22} color={c.ink} />
         </Pressable>
         <Typography className='flex-1 text-lg font-bold text-ink'>
           {editing ? t('form.editTitle') : t('form.newTitle')}
@@ -286,12 +288,12 @@ export function TrackerFormScreen({
         <View className='gap-s2'>
           <FieldLabel>{t('form.color')}</FieldLabel>
           <View className='flex-row flex-wrap gap-[10px]'>
-            {COLORS.map((c) => {
-              const sel = c === color
+            {COLORS.map((swatch) => {
+              const sel = swatch === color
               return (
                 <Pressable
-                  key={c}
-                  onPress={() => setColor(c)}
+                  key={swatch}
+                  onPress={() => setColor(swatch)}
                   className={`h-9 w-9 items-center justify-center rounded-full border-2 ${
                     sel ? 'border-ink' : 'border-transparent'
                   }`}
@@ -303,7 +305,7 @@ export function TrackerFormScreen({
                       sel ? 'border border-surface' : ''
                     }`}
                     // runtime: selected palette color
-                    style={{ backgroundColor: c }}
+                    style={{ backgroundColor: swatch }}
                   />
                 </Pressable>
               )
@@ -594,7 +596,7 @@ export function TrackerFormScreen({
             onPress={onDelete}
             className='h-[52px] w-[52px] items-center justify-center rounded-md-k bg-pace-behind-weak active:opacity-80'
           >
-            <Icons.Trash size={20} color='#e0564e' />
+            <Icons.Trash size={20} color={c.pace.behind} />
           </Pressable>
         ) : null}
         <Pressable

@@ -15,6 +15,7 @@ import { calculateTarget } from '@features/trackers/calculators/target'
 import { buildTargetTrajectory } from '@features/trackers/calculators'
 import { fmtValCompact, fmtCompact } from '@features/trackers/detailFormat'
 import { daysBetween, toISODate } from '@utils/date'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 // viewBox coordinate space (matches the design's 350x210 canvas)
 const VB_W = 350
@@ -43,6 +44,7 @@ export function TargetTrajectoryChart({
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
+  const c = useThemeColors()
   const today = toISODate(new Date())
   const p = calculateTarget(tracker, entries, today)
   const traj = buildTargetTrajectory(tracker, entries, today)
@@ -191,8 +193,8 @@ export function TargetTrajectoryChart({
       <Svg width='100%' height={VB_H} viewBox={`0 0 ${VB_W} ${VB_H}`}>
         <Defs>
           <LinearGradient id='kite-traj-area' x1='0' y1='0' x2='0' y2='1'>
-            <Stop offset='0' stopColor='#2456b5' stopOpacity={0.28} />
-            <Stop offset='1' stopColor='#2456b5' stopOpacity={0.02} />
+            <Stop offset='0' stopColor={c.brand} stopOpacity={0.28} />
+            <Stop offset='1' stopColor={c.brand} stopOpacity={0.02} />
           </LinearGradient>
         </Defs>
 
@@ -203,7 +205,7 @@ export function TargetTrajectoryChart({
             y1={g.y}
             x2={X1}
             y2={g.y}
-            stroke='#eef1f5'
+            stroke={c.gridFaint}
             strokeWidth={1}
           />
         ))}
@@ -215,7 +217,7 @@ export function TargetTrajectoryChart({
             textAnchor='end'
             fontSize={10}
             fontWeight='700'
-            fill='#8a8e80'
+            fill={c.ink3}
           >
             {g.label}
           </SvgText>
@@ -227,7 +229,7 @@ export function TargetTrajectoryChart({
           y1={Y_TOP}
           x2={X0}
           y2={Y_BOT}
-          stroke='#eef1f5'
+          stroke={c.gridFaint}
           strokeWidth={1}
         />
         <Line
@@ -235,7 +237,7 @@ export function TargetTrajectoryChart({
           y1={Y_TOP}
           x2={X1}
           y2={Y_BOT}
-          stroke='#eef1f5'
+          stroke={c.gridFaint}
           strokeWidth={1}
         />
 
@@ -245,7 +247,7 @@ export function TargetTrajectoryChart({
           y1={yr(goal)}
           x2={X1}
           y2={yr(goal)}
-          stroke='#2456b5'
+          stroke={c.brand}
           strokeWidth={1.5}
         />
 
@@ -256,7 +258,7 @@ export function TargetTrajectoryChart({
             y1={idealY0}
             x2={idealX1}
             y2={idealY1}
-            stroke='#8a8e80'
+            stroke={c.ink3}
             strokeWidth={1.5}
             strokeDasharray='1 5'
             strokeLinecap='round'
@@ -270,7 +272,7 @@ export function TargetTrajectoryChart({
           <Path
             d={actualPath}
             fill='none'
-            stroke='#2456b5'
+            stroke={c.brand}
             strokeWidth={2.8}
             strokeLinejoin='round'
             strokeLinecap='round'
@@ -282,7 +284,7 @@ export function TargetTrajectoryChart({
           <Path
             d={projectedPath}
             fill='none'
-            stroke='#5b8af0'
+            stroke={c.brandProjected}
             strokeWidth={2.4}
             strokeDasharray='7 6'
             strokeLinecap='round'
@@ -295,8 +297,8 @@ export function TargetTrajectoryChart({
             cx={last[0]}
             cy={last[1]}
             r={4.5}
-            fill='#2456b5'
-            stroke='#ffffff'
+            fill={c.brand}
+            stroke={c.surface}
             strokeWidth={2}
           />
         ) : null}
@@ -313,7 +315,7 @@ export function TargetTrajectoryChart({
             }
             fontSize={10}
             fontWeight='700'
-            fill='#8a8e80'
+            fill={c.ink3}
           >
             {x.label}
           </SvgText>
@@ -322,9 +324,13 @@ export function TargetTrajectoryChart({
 
       {/* legend */}
       <View className='mt-s3 flex-row justify-center gap-s5'>
-        <LegendItem color='#2456b5' label={t('detail.chartActual')} />
-        <LegendItem color='#5b8af0' label={t('detail.chartProjected')} dashed />
-        <LegendItem color='#8a8e80' label={t('detail.chartIdeal')} dotted />
+        <LegendItem color={c.brand} label={t('detail.chartActual')} />
+        <LegendItem
+          color={c.brandProjected}
+          label={t('detail.chartProjected')}
+          dashed
+        />
+        <LegendItem color={c.ink3} label={t('detail.chartIdeal')} dotted />
       </View>
     </View>
   )

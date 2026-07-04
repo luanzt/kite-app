@@ -125,7 +125,7 @@
     "date": "Date", "time": "Time", "save": "Save log"
   },
   "set": {
-    "appearance": "Appearance", "theme": "Dark mode", "themeSoon": "Coming soon", "language": "Language",
+    "appearance": "Appearance", "theme": "Theme", "themeLight": "Light", "themeDark": "Dark", "themeSystem": "System", "language": "Language",
     "data": "Data", "export": "Export data", "exportSub": "Save a JSON backup",
     "clear": "Clear all data", "clearSub": "Delete every tracker & entry",
     "about": "About", "version": "Version", "offline": "Works fully offline",

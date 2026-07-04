@@ -7,6 +7,7 @@ import type {
   PeriodSessions,
   WeekBar
 } from '@features/trackers/calculators/habitStats'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 const CHART_H = 144
 
@@ -23,6 +24,7 @@ function DailyBarChart({
   formatLabel: (startISO: string) => string
 }) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const listRef = useRef<FlatListType<WeekBar>>(null)
   const target = data.perDayTarget ?? 1
   // target line offset from the baseline, capped to the top of the plot
@@ -107,7 +109,9 @@ function DailyBarChart({
           className='absolute left-0 right-0 top-0 z-10 h-[144px]'
         >
           <View
-            className='absolute left-0 right-0 border-t border-dashed border-[#9db8e4]'
+            className={`absolute left-0 right-0 border-t border-dashed ${
+              c.isDark ? 'border-[#89b0f4]' : 'border-[#9db8e4]'
+            }`}
             style={{ bottom: targetRatio * CHART_H }} // value-derived offset
           >
             {/* label sits to the LEFT of the Y axis, one line: "Goal 2" */}

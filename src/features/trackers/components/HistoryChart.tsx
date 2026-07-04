@@ -10,7 +10,7 @@ import Svg, {
 } from 'react-native-svg'
 import { useTranslation } from 'react-i18next'
 import type { Entry, Tracker, PaceStatus } from '@features/trackers/types'
-import { PACE_COLOR } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
  * History line chart rendered with raw react-native-svg (already installed) —
@@ -28,6 +28,7 @@ export function HistoryChart({
   paceStatus?: PaceStatus
 }) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const W = 320
   const H = 150
   const pad = 8
@@ -77,10 +78,10 @@ export function HistoryChart({
 
   const col =
     paceStatus === 'behind'
-      ? PACE_COLOR.behind
+      ? c.pace.behind
       : paceStatus === 'ahead'
-      ? PACE_COLOR.ahead
-      : PACE_COLOR.on_track
+      ? c.pace.ahead
+      : c.pace.on_track
   // legend-dot class mirrors `col` (none collapses to on_track)
   const colClass =
     paceStatus === 'behind'
@@ -111,7 +112,7 @@ export function HistoryChart({
             x2={W - pad}
             y1={H * f}
             y2={H * f}
-            stroke='#e3e5dc'
+            stroke={c.line}
             strokeWidth={1}
             strokeDasharray='2 4'
           />
@@ -121,7 +122,7 @@ export function HistoryChart({
           <Path
             d={lineOf(pace)}
             fill='none'
-            stroke='#8a8e80'
+            stroke={c.ink3}
             strokeWidth={2}
             strokeDasharray='4 4'
             strokeLinecap='round'
@@ -140,7 +141,7 @@ export function HistoryChart({
           cy={Y(actual[actual.length - 1])}
           r={4.5}
           fill={col}
-          stroke='#ffffff'
+          stroke={c.surface}
           strokeWidth={2.5}
         />
       </Svg>

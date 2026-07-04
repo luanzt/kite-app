@@ -9,6 +9,7 @@ import DateTimePicker, {
   type DateType
 } from 'react-native-ui-datepicker'
 import { toHHMM, fromHHMM } from '@utils/date'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
  * A field that opens a bottom sheet with a scrollable time wheel to pick an
@@ -32,6 +33,7 @@ export function TimeField({
   onChange: (hhmm: string) => void
   placeholder?: string
 }) {
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const [open, setOpen] = useState(false)
   const display = value ? value : placeholder ?? 'HH:mm'
@@ -44,7 +46,7 @@ export function TimeField({
           >
             {display}
           </Typography>
-          <Clock size={20} color='#8a8e80' />
+          <Clock size={20} color={c.ink3} />
         </Pressable>
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
@@ -79,8 +81,11 @@ function TimeSheet({
   onChange: (hhmm: string) => void
 }) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const { onOpenChange } = useBottomSheet()
-  const defaultStyles = useDefaultStyles()
+  // Follow Kite's own theme setting, not just the OS scheme — themeMode can
+  // be an explicit Light/Dark override that diverges from useColorScheme().
+  const defaultStyles = useDefaultStyles(c.isDark ? 'dark' : 'light')
   const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'))
   // react-native-ui-datepicker fires a spurious onChange on mount with the
   // time reset to midnight, which would clobber our correct initial draft.
@@ -110,8 +115,8 @@ function TimeSheet({
         hideHeader
         styles={{
           ...defaultStyles,
-          selected: { backgroundColor: '#2456b5' },
-          selected_label: { color: '#ffffff' }
+          selected: { backgroundColor: c.brand },
+          selected_label: { color: c.onAccent }
         }}
       />
       <Button variant='primary' feedbackVariant='none' onPress={confirm}>
