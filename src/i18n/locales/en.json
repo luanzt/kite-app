@@ -93,7 +93,7 @@
     "calendar": "Calendar",
     "sessionsBy": { "day": "Daily sessions", "week": "Sessions per week", "month": "Sessions per month", "year": "Sessions per year" },
     "goalMet": "Goal met", "currentStreak": "Current streak", "bestStreak": "Best streak",
-    "completed": "Completed", "restDay": "Rest day", "goal": "Goal",
+    "completed": "Completed", "inProgress": "In progress", "restDay": "Rest day", "goal": "Goal",
     "dow": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     "tabCharts": "Charts", "tabHistory": "History", "tabNotes": "Notes",
     "everyDay": "Every day", "perWeek": "{{count}} times a week",

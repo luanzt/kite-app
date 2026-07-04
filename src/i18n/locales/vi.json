@@ -93,7 +93,7 @@
     "calendar": "Lịch",
     "sessionsBy": { "day": "Số buổi mỗi ngày", "week": "Số buổi mỗi tuần", "month": "Số buổi mỗi tháng", "year": "Số buổi mỗi năm" },
     "goalMet": "Đạt mục tiêu", "currentStreak": "Chuỗi hiện tại", "bestStreak": "Chuỗi dài nhất",
-    "completed": "Hoàn thành", "restDay": "Ngày nghỉ", "goal": "Mục tiêu",
+    "completed": "Hoàn thành", "inProgress": "Đang làm", "restDay": "Ngày nghỉ", "goal": "Mục tiêu",
     "dow": ["T2", "T3", "T4", "T5", "T6", "T7", "CN"],
     "tabCharts": "Biểu đồ", "tabHistory": "Lịch sử", "tabNotes": "Ghi chú",
     "everyDay": "Mỗi ngày", "perWeek": "{{count}} lần/tuần",
