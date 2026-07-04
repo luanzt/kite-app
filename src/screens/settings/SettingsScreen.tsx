@@ -5,9 +5,12 @@ import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAppStore } from '@store/useAppStore'
 import { changeLanguage, type Language } from '@i18n/index'
-import { Icons, PACE_COLOR } from '@features/trackers/icons'
+import { Icons } from '@features/trackers/icons'
 import { KiteLogo } from '@features/trackers/components/KiteLogo'
-import { useAlert, Toggle } from '@components/ui'
+import { Segmented, useAlert, Toggle } from '@components/ui'
+import { useTheme } from '@hooks/useTheme'
+import { useThemeColors } from '@hooks/useThemeColors'
+import type { ThemeMode } from '@hooks/resolveTheme'
 import { decideToggleAction } from '@features/trackers/notificationToggle'
 import {
   getPermissionStatus,
@@ -33,30 +36,12 @@ function Group({ children }: { children: React.ReactNode }) {
   )
 }
 
-/** A small theme toggle switch matching `.switch`. */
-function Switch({ on, onPress }: { on: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className={`h-[30px] w-[50px] rounded-full ${
-        on ? 'bg-brand' : 'bg-[#e6e8df]'
-      }`}
-    >
-      <View
-        className={`absolute top-[3px] h-6 w-6 rounded-full bg-surface shadow-sm ${
-          on ? 'left-[23px]' : 'left-[3px]'
-        }`}
-      />
-    </Pressable>
-  )
-}
-
 export function SettingsScreen() {
   const { t } = useTranslation()
   const alert = useAlert()
   const insets = useSafeAreaInsets()
-  const themeMode = useAppStore((s) => s.themeMode)
-  const toggleTheme = useAppStore((s) => s.toggleTheme)
+  const { themeMode, setThemeMode } = useTheme()
+  const c = useThemeColors()
   const language = useAppStore((s) => s.language)
   const notifyEnabled = useAppStore((s) => s.notifyEnabled)
   const setNotifyEnabled = useAppStore((s) => s.setNotifyEnabled)
@@ -118,6 +103,12 @@ export function SettingsScreen() {
     { value: 'vi', label: 'VI' }
   ]
 
+  const themeOpts: { value: ThemeMode; label: string }[] = [
+    { value: 'light', label: t('set.themeLight') },
+    { value: 'dark', label: t('set.themeDark') },
+    { value: 'system', label: t('set.themeSystem') }
+  ]
+
   return (
     <View className='flex-1 bg-bg'>
       {/* appbar */}
@@ -150,26 +141,32 @@ export function SettingsScreen() {
         <View>
           <SectionTitle>{t('set.appearance')}</SectionTitle>
           <Group>
-            <View className='flex-row items-center gap-s3 border-b border-line p-s4'>
-              <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
-                <Icons.Moon size={18} color='#1b1e18' />
+            <View className='gap-s3 border-b border-line p-s4'>
+              <View className='flex-row items-center gap-s3'>
+                <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
+                  <Icons.Moon size={18} color={c.ink} />
+                </View>
+                <Typography className='flex-1 text-base font-semibold text-ink'>
+                  {t('set.theme')}
+                </Typography>
               </View>
-              <Typography className='flex-1 text-base font-semibold text-ink'>
-                {t('set.theme')}
-              </Typography>
-              <Switch on={themeMode === 'dark'} onPress={toggleTheme} />
+              <Segmented<ThemeMode>
+                options={themeOpts}
+                value={themeMode}
+                onChange={setThemeMode}
+              />
             </View>
             <View className='gap-s1 border-b border-line'>
               <View className='flex-row items-center gap-s3 p-s4'>
                 <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
-                  <Icons.Bell size={18} color='#1b1e18' />
+                  <Icons.Bell size={18} color={c.ink} />
                 </View>
                 <Typography className='flex-1 text-base font-semibold text-ink'>
                   {t('set.notifications')}
                 </Typography>
                 {conflict ? (
                   <View className='mr-s2'>
-                    <Icons.Warn size={18} color={PACE_COLOR.behind} />
+                    <Icons.Warn size={18} color={c.pace.behind} />
                   </View>
                 ) : null}
                 <Toggle
@@ -195,7 +192,7 @@ export function SettingsScreen() {
             </View>
             <View className='flex-row items-center gap-s3 p-s4'>
               <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
-                <Icons.Globe size={18} color='#1b1e18' />
+                <Icons.Globe size={18} color={c.ink} />
               </View>
               <Typography className='flex-1 text-base font-semibold text-ink'>
                 {t('set.language')}
@@ -232,7 +229,7 @@ export function SettingsScreen() {
           <Group>
             <Pressable className='flex-row items-center gap-s3 border-b border-line p-s4 active:opacity-80'>
               <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
-                <Icons.Download size={18} color='#1b1e18' />
+                <Icons.Download size={18} color={c.ink} />
               </View>
               <View className='flex-1'>
                 <Typography className='text-base font-semibold text-ink'>
@@ -242,11 +239,11 @@ export function SettingsScreen() {
                   {t('set.exportSub')}
                 </Typography>
               </View>
-              <Icons.Chevron size={18} color='#8a8e80' />
+              <Icons.Chevron size={18} color={c.ink3} />
             </Pressable>
             <Pressable className='flex-row items-center gap-s3 p-s4 active:opacity-80'>
               <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-pace-behind-weak'>
-                <Icons.Trash size={18} color={PACE_COLOR.behind} />
+                <Icons.Trash size={18} color={c.pace.behind} />
               </View>
               <View className='flex-1'>
                 <Typography className='text-base font-semibold text-pace-behind'>
