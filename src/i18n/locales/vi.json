@@ -106,9 +106,19 @@
     "logNotes": "Ghi chú nhật ký", "notesCount": "{{count}} ghi chú",
     "noHistory": "Chưa có dữ liệu", "recentEntries": "Mục gần đây",
     "logHistory": "Lịch sử ghi", "addLog": "Thêm", "logShort": "Ghi", "notLogged": "chưa ghi",
-    "weekLogged": "{{logged}}/{{goal}} ngày"
+    "weekLogged": "{{logged}}/{{goal}} ngày",
+    "dailyGoal": "Mục tiêu mỗi ngày",
+    "projected": "Dự phóng",
+    "toGo": "còn lại",
+    "paceMarker": "Vạch nhịp độ",
+    "left": "còn",
+    "pace": "Nhịp độ",
+    "perDay": "/ ngày",
+    "chartActual": "Thực tế",
+    "chartProjected": "Dự phóng",
+    "chartIdeal": "Lý tưởng"
   },
-  "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu", "ok": "OK", "close": "Đóng" },
+  "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu", "ok": "OK", "close": "Đóng", "progress": "Tiến độ" },
   "log": {
     "prompt": "Bạn đã làm habit này chưa?", "yes": "Có", "no": "Không", "value": "Giá trị", "valuePh": "0",
     "notesPh": "Thêm ghi chú cho lần này — cảm giác, quãng đường, tốc độ…",

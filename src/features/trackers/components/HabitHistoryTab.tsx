@@ -10,7 +10,7 @@ import {
   type HistoryRowItem
 } from '@features/trackers/calculators/habitStats'
 import { toISODate } from '@utils/date'
-import { fmtVal } from '@features/trackers/detailFormat'
+import { fmtNum } from '@features/trackers/detailFormat'
 
 /** Render an ISO date as a UTC Date for locale formatting. */
 function isoToDate(iso: string): Date {
@@ -173,7 +173,7 @@ function RecordRow({
         ) : (
           <View className='min-w-[72px] items-center justify-center rounded-full bg-brand-weak px-s3 py-s1'>
             <Typography className='text-xs-k font-bold text-brand-ink'>
-              {fmtVal(tracker, entry.value)}
+              {fmtNum(entry.value)}
             </Typography>
           </View>
         )

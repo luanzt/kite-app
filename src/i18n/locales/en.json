@@ -106,9 +106,19 @@
     "logNotes": "Log notes", "notesCount": "{{count}} notes",
     "noHistory": "No entries yet", "recentEntries": "Recent entries",
     "logHistory": "Log History", "addLog": "Add Log", "logShort": "Log", "notLogged": "not logged",
-    "weekLogged": "{{logged}}/{{goal}} logged"
+    "weekLogged": "{{logged}}/{{goal}} logged",
+    "dailyGoal": "Daily goal",
+    "projected": "Projected",
+    "toGo": "to go",
+    "paceMarker": "Pace marker",
+    "left": "left",
+    "pace": "Pace",
+    "perDay": "/ day",
+    "chartActual": "Actual",
+    "chartProjected": "Projected",
+    "chartIdeal": "Ideal"
   },
-  "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close" },
+  "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close", "progress": "Progress" },
   "log": {
     "prompt": "Did you do this habit?", "yes": "Yes", "no": "No", "value": "Value", "valuePh": "0",
     "notesPh": "Add a note about this session — how it felt, distance, pace…",
