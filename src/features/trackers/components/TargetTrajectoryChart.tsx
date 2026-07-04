@@ -221,6 +221,24 @@ export function TargetTrajectoryChart({
           </SvgText>
         ))}
 
+        {/* left/right plot borders — frame the grid */}
+        <Line
+          x1={X0}
+          y1={Y_TOP}
+          x2={X0}
+          y2={Y_BOT}
+          stroke='#eef1f5'
+          strokeWidth={1}
+        />
+        <Line
+          x1={X1}
+          y1={Y_TOP}
+          x2={X1}
+          y2={Y_BOT}
+          stroke='#eef1f5'
+          strokeWidth={1}
+        />
+
         {/* goal line */}
         <Line
           x1={X0}
