@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import * as repo from '@features/trackers/db/repository'
 import {
   cancelTrackerReminders,
@@ -47,10 +48,16 @@ export function useEntriesForDate(date: string) {
 
 export function useSaveTracker() {
   const qc = useQueryClient()
+  const { t: tr } = useTranslation()
   return useMutation({
     mutationFn: async (t: Tracker) => {
       repo.insertTracker(t)
-      await scheduleTrackerReminders(t)
+      // Pass the translated reminder body so notifications.ts stays i18n-free.
+      const body =
+        t.type === 'target'
+          ? tr('notification.targetBody')
+          : tr('notification.habitBody')
+      await scheduleTrackerReminders(t, body)
     },
     onSuccess: (_d, t) => {
       qc.invalidateQueries({ queryKey: keys.trackers })
