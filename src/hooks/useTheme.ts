@@ -15,7 +15,8 @@ export function useTheme() {
   // RN's ColorSchemeName includes 'unspecified'; narrow to what resolveTheme
   // accepts (only 'light'/'dark' are meaningful, anything else → null).
   const colorScheme = useColorScheme()
-  const systemScheme = colorScheme === 'dark' || colorScheme === 'light' ? colorScheme : null
+  const systemScheme =
+    colorScheme === 'dark' || colorScheme === 'light' ? colorScheme : null
   const resolvedTheme = resolveTheme(themeMode, systemScheme)
 
   useEffect(() => {
