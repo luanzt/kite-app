@@ -114,58 +114,66 @@ export function HabitChartsTab({
     )
 
   return (
-    <ScrollView
-      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} // safe-area, runtime
-      showsVerticalScrollIndicator={false}
-    >
-      <AchievementHero
-        percent={(progress.successRate ?? 0) * 100}
-        currentStreak={progress.streak ?? 0}
-        bestStreak={best}
-      />
-
-      {/* calendar */}
-      <View className='m-s5 rounded-xl-k border border-line bg-surface p-s5'>
-        <View className='mb-s4 flex-row items-center justify-between'>
-          <Typography className='text-h3-k font-bold text-ink'>
-            {t('detail.calendar')}
-          </Typography>
-          <View className='flex-row items-center gap-s2'>
-            <Pressable
-              onPress={prevMonth}
-              hitSlop={6}
-              className='h-[32px] w-[32px] items-center justify-center rounded-sm-k border border-line bg-surface active:opacity-80'
-            >
-              <Icons.Back size={16} color='#565a4f' />
-            </Pressable>
-            <Typography className='w-[112px] text-center text-sm font-bold text-ink'>
-              {monthLabel(ym.year, ym.month, lang)}
-            </Typography>
-            <Pressable
-              onPress={nextMonth}
-              hitSlop={6}
-              className='h-[32px] w-[32px] items-center justify-center rounded-sm-k border border-line bg-surface active:opacity-80'
-            >
-              <Icons.Chevron size={16} color='#565a4f' />
-            </Pressable>
-          </View>
-        </View>
-        <HabitCalendar month={calendar} />
-      </View>
-
-      {/* sessions trend — adapts to the habit's cadence */}
-      <View className='m-s5 rounded-xl-k border border-line bg-surface p-s5'>
-        <Typography className='mb-s4 text-h3-k font-bold text-ink'>
-          {t(`detail.sessionsBy.${series.unit}`)}
-        </Typography>
-        <WeeklyChart
-          data={series}
-          formatLabel={(iso) => barLabel(iso, series.unit, lang)}
+    <View className='flex-1'>
+      <ScrollView
+        // Extra bottom room so the last card clears the floating "Log today"
+        // button: safe-area + button height (52) + its top/bottom padding.
+        contentContainerStyle={{ paddingBottom: insets.bottom + 88 }} // safe-area, runtime
+        showsVerticalScrollIndicator={false}
+      >
+        <AchievementHero
+          percent={(progress.successRate ?? 0) * 100}
+          currentStreak={progress.streak ?? 0}
+          bestStreak={best}
         />
-      </View>
 
-      {/* log today */}
-      <View className='mx-s5'>
+        {/* calendar */}
+        <View className='m-s5 rounded-xl-k border border-line bg-surface p-s5'>
+          <View className='mb-s4 flex-row items-center justify-between'>
+            <Typography className='text-h3-k font-bold text-ink'>
+              {t('detail.calendar')}
+            </Typography>
+            <View className='flex-row items-center gap-s2'>
+              <Pressable
+                onPress={prevMonth}
+                hitSlop={6}
+                className='h-[32px] w-[32px] items-center justify-center rounded-sm-k border border-line bg-surface active:opacity-80'
+              >
+                <Icons.Back size={16} color='#565a4f' />
+              </Pressable>
+              <Typography className='w-[112px] text-center text-sm font-bold text-ink'>
+                {monthLabel(ym.year, ym.month, lang)}
+              </Typography>
+              <Pressable
+                onPress={nextMonth}
+                hitSlop={6}
+                className='h-[32px] w-[32px] items-center justify-center rounded-sm-k border border-line bg-surface active:opacity-80'
+              >
+                <Icons.Chevron size={16} color='#565a4f' />
+              </Pressable>
+            </View>
+          </View>
+          <HabitCalendar month={calendar} />
+        </View>
+
+        {/* sessions trend — adapts to the habit's cadence */}
+        <View className='m-s5 rounded-xl-k border border-line bg-surface p-s5'>
+          <Typography className='mb-s4 text-h3-k font-bold text-ink'>
+            {t(`detail.sessionsBy.${series.unit}`)}
+          </Typography>
+          <WeeklyChart
+            data={series}
+            formatLabel={(iso) => barLabel(iso, series.unit, lang)}
+          />
+        </View>
+      </ScrollView>
+
+      {/* Floating "Log today" — pinned above the scrolling content. */}
+      <View
+        className='absolute inset-x-0 bottom-0 px-s4 pt-s3'
+        style={{ paddingBottom: insets.bottom + 8 }} // safe-area, runtime
+        pointerEvents='box-none'
+      >
         <Pressable
           onPress={onLogToday}
           disabled={log.isPending}
@@ -179,6 +187,6 @@ export function HabitChartsTab({
           </Typography>
         </Pressable>
       </View>
-    </ScrollView>
+    </View>
   )
 }

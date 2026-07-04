@@ -174,8 +174,9 @@ function LogRow({
       value: fmtValCompact(tracker, tracker.targetValue ?? 0)
     })
   } else {
-    // target
-    const goalVal = fmtValCompact(tracker, tracker.targetValue ?? 0)
+    // target — drop the unit; the big value/pace are already unit-less, so the
+    // goal sub-line stays just the number too.
+    const goalVal = fmtCompact(tracker.targetValue ?? 0)
     subText = tracker.deadline
       ? t('today.goalBy', {
           value: goalVal,
@@ -392,7 +393,7 @@ export function DailyGoalsScreen() {
     return (
       <View className='flex-1 bg-bg'>
         <View
-          className='bg-surface px-s5 pb-s4'
+          className='bg-surface px-s4 pb-s4'
           // safe-area, runtime
           style={{ paddingTop: insets.top + 16 }}
         >
@@ -432,7 +433,7 @@ export function DailyGoalsScreen() {
     <View className='flex-1 bg-bg'>
       {/* head */}
       <View
-        className='bg-surface px-s5 pb-s4'
+        className='bg-surface px-s4 pb-s4'
         // safe-area, runtime
         style={{ paddingTop: insets.top + 16 }}
       >
@@ -445,7 +446,7 @@ export function DailyGoalsScreen() {
       </View>
 
       <ScrollView contentContainerClassName='pb-8'>
-        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mx-s5 mt-s4'>
+        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mx-s4 mt-s4'>
           <View className='items-center justify-center h-[52px] w-[52px]'>
             <Ring
               fraction={total ? doneCount / total : 0}
@@ -505,10 +506,10 @@ export function DailyGoalsScreen() {
 
         {missed.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s4 pt-5 pb-2'>
               {t('today.missed')}
             </Typography>
-            <View className='px-s5 gap-s3'>
+            <View className='px-s4 gap-s3'>
               {missed.map((row) => (
                 <LogRow
                   key={row.tracker.id}
@@ -525,10 +526,10 @@ export function DailyGoalsScreen() {
 
         {completed.length > 0 && !allDone ? (
           <>
-            <Typography className='text-xs font-bold uppercase text-ink px-s5 pt-5 pb-2'>
+            <Typography className='text-xs font-bold uppercase text-ink px-s4 pt-5 pb-2'>
               {t('today.completed')}
             </Typography>
-            <View className='px-s5 gap-s3'>
+            <View className='px-s4 gap-s3'>
               {completed.map((row) => (
                 <LogRow
                   key={row.tracker.id}

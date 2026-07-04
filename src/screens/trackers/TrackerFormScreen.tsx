@@ -246,7 +246,7 @@ export function TrackerFormScreen({
         </View>
       </View>
 
-      <ScrollView contentContainerClassName='p-s5 gap-s5'>
+      <ScrollView contentContainerClassName='p-s4 gap-s5'>
         {/* name */}
         <View className='gap-s2'>
           <FieldLabel>{t('form.name')}</FieldLabel>
@@ -585,7 +585,7 @@ export function TrackerFormScreen({
 
       {/* sticky footer */}
       <View
-        className='flex-row gap-s3 border-t border-line bg-surface px-s5 pt-s4'
+        className='flex-row gap-s3 border-t border-line bg-surface px-s4 pt-s4'
         // safe-area, runtime
         style={{ paddingBottom: insets.bottom + 16 }}
       >

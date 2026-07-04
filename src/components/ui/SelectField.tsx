@@ -47,7 +47,7 @@ export function SelectField<T extends string>({
         <BottomSheet.Overlay className='bg-black/60' />
         <BottomSheet.Content>
           {/* runtime: safe-area inset + static offset */}
-          <View className='px-s5' style={{ paddingBottom: insets.bottom + 12 }}>
+          <View className='px-s4' style={{ paddingBottom: insets.bottom + 12 }}>
             <BottomSheet.Title className='mb-s3 text-lg font-bold text-ink'>
               {label}
             </BottomSheet.Title>

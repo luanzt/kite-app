@@ -210,7 +210,7 @@ export function LogEntryModal({
               </View>
             ) : (
               <View className='mt-s4 overflow-hidden rounded-xl-k border border-line bg-surface'>
-                <Typography className='px-s5 pt-s4 text-xs-k font-bold uppercase text-ink-3'>
+                <Typography className='px-s4 pt-s4 text-xs-k font-bold uppercase text-ink-3'>
                   {tracker.unit
                     ? `${t('log.value')} (${tracker.unit})`
                     : t('log.value')}
@@ -221,14 +221,14 @@ export function LogEntryModal({
                   placeholder={t('log.valuePh')}
                   placeholderTextColor='#8a8e80'
                   keyboardType='decimal-pad'
-                  className='px-s5 pb-s5 pt-s2 text-h2-k font-bold text-ink'
+                  className='px-s4 pb-s5 pt-s2 text-h2-k font-bold text-ink'
                 />
               </View>
             )}
 
             {/* notes */}
             <View className='overflow-hidden rounded-xl-k border border-line bg-surface'>
-              <Typography className='px-s5 pt-s4 text-xs-k font-bold uppercase text-ink-3'>
+              <Typography className='px-s4 pt-s4 text-xs-k font-bold uppercase text-ink-3'>
                 {t('detail.tabNotes')}
               </Typography>
               <BottomSheetTextInput
@@ -238,7 +238,7 @@ export function LogEntryModal({
                 placeholderTextColor='#8a8e80'
                 multiline
                 textAlignVertical='top'
-                className='min-h-[120px] px-s5 pb-s5 pt-s2 text-body-k text-ink'
+                className='min-h-[120px] px-s4 pb-s5 pt-s2 text-body-k text-ink'
               />
             </View>
 

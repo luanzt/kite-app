@@ -41,7 +41,7 @@ export function DetailLoading() {
         <Skeleton className='h-[16px] w-full rounded-full' />
         <Skeleton className='h-[14px] w-3/4 rounded-md' />
       </View>
-      <View className='mx-s5 flex-row gap-s4'>
+      <View className='mx-s4 flex-row gap-s4'>
         <Skeleton className='h-[72px] flex-1 rounded-xl-k' />
         <Skeleton className='h-[72px] flex-1 rounded-xl-k' />
       </View>

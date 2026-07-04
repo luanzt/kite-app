@@ -19,7 +19,7 @@ export function CreateButton({
   return (
     <Pressable
       onPress={onPress}
-      className={`h-[54px] flex-row items-center justify-center gap-s2 rounded-md-k bg-brand px-s5 shadow-sm active:opacity-90 ${
+      className={`h-[54px] flex-row items-center justify-center gap-s2 rounded-md-k bg-brand px-s4 shadow-sm active:opacity-90 ${
         block ? 'self-stretch' : 'self-center'
       }`}
     >
