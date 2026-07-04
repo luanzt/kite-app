@@ -6,6 +6,7 @@ import notifee, {
   type TimestampTrigger
 } from '@notifee/react-native'
 import type { Tracker } from '@features/trackers/types'
+import * as repo from '@features/trackers/db/repository'
 
 /**
  * On-device reminder scheduling via notifee. The app is fully offline, so
@@ -48,9 +49,10 @@ export async function ensureReminderChannel(): Promise<void> {
   }
 }
 
-/** Initialise notifications at app launch: request permission + create channel. */
+/** Initialise notifications at app launch: create the Android channel only.
+ *  First-launch permission is requested by the launch orchestrator (App.tsx),
+ *  not here, so the request happens exactly once and can set the preference. */
 export async function initNotifications(): Promise<void> {
-  await requestNotificationPermission()
   await ensureReminderChannel()
 }
 
@@ -91,14 +93,24 @@ export async function cancelTrackerReminders(trackerId: string): Promise<void> {
 /**
  * (Re)schedule reminders for a tracker. Cancels any existing reminders first,
  * then — if the tracker has a `reminderTime` — schedules one weekly-repeating
- * notification per due weekday. Habits only.
+ * notification per due weekday.
+ *
+ * Both habits and targets are reminded on their `repeatDays` (or every day if
+ * none — the form lets both types pick weekdays). Other types (average/project)
+ * are not reminded.
+ *
+ * `body` is the (already-translated) notification body; callers pass the i18n
+ * string so this module stays free of the i18n runtime. Falls back to a plain
+ * English default if omitted.
  */
 export async function scheduleTrackerReminders(
-  tracker: Tracker
+  tracker: Tracker,
+  body = 'Time to keep going'
 ): Promise<void> {
   await cancelTrackerReminders(tracker.id)
 
-  if (tracker.type !== 'habit' || !tracker.reminderTime) return
+  const reminds = tracker.type === 'habit' || tracker.type === 'target'
+  if (!reminds || !tracker.reminderTime) return
   const parsed = parseTime(tracker.reminderTime)
   if (!parsed) return
   const [hours, minutes] = parsed
@@ -121,8 +133,16 @@ export async function scheduleTrackerReminders(
           {
             id: reminderId(tracker.id, day),
             title: tracker.name,
-            body: 'Time to keep your streak going',
-            android: { channelId: CHANNEL_ID, pressAction: { id: 'default' } }
+            body,
+            android: { channelId: CHANNEL_ID, pressAction: { id: 'default' } },
+            // Show the reminder even when the app is open (foreground) on iOS.
+            ios: {
+              foregroundPresentationOptions: {
+                banner: true,
+                list: true,
+                sound: true
+              }
+            }
           },
           trigger
         )
@@ -130,5 +150,53 @@ export async function scheduleTrackerReminders(
     )
   } catch {
     // ignore — scheduling is best-effort
+  }
+}
+
+/** Current OS notification permission — true if granted (or provisional). */
+export async function getPermissionStatus(): Promise<boolean> {
+  try {
+    const settings = await notifee.getNotificationSettings()
+    return (
+      settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
+    )
+  } catch {
+    return false
+  }
+}
+
+/** Open the OS notification-settings page for this app. */
+export async function openSystemNotificationSettings(): Promise<void> {
+  try {
+    await notifee.openNotificationSettings()
+  } catch {
+    // ignore — best-effort
+  }
+}
+
+/** Cancel reminders for every tracker (used when the preference is turned off). */
+export async function cancelAllReminders(): Promise<void> {
+  try {
+    const trackers = repo.listTrackers()
+    await Promise.all(trackers.map((t) => cancelTrackerReminders(t.id)))
+  } catch {
+    // ignore — best-effort
+  }
+}
+
+/** (Re)schedule reminders for every habit/target that has a reminderTime.
+ *  `bodyFor` supplies the already-translated body per tracker, so this module
+ *  stays free of the i18n runtime. */
+export async function rescheduleAllReminders(
+  bodyFor: (t: Tracker) => string
+): Promise<void> {
+  try {
+    const trackers = repo.listTrackers()
+    await Promise.all(
+      trackers.map((t) => scheduleTrackerReminders(t, bodyFor(t)))
+    )
+  } catch {
+    // ignore — best-effort
   }
 }

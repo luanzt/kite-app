@@ -128,8 +128,15 @@
     "appearance": "Giao diện", "theme": "Chế độ tối", "themeSoon": "Sắp có", "language": "Ngôn ngữ",
     "data": "Dữ liệu", "export": "Xuất dữ liệu", "exportSub": "Lưu bản sao JSON",
     "clear": "Xóa toàn bộ", "clearSub": "Xóa mọi mục tiêu & dữ liệu",
-    "about": "Giới thiệu", "version": "Phiên bản", "offline": "Hoạt động hoàn toàn ngoại tuyến"
+    "about": "Giới thiệu", "version": "Phiên bản", "offline": "Hoạt động hoàn toàn ngoại tuyến",
+    "notifications": "Thông báo",
+    "notifOsOff": "Thông báo đang bị tắt trong Cài đặt hệ thống.",
+    "goSettings": "Đi tới cài đặt",
+    "notifBlockedTitle": "Bật thông báo",
+    "notifBlockedMsg": "Thông báo cho Kite đang bị tắt. Mở Cài đặt để cho phép nhắc nhở.",
+    "openSettings": "Mở Cài đặt"
   },
   "toast": { "saved": "Đã lưu mục tiêu", "logged": "Đã ghi", "logSuccess": "Đã ghi nhận thành công", "deleted": "Đã xóa mục tiêu" },
-  "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" }
+  "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" },
+  "notification": { "habitBody": "Đến giờ giữ vững chuỗi ngày rồi", "targetBody": "Ghi lại tiến độ hướng tới mục tiêu" }
 }

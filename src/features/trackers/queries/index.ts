@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import * as repo from '@features/trackers/db/repository'
 import {
   cancelTrackerReminders,
   scheduleTrackerReminders
 } from '@features/trackers/notifications'
+import { useAppStore } from '@store/useAppStore'
 import type { Tracker, Entry, Milestone } from '@features/trackers/types'
 
 const keys = {
@@ -47,10 +49,22 @@ export function useEntriesForDate(date: string) {
 
 export function useSaveTracker() {
   const qc = useQueryClient()
+  const { t: tr } = useTranslation()
   return useMutation({
     mutationFn: async (t: Tracker) => {
       repo.insertTracker(t)
-      await scheduleTrackerReminders(t)
+      // Only schedule when the user has notifications enabled; always safe to
+      // cancel-then-(maybe)-reschedule via scheduleTrackerReminders.
+      const enabled = useAppStore.getState().notifyEnabled
+      if (enabled) {
+        const body =
+          t.type === 'target'
+            ? tr('notification.targetBody')
+            : tr('notification.habitBody')
+        await scheduleTrackerReminders(t, body)
+      } else {
+        await cancelTrackerReminders(t.id)
+      }
     },
     onSuccess: (_d, t) => {
       qc.invalidateQueries({ queryKey: keys.trackers })

@@ -13,7 +13,11 @@ import { makeHeroUIConfig } from '@theme/index'
 import { queryClient } from '@api/queryClient'
 import { RootNavigator } from '@navigation/RootNavigator'
 import { getDb } from '@features/trackers/db/schema'
-import { initNotifications } from '@features/trackers/notifications'
+import {
+  initNotifications,
+  requestNotificationPermission
+} from '@features/trackers/notifications'
+import { useAppStore } from '@store/useAppStore'
 import { initI18n } from '@i18n/index'
 import BootSplash from 'react-native-bootsplash'
 
@@ -29,7 +33,15 @@ export default function App() {
   useEffect(() => {
     const ready = async () => {
       await getDb() // open + migrate on launch — hold splash until DB is ready
-      initNotifications() // request notification permission + create channel
+      await initNotifications() // create the Android channel
+      // First launch only: ask once, and let the preference follow the result.
+      const { permissionAsked, setNotifyEnabled, markPermissionAsked } =
+        useAppStore.getState()
+      if (!permissionAsked) {
+        const granted = await requestNotificationPermission()
+        setNotifyEnabled(granted)
+        markPermissionAsked()
+      }
     }
     setTimeout(() => {
       ready().finally(() => {
