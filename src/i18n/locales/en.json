@@ -124,7 +124,13 @@
     "perDay": "/ day",
     "chartActual": "Actual",
     "chartProjected": "Projected",
-    "chartIdeal": "Ideal"
+    "chartIdeal": "Ideal",
+    "avgChartTitle": "Average",
+    "avgWin": { "d7": "7 days", "d14": "14 days", "d30": "30 days", "w4": "4 weeks", "m3": "3 months", "m6": "6 months", "m12": "12 months", "log7": "7 logs", "log30": "30 logs" },
+    "avgPerDay": "avg/day", "avgPerLog": "avg/log",
+    "avgUnder": "{{n}} under", "avgOver": "{{n}} over",
+    "unitWeeks": "weeks", "unitMonths": "months",
+    "valueBy": { "day": "Daily total", "week": "Total per week", "month": "Total per month" }
   },
   "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close", "progress": "Progress" },
   "log": {
