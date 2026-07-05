@@ -1,4 +1,9 @@
-import { isoAddMonths, compareWindows } from '../averageStats'
+import {
+  isoAddMonths,
+  compareWindows,
+  averageBucketStats,
+  averageBarSeries
+} from '../averageStats'
 import type { Tracker, Entry } from '@features/trackers/types'
 
 const avg: Tracker = {
@@ -182,5 +187,169 @@ describe('compareWindows — log windows', () => {
     const r1 = compareWindows(avg, [e('2026-07-01', 5)], '2026-07-05', '7logs')
     expect(r1.previous.startISO).toBeNull()
     expect(r1.deltaPct).toBeNull()
+  })
+})
+
+describe('averageBucketStats — daily', () => {
+  const t0: Tracker = { ...avg, startDate: '2026-07-01' } // goal 8/day
+  it('met day = summed total >= goal; streak counts back from today', () => {
+    const entries = [
+      e('2026-07-01', 8),
+      e('2026-07-02', 3),
+      e('2026-07-02', 5, '2026-07-02T20:00:00Z'), // same-day logs sum: 8
+      e('2026-07-03', 2), // unmet
+      e('2026-07-04', 9),
+      e('2026-07-05', 10)
+    ]
+    const s = averageBucketStats(t0, entries, '2026-07-05')
+    expect(s.unit).toBe('day')
+    expect(s.dueBuckets).toBe(5) // 07-01..07-05
+    expect(s.metBuckets).toBe(4)
+    expect(s.streak).toBe(2) // 04 + 05; broken by 03
+  })
+
+  it('today unmet is neutral (extends nothing, breaks nothing)', () => {
+    const entries = [e('2026-07-03', 8), e('2026-07-04', 8)]
+    const s = averageBucketStats(t0, entries, '2026-07-05')
+    expect(s.streak).toBe(2) // today (05) not logged → neutral
+  })
+
+  it('a past unmet due day breaks the streak even when today is met', () => {
+    const entries = [e('2026-07-03', 8), e('2026-07-05', 8)] // 04 missed
+    const s = averageBucketStats(t0, entries, '2026-07-05')
+    expect(s.streak).toBe(1)
+  })
+
+  it('repeatDays: non-due days are skipped, not breaking', () => {
+    // due Mon/Wed/Fri only. 2026-07-01 = Wed, 07-03 = Fri, 07-06 = Mon.
+    const t1: Tracker = { ...t0, repeatDays: [1, 3, 5] }
+    const entries = [e('2026-07-01', 8), e('2026-07-03', 8)]
+    const s = averageBucketStats(t1, entries, '2026-07-05') // Sunday
+    expect(s.dueBuckets).toBe(2) // Wed + Fri only
+    expect(s.metBuckets).toBe(2)
+    expect(s.streak).toBe(2) // Sat/Sun not due → skipped
+  })
+
+  it('goal null/0 → nothing is met', () => {
+    const t1: Tracker = { ...t0, targetValue: null }
+    const s = averageBucketStats(t1, [e('2026-07-05', 99)], '2026-07-05')
+    expect(s.metBuckets).toBe(0)
+    expect(s.streak).toBe(0)
+    expect(s.dueBuckets).toBe(5)
+  })
+
+  it('startDate in the future → all zeros', () => {
+    const t1: Tracker = { ...t0, startDate: '2026-08-01' }
+    const s = averageBucketStats(t1, [], '2026-07-05')
+    expect(s).toEqual({ streak: 0, metBuckets: 0, dueBuckets: 0, unit: 'day' })
+  })
+})
+
+describe('averageBucketStats — weekly & monthly', () => {
+  it('weekly: Monday buckets, current week neutral', () => {
+    const t1: Tracker = {
+      ...avg,
+      period: 'weekly',
+      targetValue: 10,
+      startDate: '2026-06-22' // a Monday
+    }
+    const entries = [
+      e('2026-06-24', 10), // week of 06-22: met
+      e('2026-07-01', 4) // week of 06-29: unmet; current week (07-05 is Sun of 06-29 week)
+    ]
+    // today 2026-07-05 (Sunday) is still inside the 06-29 week → that week is
+    // the current bucket → neutral even though unmet
+    const s = averageBucketStats(t1, entries, '2026-07-05')
+    expect(s.unit).toBe('week')
+    expect(s.dueBuckets).toBe(2)
+    expect(s.metBuckets).toBe(1)
+    expect(s.streak).toBe(1)
+  })
+
+  it('monthly: calendar-month buckets', () => {
+    const t1: Tracker = {
+      ...avg,
+      period: 'monthly',
+      targetValue: 100,
+      startDate: '2026-05-15'
+    }
+    const entries = [
+      e('2026-05-20', 120),
+      e('2026-06-10', 90),
+      e('2026-07-01', 40)
+    ]
+    const s = averageBucketStats(t1, entries, '2026-07-05')
+    expect(s.unit).toBe('month')
+    expect(s.dueBuckets).toBe(3) // May, Jun, Jul
+    expect(s.metBuckets).toBe(1) // only May
+    expect(s.streak).toBe(0) // Jun unmet breaks; Jul (current) neutral
+  })
+})
+
+describe('averageBarSeries', () => {
+  it('daily: one bar per day from startDate, summed values rounded to 1dp', () => {
+    const t1: Tracker = { ...avg, startDate: '2026-07-01' }
+    const entries = [
+      e('2026-07-01', 2.25),
+      e('2026-07-01', 1, '2026-07-01T20:00:00Z'),
+      e('2026-07-03', 12)
+    ]
+    const s = averageBarSeries(t1, entries, '2026-07-05')
+    expect(s.unit).toBe('day')
+    expect(s.bars.map((b) => b.startISO)).toEqual([
+      '2026-07-01',
+      '2026-07-02',
+      '2026-07-03',
+      '2026-07-04',
+      '2026-07-05'
+    ])
+    expect(s.bars[0].count).toBe(3.3) // 3.25 → 3.3
+    expect(s.bars[1].count).toBe(0)
+    expect(s.bars[4].partial).toBe(true)
+    expect(s.goal).toBe(8)
+    expect(s.perDayTarget).toBe(8)
+    expect(s.scaleMax).toBe(12) // ceil(max(8, 12))
+  })
+
+  it('daily: capped at 180 bars for an old start date', () => {
+    const t1: Tracker = { ...avg, startDate: '2020-01-01' }
+    const s = averageBarSeries(t1, [], '2026-07-05')
+    expect(s.bars).toHaveLength(180)
+    expect(s.bars[179].startISO).toBe('2026-07-05')
+  })
+
+  it('weekly: 4 Monday-start bars, goal line = targetValue, no perDayTarget', () => {
+    const t1: Tracker = { ...avg, period: 'weekly', targetValue: 10 }
+    const entries = [e('2026-06-30', 7)] // week of 2026-06-29
+    const s = averageBarSeries(t1, entries, '2026-07-05')
+    expect(s.unit).toBe('week')
+    expect(s.bars).toHaveLength(4)
+    expect(s.bars[3].startISO).toBe('2026-06-29')
+    expect(s.bars[3].count).toBe(7)
+    expect(s.bars[3].partial).toBe(true)
+    expect(s.perDayTarget).toBeUndefined()
+    expect(s.scaleMax).toBe(10)
+  })
+
+  it('monthly: 3 calendar-month bars', () => {
+    const t1: Tracker = { ...avg, period: 'monthly', targetValue: 100 }
+    const entries = [e('2026-05-10', 50), e('2026-07-02', 20)]
+    const s = averageBarSeries(t1, entries, '2026-07-05')
+    expect(s.unit).toBe('month')
+    expect(s.bars.map((b) => b.startISO)).toEqual([
+      '2026-05-01',
+      '2026-06-01',
+      '2026-07-01'
+    ])
+    expect(s.bars[0].count).toBe(50)
+    expect(s.bars[2].partial).toBe(true)
+  })
+
+  it('scaleMax is at least 1 with no data and no goal', () => {
+    const t1: Tracker = { ...avg, targetValue: null, startDate: '2026-07-05' }
+    const s = averageBarSeries(t1, [], '2026-07-05')
+    expect(s.scaleMax).toBe(1)
+    expect(s.goal).toBe(0)
+    expect(s.perDayTarget).toBeUndefined()
   })
 })

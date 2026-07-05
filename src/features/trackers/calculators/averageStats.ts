@@ -1,6 +1,7 @@
 import type { Tracker, Entry } from '@features/trackers/types'
-import { daysBetween } from '@utils/date'
-import { isoAddDays } from './habitStats'
+import { daysBetween, weekdayOf } from '@utils/date'
+import { dayTotalsOf, isDueOn, isoAddDays } from './habitStats'
+import type { PeriodSessions, WeekBar } from './habitStats'
 
 /**
  * Average detail derivations — pure helpers feeding the Average Detail screen
@@ -159,4 +160,151 @@ export function compareWindows(
     deltaPct:
       previous.startISO === null ? null : deltaOf(current.avg, previous.avg)
   }
+}
+
+/** Monday (UTC) of the week containing `iso`. */
+function mondayOf(iso: string): string {
+  return isoAddDays(iso, -((weekdayOf(iso) + 6) % 7))
+}
+
+/** First day of the month containing `iso`. */
+function monthStartOf(iso: string): string {
+  return `${iso.slice(0, 7)}-01`
+}
+
+export type AverageBucketStats = {
+  streak: number
+  metBuckets: number
+  dueBuckets: number
+  unit: 'day' | 'week' | 'month'
+}
+
+function unitOf(tracker: Tracker): 'day' | 'week' | 'month' {
+  if (tracker.period === 'monthly') return 'month'
+  if (tracker.period === 'weekly') return 'week'
+  return 'day'
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10
+}
+
+/**
+ * Streak & success-rate over period buckets (days / Monday-weeks / calendar
+ * months, per tracker.period). A bucket is met when its summed total ≥
+ * targetValue. Daily buckets respect repeatDays (non-due days don't count and
+ * don't break streaks). The current (in-progress) bucket is neutral: it
+ * extends a streak when met but never breaks one — mirroring habit's
+ * today-neutral rule.
+ */
+export function averageBucketStats(
+  tracker: Tracker,
+  entries: Entry[],
+  todayISO: string
+): AverageBucketStats {
+  const goal = tracker.targetValue ?? 0
+  const unit = unitOf(tracker)
+  if (daysBetween(tracker.startDate, todayISO) < 0) {
+    return { streak: 0, metBuckets: 0, dueBuckets: 0, unit }
+  }
+
+  // Ordered due buckets (oldest first): key = bucket start, total = summed value.
+  const buckets: { key: string; total: number }[] = []
+  let currentKey: string
+  if (unit === 'day') {
+    const totals = dayTotalsOf(tracker, entries)
+    currentKey = todayISO
+    for (let d = tracker.startDate; d <= todayISO; d = isoAddDays(d, 1)) {
+      if (!isDueOn(tracker, d)) continue
+      buckets.push({ key: d, total: totals.get(d) ?? 0 })
+    }
+  } else if (unit === 'week') {
+    currentKey = mondayOf(todayISO)
+    for (
+      let w = mondayOf(tracker.startDate);
+      w <= todayISO;
+      w = isoAddDays(w, 7)
+    ) {
+      buckets.push({ key: w, total: sumRange(entries, w, isoAddDays(w, 6)) })
+    }
+  } else {
+    currentKey = monthStartOf(todayISO)
+    for (
+      let m = monthStartOf(tracker.startDate);
+      m <= todayISO;
+      m = isoAddMonths(m, 1)
+    ) {
+      const end = isoAddDays(isoAddMonths(m, 1), -1)
+      buckets.push({ key: m, total: sumRange(entries, m, end) })
+    }
+  }
+
+  const met = (b: { total: number }) => goal > 0 && b.total >= goal
+  const metBuckets = buckets.filter(met).length
+  let streak = 0
+  for (let i = buckets.length - 1; i >= 0; i--) {
+    const b = buckets[i]
+    if (met(b)) streak += 1
+    // in-progress bucket is neutral
+    else if (b.key === currentKey) continue
+    else break
+  }
+  return { streak, metBuckets, dueBuckets: buckets.length, unit }
+}
+
+/** Cap on daily bars so a very old start date doesn't build a huge list. */
+const DAILY_MAX_BARS = 180
+
+/**
+ * Value bar series for the detail chart, shaped as PeriodSessions so the
+ * existing WeeklyChart renders it unchanged. Bars are bucket SUMS (not
+ * counts), rounded to 1 decimal; perDayTarget drives the daily met-coloring
+ * and is set only for daily trackers with a positive goal.
+ */
+export function averageBarSeries(
+  tracker: Tracker,
+  entries: Entry[],
+  todayISO: string
+): PeriodSessions {
+  const goal = tracker.targetValue ?? 0
+  const unit = unitOf(tracker)
+  const bars: WeekBar[] = []
+
+  if (unit === 'day') {
+    const totals = dayTotalsOf(tracker, entries)
+    let start = tracker.startDate > todayISO ? todayISO : tracker.startDate
+    const capStart = isoAddDays(todayISO, -(DAILY_MAX_BARS - 1))
+    if (start < capStart) start = capStart
+    for (let d = start; d <= todayISO; d = isoAddDays(d, 1)) {
+      bars.push({
+        startISO: d,
+        count: round1(totals.get(d) ?? 0),
+        partial: d === todayISO
+      })
+    }
+  } else if (unit === 'week') {
+    for (let i = 3; i >= 0; i--) {
+      const w = isoAddDays(mondayOf(todayISO), -7 * i)
+      bars.push({
+        startISO: w,
+        count: round1(sumRange(entries, w, isoAddDays(w, 6))),
+        partial: i === 0
+      })
+    }
+  } else {
+    for (let i = 2; i >= 0; i--) {
+      const m = isoAddMonths(monthStartOf(todayISO), -i)
+      const end = isoAddDays(isoAddMonths(m, 1), -1)
+      bars.push({
+        startISO: m,
+        count: round1(sumRange(entries, m, end)),
+        partial: i === 0
+      })
+    }
+  }
+
+  const maxCount = bars.reduce((mx, b) => Math.max(mx, b.count), 0)
+  const scaleMax = Math.max(1, Math.ceil(Math.max(goal, maxCount)))
+  const base: PeriodSessions = { bars, goal, scaleMax, unit }
+  return unit === 'day' && goal > 0 ? { ...base, perDayTarget: goal } : base
 }
