@@ -86,9 +86,14 @@ New logic, keyed off the three fields (all default to today's behavior when
 
 1. **Window** (`averageWindow`):
    - `since_start` (or null): mean of **all** entries (unchanged).
-   - `rolling`: mean of the **most recent `rollingDays` entries** (default 7),
-     ordered by `date` then `createdAt`. Fewer than `rollingDays` entries → mean
-     of what exists.
+   - `rolling`: mean of the entries whose `date` falls within the **last
+     `rollingDays` calendar days including today** (default 7) — i.e.
+     `e.date > isoAddDays(todayISO, -rollingDays)`. It is a *date* window, not
+     an entry-count window (the field is named Days; presets 7/14/21 mean days).
+     No entries in the window → `current = 0`.
+   - Aggregation stays **mean over entries** in the window (same as
+     `since_start`) — switching to mean-of-daily-totals would change existing
+     trackers' displayed Ø, breaking the "null = old behavior" guarantee.
 2. **Progress bar basis** (`progressBasis`) drives `percent` only (not
    `current`, which stays the displayed average):
    - `overall_avg` (or null): `percent = current / goal` (unchanged).
@@ -116,6 +121,19 @@ screen logs real values for average). So for average:
 
 The signature and the caller in `DailyGoalsScreen` are unchanged; only the
 average branch inside `classifyTodayRow` gains the `doneRule` switch.
+
+### Wiring gaps found in review (MUST fix, or two fields ship dead)
+
+1. **Reminders** — `notifications.ts` gates scheduling on
+   `tracker.type === 'habit' || tracker.type === 'target'`
+   (`scheduleTrackerReminders`). Without adding `'average'` to that gate, a
+   saved `reminderTime` never schedules anything. Also update the doc comment,
+   and the notification body pick in `queries/index.ts` (currently
+   `targetBody`/`habitBody`) to use a new `notification.averageBody` key.
+2. **Due on Today** — `isDueToday()` in `DailyGoalsScreen.tsx` only respects
+   `repeatDays` for `type === 'habit'`; extend the gate to
+   `habit || average` so the Due weekday picker actually filters the Today
+   list. (Target has the same latent issue — out of scope here.)
 
 ## Form UI layout (`TrackerFormScreen.tsx`, `type === 'average'` block)
 
@@ -145,12 +163,22 @@ and passed into `buildTracker` + the final `tracker` object for the `average`
 branch. `onSave` for average validates Goal > 0 (add average to the existing
 goal-required check).
 
+`onSave` currently gates three fields on `isHabit || isTarget` — all three
+ternaries must include average:
+- `startDate: isHabit || isTarget ? startDate… : …` → `+ isAverage`
+- `repeatDays: isHabit || isTarget ? repeatDays : undefined` → `+ isAverage`
+- `reminderTime: (isHabit || isTarget) && reminderOn ? … : null` → `+ isAverage`
+
+Average also keeps `unit: null` on save (the Unit input is removed from this
+form).
+
 ## i18n (both `en.json` and `vi.json`, key-for-key)
 
 New `form.*` keys:
 `avgWindow`, `avgSinceStart`, `avgRolling`, `avgRollingDays`, `avgCustom`,
 `avgWindowHelp`, `moveToDone`, `moveWhenLogged`, `moveWhenGoalMet`,
 `moveHelp`, `progressBar`, `progressOverall`, `progressToday`, `progressHelp`.
+Plus `notification.averageBody` (reminder body for average trackers).
 (Vietnamese translations mirror the Strides wording.)
 
 ## Files touched
@@ -161,14 +189,18 @@ New `form.*` keys:
 - `src/features/trackers/factory.ts` — defaults + `BuildTrackerInput`.
 - `src/features/trackers/calculators/average.ts` — windowed/basis logic.
 - `src/features/trackers/calculators/habitStats.ts` — `classifyTodayRow` for average.
+- `src/features/trackers/notifications.ts` — add average to the reminder gate.
+- `src/features/trackers/queries/index.ts` — averageBody pick for reminders.
+- `src/screens/today/DailyGoalsScreen.tsx` — `isDueToday` respects average repeatDays.
 - `src/screens/trackers/TrackerFormScreen.tsx` — the average section.
 - `src/i18n/locales/{en,vi}.json` — new keys.
 
 ## Testing (TDD)
 
 Unit tests (op-sqlite mocked; DB code verified on device):
-- `calculators/__tests__/average.test.ts` — new cases: rolling window (fewer/
-  exactly/more than N entries), `today_total` basis, `since_start`+`overall_avg`
+- `calculators/__tests__/average.test.ts` — new cases: rolling date-window
+  (entries inside/outside the window, boundary day, empty window → 0,
+  multiple entries on one day), `today_total` basis, `since_start`+`overall_avg`
   unchanged (regression), `goal=0` guard, defaults (null fields) = old behavior.
 - `calculators/__tests__/habitStats.test.ts` — `classifyTodayRow` for average
   under both `doneRule`s.
@@ -183,3 +215,11 @@ Write the failing test first for each behavioral change, then implement.
   (the card sub-line and progress bar read `percent`/`current`, so they reflect
   the new basis automatically; no new detail UI in this spec).
 - Strides "Accountability / Tags / Start Over" rows (not part of Kite).
+- **Goal direction** — Strides shows "5 **or More**", implying an "or Less"
+  variant (e.g. average screen-time ≤ 2h). Kite's average calculator is
+  higher-is-better only; adding direction touches percent/pace math and is
+  deferred.
+- **Aggregation change** — mean-of-daily-totals instead of mean-over-entries
+  would better match "5 per day" when users log increments, but it changes
+  existing trackers' displayed average; deliberately kept as-is.
+- `isDueToday` for **target** ignoring `repeatDays` (pre-existing; untouched).
