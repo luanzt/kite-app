@@ -168,6 +168,14 @@ describe('buildCalendarMonth', () => {
     expect(cell.status).toBe('rest')
   })
 
+  test('a FUTURE non-scheduled day is future, not rest', () => {
+    // Mon/Wed/Fri; today = 2026-06-10 (Wed). 2026-06-13 is a future Saturday.
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(mwf, [], 2026, 5, '2026-06-10')
+    const cell = m.cells.find((c) => c.day === 13)!
+    expect(cell.status).toBe('future') // future rest day → not marked as rest
+  })
+
   test('a non-scheduled day logged to goal is done', () => {
     // goal 1 (default habit); a Saturday with a Yes reaches goal → done beats rest.
     const mwf = { ...base, repeatDays: [1, 3, 5], targetValue: 1 }

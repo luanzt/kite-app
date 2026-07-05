@@ -127,7 +127,9 @@ function pad2(n: number): string {
 
 /**
  * Build a month's calendar with each day's habit status. Status priority:
- * done > rest (not scheduled) > today > future > none (a plain past day).
+ * done > future > rest (unscheduled & unlogged) > today > none (a plain past
+ * day). `future` beats `rest` so an unactionable future rest day isn't marked;
+ * `rest` requires `!hasEntry` so a logged rest day renders like a normal day.
  */
 export function buildCalendarMonth(
   tracker: Tracker,
@@ -150,9 +152,9 @@ export function buildCalendarMonth(
     const hasEntry = (counts.get(iso) ?? 0) > 0
     let status: CalendarStatus
     if (done.has(iso)) status = 'done'
+    else if (iso > todayISO) status = 'future'
     else if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
     else if (iso === todayISO) status = 'today'
-    else if (iso > todayISO) status = 'future'
     else status = 'none'
     cells.push({
       day: d,
