@@ -12,7 +12,7 @@ import {
 } from '@features/trackers/calculators/habitStats'
 import type { PeriodUnit } from '@features/trackers/calculators/habitStats'
 import { Icons } from '@features/trackers/icons'
-import { useLogEntry } from '@features/trackers/queries'
+import { useLogEntry, useDeleteEntry } from '@features/trackers/queries'
 import { uuid } from '@features/trackers/factory'
 import { toISODate } from '@utils/date'
 import { useThemeColors } from '@hooks/useThemeColors'
@@ -20,6 +20,7 @@ import { AchievementHero } from './AchievementHero'
 import { HabitCalendar } from './HabitCalendar'
 import { WeeklyChart } from './WeeklyChart'
 import { showLogSuccess } from './LogSuccessToast'
+import { CalendarDayMenu } from './CalendarDayMenu'
 
 /** Format a calendar month header ("June 2026"), UTC to avoid TZ drift. */
 function monthLabel(year: number, month: number, lang: string): string {
@@ -73,6 +74,8 @@ export function HabitChartsTab({
   const insets = useSafeAreaInsets()
   const today = toISODate(new Date())
   const log = useLogEntry()
+  const del = useDeleteEntry()
+  const [menuDate, setMenuDate] = useState<string | null>(null)
   const { toast } = useToast()
 
   const [ym, setYm] = useState(() => {
@@ -130,6 +133,46 @@ export function HabitChartsTab({
       }
     )
 
+  const onLongPressDay = (iso: string) => setMenuDate(iso)
+
+  // format the menu title as e.g. "July 2, 2026" (UTC to avoid TZ drift)
+  const menuTitle = menuDate
+    ? new Date(`${menuDate}T00:00:00Z`).toLocaleDateString(lang, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC'
+      })
+    : ''
+
+  const menuEntries = menuDate
+    ? entries.filter((e) => e.date.slice(0, 10) === menuDate)
+    : []
+  const menuHasEntry = menuEntries.length > 0
+
+  const logValue = (value: number) => {
+    if (!menuDate) return
+    log.mutate(
+      {
+        id: uuid(),
+        trackerId: tracker.id,
+        date: menuDate,
+        value,
+        note: null,
+        createdAt: new Date().toISOString()
+      },
+      { onSuccess: () => showLogSuccess(toast, t('toast.logSuccess')) }
+    )
+  }
+
+  const onDeleteLast = () => {
+    // newest record of the day, by createdAt (fallback to date)
+    const last = [...menuEntries].sort((a, b) =>
+      (b.createdAt || b.date).localeCompare(a.createdAt || a.date)
+    )[0]
+    if (last) del.mutate({ id: last.id, trackerId: tracker.id })
+  }
+
   return (
     <View className='flex-1'>
       <ScrollView
@@ -174,6 +217,7 @@ export function HabitChartsTab({
             month={calendar}
             todayISO={today}
             onLogDay={onLogDay}
+            onLongPressDay={onLongPressDay}
           />
         </View>
 
@@ -208,6 +252,16 @@ export function HabitChartsTab({
           </Typography>
         </Pressable>
       </View>
+
+      <CalendarDayMenu
+        date={menuDate}
+        title={menuTitle}
+        hasEntry={menuHasEntry}
+        onLogYes={() => logValue(1)}
+        onLogNo={() => logValue(0)}
+        onDeleteLast={onDeleteLast}
+        onClose={() => setMenuDate(null)}
+      />
     </View>
   )
 }
