@@ -154,7 +154,14 @@ export function buildCalendarMonth(
     else if (iso === todayISO) status = 'today'
     else if (iso > todayISO) status = 'future'
     else status = 'none'
-    cells.push({ day: d, status, iso, value: totals.get(iso) ?? 0, goal, hasEntry })
+    cells.push({
+      day: d,
+      status,
+      iso,
+      value: totals.get(iso) ?? 0,
+      goal,
+      hasEntry
+    })
   }
   return { year, month, daysInMonth, firstWeekdayMon, cells }
 }
