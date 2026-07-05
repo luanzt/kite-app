@@ -37,8 +37,11 @@ import { useAppStore } from '@store/useAppStore'
 import { toISODate } from '@utils/date'
 import type {
   Accumulation,
+  AverageWindow,
+  DoneRule,
   HabitDirection,
   Period,
+  ProgressBasis,
   Routine,
   Tracker
 } from '@features/trackers/types'
@@ -54,6 +57,9 @@ const COLORS = [
   '#e0457a',
   '#6b7280'
 ]
+
+/** Rolling-average preset windows (days) — Strides-style quick picks. */
+const ROLLING_PRESETS = [7, 14, 21]
 
 export function TrackerFormScreen({
   route,
@@ -115,6 +121,19 @@ export function TrackerFormScreen({
   const [reminderTime, setReminderTime] = useState(
     editing?.reminderTime ?? '18:00'
   )
+  // Average-only Strides options.
+  const [averageWindow, setAverageWindow] = useState<AverageWindow>(
+    editing?.averageWindow ?? 'since_start'
+  )
+  const [rollingDaysStr, setRollingDaysStr] = useState(
+    editing?.rollingDays != null ? String(editing.rollingDays) : '7'
+  )
+  const [doneRule, setDoneRule] = useState<DoneRule>(
+    editing?.doneRule ?? 'when_logged'
+  )
+  const [progressBasis, setProgressBasis] = useState<ProgressBasis>(
+    editing?.progressBasis ?? 'overall_avg'
+  )
 
   // `useTracker` resolves after first render (async query), so the useState
   // initialisers can't see the editing tracker. Hydrate fields once it arrives.
@@ -137,6 +156,12 @@ export function TrackerFormScreen({
     setRoutine(editing.routine ?? 'any')
     setReminderOn(!!editing.reminderTime)
     setReminderTime(editing.reminderTime ?? '18:00')
+    setAverageWindow(editing.averageWindow ?? 'since_start')
+    setRollingDaysStr(
+      editing.rollingDays != null ? String(editing.rollingDays) : '7'
+    )
+    setDoneRule(editing.doneRule ?? 'when_logged')
+    setProgressBasis(editing.progressBasis ?? 'overall_avg')
   }, [editing])
 
   const icons = ICONSET[type] ?? ICONSET.target
@@ -144,14 +169,17 @@ export function TrackerFormScreen({
   const onSave = () => {
     const isHabit = type === 'habit'
     const isTarget = type === 'target'
+    const isAverage = type === 'average'
 
-    // Required fields: habit & target both need a goal > 0; habit also needs a Due day.
-    if (isHabit || isTarget) {
+    // Required fields: habit/target/average need a goal > 0; habit & average
+    // also need at least one Due day.
+    if (isHabit || isTarget || isAverage) {
       const goalNum = Number(target)
       const problems: string[] = []
       if (!target.trim() || !Number.isFinite(goalNum) || goalNum <= 0)
         problems.push(t('form.errGoal'))
-      if (isHabit && repeatDays.length === 0) problems.push(t('form.errDue'))
+      if ((isHabit || isAverage) && repeatDays.length === 0)
+        problems.push(t('form.errDue'))
       if (problems.length) {
         alert({
           title: t('form.errTitle'),
@@ -162,22 +190,38 @@ export function TrackerFormScreen({
       }
     }
 
+    // Rolling window: parse the free-text days, falling back to 7.
+    const parsedRolling = Number(rollingDaysStr)
+    const rollingDaysNum =
+      Number.isFinite(parsedRolling) && parsedRolling >= 1
+        ? Math.round(parsedRolling)
+        : 7
+
     const base = buildTracker({
       name: name.trim() || t(`type.${type}`),
       type,
       icon,
       color,
-      unit: unit.trim() || null,
+      unit: isAverage ? null : unit.trim() || null,
       targetValue: target ? Number(target) : null,
       startValue: isTarget ? Number(startValue) || 0 : undefined,
       accumulation: isTarget ? accum : undefined,
-      period: type === 'average' || isHabit ? period : undefined,
+      period: isAverage || isHabit ? period : undefined,
       startDate:
-        isHabit || isTarget ? startDate.trim() || undefined : undefined,
-      repeatDays: isHabit || isTarget ? repeatDays : undefined,
+        isHabit || isTarget || isAverage
+          ? startDate.trim() || undefined
+          : undefined,
+      repeatDays: isHabit || isTarget || isAverage ? repeatDays : undefined,
       routine: isHabit ? routine : undefined,
       reminderTime:
-        (isHabit || isTarget) && reminderOn ? reminderTime.trim() || null : null
+        (isHabit || isTarget || isAverage) && reminderOn
+          ? reminderTime.trim() || null
+          : null,
+      averageWindow: isAverage ? averageWindow : undefined,
+      rollingDays:
+        isAverage && averageWindow === 'rolling' ? rollingDaysNum : undefined,
+      doneRule: isAverage ? doneRule : undefined,
+      progressBasis: isAverage ? progressBasis : undefined
     })
     const tracker: Tracker = {
       ...base,
@@ -186,7 +230,7 @@ export function TrackerFormScreen({
       createdAt: editing?.createdAt ?? base.createdAt,
       goalNote: editing?.goalNote ?? base.goalNote,
       startDate:
-        isHabit || isTarget
+        isHabit || isTarget || isAverage
           ? base.startDate
           : editing?.startDate ?? base.startDate,
       direction: type === 'target' || isHabit ? dir : base.direction,
@@ -435,45 +479,176 @@ export function TrackerFormScreen({
         {/* average-specific */}
         {type === 'average' ? (
           <>
+            {/* goal + time period */}
             <View className='flex-row gap-s3'>
-              <View className='flex-[2] gap-s2'>
-                <FieldLabel>{`${t('form.target')} / ${t(
-                  'form.period'
-                ).toLowerCase()}`}</FieldLabel>
+              <View className='flex-1 gap-s2'>
+                <FieldLabel>{t('form.avgGoal')}</FieldLabel>
                 <FormInput
                   value={target}
                   onChangeText={setTarget}
-                  placeholder='8'
+                  placeholder={t('form.avgGoalPh')}
                   keyboardType='decimal-pad'
                 />
               </View>
-              <View className='flex-1 gap-s2'>
-                <FieldLabel>{t('form.unit')}</FieldLabel>
-                <FormInput
-                  value={unit}
-                  onChangeText={setUnit}
-                  placeholder={t('form.unitPh')}
+              <View className='flex-[2] gap-s2'>
+                <FieldLabel>{t('form.timePeriod')}</FieldLabel>
+                <SelectField<Period>
+                  label={t('form.timePeriod')}
+                  value={period}
+                  onChange={setPeriod}
+                  options={[
+                    { value: 'daily', label: periodLabels.daily },
+                    { value: 'weekly', label: periodLabels.weekly },
+                    { value: 'monthly', label: periodLabels.monthly }
+                  ]}
                 />
               </View>
             </View>
+
+            {/* start date */}
+            <View className='gap-s2'>
+              <FieldLabel>{t('form.startDate')}</FieldLabel>
+              <DateField value={startDate} onChange={setStartDate} />
+            </View>
+
+            {/* due / repeat days */}
+            <View className='gap-s2'>
+              <FieldLabel>{t('form.due')}</FieldLabel>
+              <WeekdayPicker
+                value={repeatDays}
+                onChange={setRepeatDays}
+                labels={{
+                  mon: t('form.wd.mon'),
+                  tue: t('form.wd.tue'),
+                  wed: t('form.wd.wed'),
+                  thu: t('form.wd.thu'),
+                  fri: t('form.wd.fri'),
+                  sat: t('form.wd.sat'),
+                  sun: t('form.wd.sun')
+                }}
+              />
+            </View>
+
+            {/* reminders */}
+            <View className='gap-s2'>
+              <View className='flex-row items-center justify-between'>
+                <View className='flex-row items-center gap-s2'>
+                  <Icons.Bell size={18} color={TYPE_COLOR.average} />
+                  <FieldLabel>{t('form.reminders')}</FieldLabel>
+                </View>
+                <Toggle value={reminderOn} onChange={setReminderOn} />
+              </View>
+              {reminderOn ? (
+                <View className='gap-s2'>
+                  <FieldLabel>{t('form.alert')}</FieldLabel>
+                  <TimeField
+                    value={reminderTime}
+                    onChange={setReminderTime}
+                    placeholder='18:00'
+                  />
+                </View>
+              ) : null}
+            </View>
+
+            {/* average window (Strides "Average") */}
             <View className='gap-s2'>
               <FieldLabelRow
                 trailing={
                   <InfoTooltip
                     title={t('form.helpTitle')}
-                    description={t('form.periodHelp')}
+                    description={t('form.avgWindowHelp')}
                   />
                 }
               >
-                {t('form.period')}
+                {t('form.avgWindow')}
               </FieldLabelRow>
-              <Segmented<Period>
-                value={period}
-                onChange={setPeriod}
+              <Segmented<AverageWindow>
+                value={averageWindow}
+                onChange={setAverageWindow}
                 options={[
-                  { value: 'daily', label: periodLabels.daily },
-                  { value: 'weekly', label: periodLabels.weekly },
-                  { value: 'monthly', label: periodLabels.monthly }
+                  { value: 'since_start', label: t('form.avgSinceStart') },
+                  { value: 'rolling', label: t('form.avgRolling') }
+                ]}
+              />
+              {averageWindow === 'rolling' ? (
+                <View className='gap-s2'>
+                  <FieldLabel>{t('form.avgRollingDays')}</FieldLabel>
+                  <View className='flex-row items-center gap-s2'>
+                    {ROLLING_PRESETS.map((d) => {
+                      const sel = rollingDaysStr === String(d)
+                      return (
+                        <Pressable
+                          key={d}
+                          onPress={() => setRollingDaysStr(String(d))}
+                          className={`h-[46px] w-[56px] items-center justify-center rounded-md-k border ${
+                            sel
+                              ? 'border-brand bg-brand-weak'
+                              : 'border-line bg-surface'
+                          }`}
+                        >
+                          <Typography
+                            className={`text-base font-bold ${
+                              sel ? 'text-brand' : 'text-ink-2'
+                            }`}
+                          >
+                            {d}
+                          </Typography>
+                        </Pressable>
+                      )
+                    })}
+                    <View className='flex-1'>
+                      <FormInput
+                        value={rollingDaysStr}
+                        onChangeText={setRollingDaysStr}
+                        placeholder={t('form.avgCustom')}
+                        keyboardType='decimal-pad'
+                      />
+                    </View>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+
+            {/* move to done */}
+            <View className='gap-s2'>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.moveHelp')}
+                  />
+                }
+              >
+                {t('form.moveToDone')}
+              </FieldLabelRow>
+              <Segmented<DoneRule>
+                value={doneRule}
+                onChange={setDoneRule}
+                options={[
+                  { value: 'when_logged', label: t('form.moveWhenLogged') },
+                  { value: 'when_goal_met', label: t('form.moveWhenGoalMet') }
+                ]}
+              />
+            </View>
+
+            {/* progress bar */}
+            <View className='gap-s2'>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.progressHelp')}
+                  />
+                }
+              >
+                {t('form.progressBar')}
+              </FieldLabelRow>
+              <Segmented<ProgressBasis>
+                value={progressBasis}
+                onChange={setProgressBasis}
+                options={[
+                  { value: 'overall_avg', label: t('form.progressOverall') },
+                  { value: 'today_total', label: t('form.progressToday') }
                 ]}
               />
             </View>
