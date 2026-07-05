@@ -40,7 +40,8 @@ import { useThemeColors } from '@hooks/useThemeColors'
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
 function isDueToday(t: Tracker, todayISO: string): boolean {
-  if (t.type === 'habit' && t.repeatDays && t.repeatDays.length) {
+  const dueByWeekday = t.type === 'habit' || t.type === 'average'
+  if (dueByWeekday && t.repeatDays && t.repeatDays.length) {
     return t.repeatDays.includes(weekdayOf(todayISO))
   }
   return true

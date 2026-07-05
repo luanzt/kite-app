@@ -138,5 +138,5 @@
   },
   "toast": { "saved": "Tracker saved", "logged": "Logged", "logSuccess": "Logged successfully", "deleted": "Tracker deleted" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" },
-  "notification": { "habitBody": "Time to keep your streak going", "targetBody": "Log your progress toward the goal" }
+  "notification": { "habitBody": "Time to keep your streak going", "targetBody": "Log your progress toward the goal", "averageBody": "Time to log today's number" }
 }

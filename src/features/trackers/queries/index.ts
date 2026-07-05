@@ -60,6 +60,8 @@ export function useSaveTracker() {
         const body =
           t.type === 'target'
             ? tr('notification.targetBody')
+            : t.type === 'average'
+            ? tr('notification.averageBody')
             : tr('notification.habitBody')
         await scheduleTrackerReminders(t, body)
       } else {

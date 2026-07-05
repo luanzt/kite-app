@@ -95,9 +95,9 @@ export async function cancelTrackerReminders(trackerId: string): Promise<void> {
  * then — if the tracker has a `reminderTime` — schedules one weekly-repeating
  * notification per due weekday.
  *
- * Both habits and targets are reminded on their `repeatDays` (or every day if
- * none — the form lets both types pick weekdays). Other types (average/project)
- * are not reminded.
+ * Habits, targets and averages are reminded on their `repeatDays` (or every
+ * day if none — their forms let the user pick weekdays). Projects are not
+ * reminded.
  *
  * `body` is the (already-translated) notification body; callers pass the i18n
  * string so this module stays free of the i18n runtime. Falls back to a plain
@@ -109,7 +109,10 @@ export async function scheduleTrackerReminders(
 ): Promise<void> {
   await cancelTrackerReminders(tracker.id)
 
-  const reminds = tracker.type === 'habit' || tracker.type === 'target'
+  const reminds =
+    tracker.type === 'habit' ||
+    tracker.type === 'target' ||
+    tracker.type === 'average'
   if (!reminds || !tracker.reminderTime) return
   const parsed = parseTime(tracker.reminderTime)
   if (!parsed) return
