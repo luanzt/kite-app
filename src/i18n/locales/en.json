@@ -80,6 +80,14 @@
     "routine": "Routine", "routineAny": "Any", "routineMorning": "Morning",
     "routineAfternoon": "Afternoon", "routineEvening": "Evening",
     "reminders": "Reminders", "alert": "Alert",
+    "avgGoal": "Goal", "avgGoalPh": "5",
+    "avgWindow": "Average", "avgSinceStart": "Since Start Date", "avgRolling": "Rolling Average",
+    "avgRollingDays": "Rolling window (days)", "avgCustom": "Custom",
+    "avgWindowHelp": "Since Start Date averages every log since you began. Rolling Average only averages the last N days — recent performance instead of all-time.",
+    "moveToDone": "Move to Done", "moveWhenLogged": "When Logged", "moveWhenGoalMet": "When Goal is Met",
+    "moveHelp": "When Logged marks the day done as soon as you log anything. When Goal is Met waits until today's total reaches your goal.",
+    "progressBar": "Progress Bar", "progressOverall": "Overall Average", "progressToday": "Today's Total",
+    "progressHelp": "Overall Average fills the bar from your average versus your goal. Today's Total fills it from what you've logged today.",
     "wd": { "mon": "M", "tue": "T", "wed": "W", "thu": "Th", "fri": "F", "sat": "S", "sun": "Su" },
     "cancel": "Cancel", "delete": "Delete tracker",
     "errTitle": "Missing info", "errGoal": "Please enter a goal greater than 0", "errDue": "Please select at least one day"
@@ -138,5 +146,5 @@
   },
   "toast": { "saved": "Tracker saved", "logged": "Logged", "logSuccess": "Logged successfully", "deleted": "Tracker deleted" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" },
-  "notification": { "habitBody": "Time to keep your streak going", "targetBody": "Log your progress toward the goal" }
+  "notification": { "habitBody": "Time to keep your streak going", "targetBody": "Log your progress toward the goal", "averageBody": "Time to log today's number" }
 }

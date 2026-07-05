@@ -29,7 +29,11 @@ describe('missingColumns', () => {
     expect(missingColumns(TRACKER_COLUMNS, existing)).toEqual([
       { name: 'routine', decl: 'routine TEXT' },
       { name: 'reminder_time', decl: 'reminder_time TEXT' },
-      { name: 'goal_note', decl: 'goal_note TEXT' }
+      { name: 'goal_note', decl: 'goal_note TEXT' },
+      { name: 'average_window', decl: 'average_window TEXT' },
+      { name: 'rolling_days', decl: 'rolling_days INTEGER' },
+      { name: 'done_rule', decl: 'done_rule TEXT' },
+      { name: 'progress_basis', decl: 'progress_basis TEXT' }
     ])
   })
 

@@ -55,7 +55,11 @@ export const TRACKER_COLUMNS: ColumnSpec[] = [
   { name: 'reminder_time', decl: 'reminder_time TEXT' },
   { name: 'goal_note', decl: 'goal_note TEXT' },
   { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" },
-  { name: 'archived', decl: 'archived INTEGER NOT NULL DEFAULT 0' }
+  { name: 'archived', decl: 'archived INTEGER NOT NULL DEFAULT 0' },
+  { name: 'average_window', decl: 'average_window TEXT' },
+  { name: 'rolling_days', decl: 'rolling_days INTEGER' },
+  { name: 'done_rule', decl: 'done_rule TEXT' },
+  { name: 'progress_basis', decl: 'progress_basis TEXT' }
 ]
 
 export const ENTRY_COLUMNS: ColumnSpec[] = [

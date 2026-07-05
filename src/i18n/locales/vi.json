@@ -80,6 +80,14 @@
     "routine": "Thời điểm", "routineAny": "Bất kỳ", "routineMorning": "Sáng",
     "routineAfternoon": "Chiều", "routineEvening": "Tối",
     "reminders": "Nhắc nhở", "alert": "Giờ nhắc",
+    "avgGoal": "Mục tiêu", "avgGoalPh": "5",
+    "avgWindow": "Cách tính trung bình", "avgSinceStart": "Từ ngày bắt đầu", "avgRolling": "Trung bình trượt",
+    "avgRollingDays": "Cửa sổ trượt (ngày)", "avgCustom": "Tùy chỉnh",
+    "avgWindowHelp": "Từ ngày bắt đầu tính trung bình mọi lần ghi kể từ khi bắt đầu. Trung bình trượt chỉ tính N ngày gần nhất — phản ánh phong độ gần đây thay vì toàn bộ.",
+    "moveToDone": "Chuyển sang Hoàn thành", "moveWhenLogged": "Khi đã ghi", "moveWhenGoalMet": "Khi đạt mục tiêu",
+    "moveHelp": "Khi đã ghi đánh dấu hoàn thành ngay khi bạn ghi bất kỳ giá trị nào. Khi đạt mục tiêu chờ đến khi tổng hôm nay đạt mục tiêu.",
+    "progressBar": "Thanh tiến độ", "progressOverall": "Trung bình tổng", "progressToday": "Tổng hôm nay",
+    "progressHelp": "Trung bình tổng đo thanh theo mức trung bình so với mục tiêu. Tổng hôm nay đo theo số bạn đã ghi trong hôm nay.",
     "wd": { "mon": "T2", "tue": "T3", "wed": "T4", "thu": "T5", "fri": "T6", "sat": "T7", "sun": "CN" },
     "cancel": "Hủy", "delete": "Xóa mục tiêu",
     "errTitle": "Thiếu thông tin", "errGoal": "Vui lòng nhập số lần lớn hơn 0", "errDue": "Vui lòng chọn ít nhất một ngày"
@@ -138,5 +146,5 @@
   },
   "toast": { "saved": "Đã lưu mục tiêu", "logged": "Đã ghi", "logSuccess": "Đã ghi nhận thành công", "deleted": "Đã xóa mục tiêu" },
   "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" },
-  "notification": { "habitBody": "Đến giờ giữ vững chuỗi ngày rồi", "targetBody": "Ghi lại tiến độ hướng tới mục tiêu" }
+  "notification": { "habitBody": "Đến giờ giữ vững chuỗi ngày rồi", "targetBody": "Ghi lại tiến độ hướng tới mục tiêu", "averageBody": "Đến giờ ghi lại số liệu hôm nay" }
 }

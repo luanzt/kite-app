@@ -65,6 +65,8 @@ export function SettingsScreen() {
   const reminderBodyFor = (tr: { type: string }) =>
     tr.type === 'target'
       ? t('notification.targetBody')
+      : tr.type === 'average'
+      ? t('notification.averageBody')
       : t('notification.habitBody')
 
   const conflict = notifyEnabled && !osGranted

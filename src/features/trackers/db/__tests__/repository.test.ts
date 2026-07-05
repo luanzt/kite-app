@@ -25,6 +25,10 @@ const tracker: Tracker = {
   reminderTime: null,
   createdAt: '2026-01-01T00:00:00Z',
   goalNote: 'Build an emergency fund',
+  averageWindow: null,
+  rollingDays: null,
+  doneRule: null,
+  progressBasis: null,
   archived: false
 }
 
@@ -76,10 +80,48 @@ describe('tracker row mapping', () => {
       reminderTime: null,
       createdAt: '2026-06-01T00:00:00Z',
       goalNote: null,
+      averageWindow: null,
+      rollingDays: null,
+      doneRule: null,
+      progressBasis: null,
       archived: false
     }
     const back = rowToTracker(trackerToRow(habit))
     expect(back).toEqual(habit)
+  })
+
+  const avgTracker: Tracker = {
+    ...tracker,
+    type: 'average',
+    averageWindow: 'rolling',
+    rollingDays: 14,
+    doneRule: 'when_goal_met',
+    progressBasis: 'today_total'
+  }
+
+  test('trackerToRow maps the average Strides fields to snake_case columns', () => {
+    const row = trackerToRow(avgTracker)
+    expect(row.average_window).toBe('rolling')
+    expect(row.rolling_days).toBe(14)
+    expect(row.done_rule).toBe('when_goal_met')
+    expect(row.progress_basis).toBe('today_total')
+  })
+
+  test('rowToTracker round-trips the average Strides fields', () => {
+    expect(rowToTracker(trackerToRow(avgTracker))).toEqual(avgTracker)
+  })
+
+  test('rowToTracker defaults missing average fields to null (old rows)', () => {
+    const row = trackerToRow(tracker)
+    delete row.average_window
+    delete row.rolling_days
+    delete row.done_rule
+    delete row.progress_basis
+    const back = rowToTracker(row)
+    expect(back.averageWindow).toBeNull()
+    expect(back.rollingDays).toBeNull()
+    expect(back.doneRule).toBeNull()
+    expect(back.progressBasis).toBeNull()
   })
 })
 
