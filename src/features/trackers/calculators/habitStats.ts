@@ -340,6 +340,11 @@ export function classifyTodayRow(
   no: number
 ): TodayRowStatus {
   if (tracker.type === 'project') return 'due'
+  if (tracker.type === 'average' && tracker.doneRule === 'when_goal_met') {
+    const goal = tracker.targetValue ?? 0
+    // No positive goal to meet → fall through to the any-log rule below.
+    if (goal > 0) return yes >= goal ? 'completed' : 'due'
+  }
   if (tracker.type !== 'habit') return yes > 0 ? 'completed' : 'due'
   const goal = perDayGoal(tracker)
   if (yes >= goal) return 'completed'

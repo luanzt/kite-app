@@ -671,4 +671,40 @@ describe('classifyTodayRow', () => {
     const average: Tracker = { ...base, type: 'average', targetValue: 8 }
     expect(classifyTodayRow(average, 0, 3)).toBe('due') // no never makes non-habit missed
   })
+
+  it("average when_goal_met: completed only when today's total reaches the goal", () => {
+    const avgGoal: Tracker = {
+      ...base,
+      type: 'average',
+      targetValue: 8,
+      doneRule: 'when_goal_met'
+    }
+    expect(classifyTodayRow(avgGoal, 0, 0)).toBe('due')
+    expect(classifyTodayRow(avgGoal, 5, 0)).toBe('due') // logged, but under goal
+    expect(classifyTodayRow(avgGoal, 8, 0)).toBe('completed')
+  })
+
+  it('average when_goal_met with no positive goal falls back to any-log', () => {
+    const noGoal: Tracker = {
+      ...base,
+      type: 'average',
+      targetValue: null,
+      doneRule: 'when_goal_met'
+    }
+    expect(classifyTodayRow(noGoal, 0, 0)).toBe('due')
+    expect(classifyTodayRow(noGoal, 2, 0)).toBe('completed')
+  })
+
+  it('average when_logged (and null doneRule) keeps the any-log rule', () => {
+    const logged: Tracker = {
+      ...base,
+      type: 'average',
+      targetValue: 8,
+      doneRule: 'when_logged'
+    }
+    expect(classifyTodayRow(logged, 1, 0)).toBe('completed')
+    expect(classifyTodayRow({ ...logged, doneRule: null }, 1, 0)).toBe(
+      'completed'
+    )
+  })
 })
