@@ -104,6 +104,16 @@ describe('compareWindows — day windows', () => {
     )
     expect(r.deltaPct).toBe(200) // 3 vs 1 avg/day
   })
+
+  it('deltaPct is null even when the previous window has real zero-value logs (no % from a 0 baseline)', () => {
+    const entries = [
+      e('2026-06-25', 0), // real log, value 0, in previous window
+      e('2026-07-01', 14)
+    ]
+    const r = compareWindows(avg, entries, '2026-07-05', '7d')
+    expect(r.previous.avg).toBe(0)
+    expect(r.deltaPct).toBeNull()
+  })
 })
 
 describe('compareWindows — month windows', () => {
@@ -162,7 +172,12 @@ describe('compareWindows — log windows', () => {
 
   it('empty groups get null ranges and avg 0', () => {
     const r0 = compareWindows(avg, [], '2026-07-05', '7logs')
-    expect(r0.current).toEqual({ startISO: null, endISO: null, avg: 0, perLog: true })
+    expect(r0.current).toEqual({
+      startISO: null,
+      endISO: null,
+      avg: 0,
+      perLog: true
+    })
     expect(r0.deltaPct).toBeNull()
     const r1 = compareWindows(avg, [e('2026-07-01', 5)], '2026-07-05', '7logs')
     expect(r1.previous.startISO).toBeNull()

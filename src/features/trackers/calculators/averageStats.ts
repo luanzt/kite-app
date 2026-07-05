@@ -50,6 +50,10 @@ function sumRange(entries: Entry[], startISO: string, endISO: string): number {
   return sum
 }
 
+/**
+ * prev 0 → null: % change from a zero baseline is undefined, regardless of
+ * whether zero came from no logs or real zero-value logs.
+ */
 function deltaOf(cur: number, prev: number): number | null {
   return prev === 0 ? null : ((cur - prev) / prev) * 100
 }
@@ -95,7 +99,11 @@ export function compareWindows(
   entries: Entry[],
   todayISO: string,
   win: CompareWindow
-): { current: ComparePeriod; previous: ComparePeriod; deltaPct: number | null } {
+): {
+  current: ComparePeriod
+  previous: ComparePeriod
+  deltaPct: number | null
+} {
   const dayN = DAY_WINDOWS[win]
   if (dayN != null) {
     const curStart = isoAddDays(todayISO, -(dayN - 1))
@@ -149,8 +157,6 @@ export function compareWindows(
     current,
     previous,
     deltaPct:
-      previous.startISO === null
-        ? null
-        : deltaOf(current.avg, previous.avg)
+      previous.startISO === null ? null : deltaOf(current.avg, previous.avg)
   }
 }
