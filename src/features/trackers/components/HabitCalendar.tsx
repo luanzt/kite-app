@@ -41,7 +41,8 @@ function DayCell({
   const isPastOrToday = cell.iso <= todayISO
   const due = !isRest && !isFuture && isPastOrToday
   const frac = cell.goal > 0 ? Math.min(1, cell.value / cell.goal) : 0
-  const tappable = due && !done && !!onLogDay
+  // tap logs +1 Yes on any past-or-today day (rest included), unless already done
+  const tappable = isPastOrToday && !isFuture && !done && !!onLogDay
   // longpress opens the day menu for any past-or-today day (rest included)
   const longPressable = isPastOrToday && !isFuture && !!onLongPressDay
   // due day with progress → show the ring; logged only "No" → red pill
