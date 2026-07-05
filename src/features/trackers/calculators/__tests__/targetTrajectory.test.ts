@@ -21,6 +21,10 @@ function baseTracker(overrides: Partial<Tracker> = {}): Tracker {
     routine: 'any',
     reminderTime: null,
     goalNote: null,
+    averageWindow: null,
+    rollingDays: null,
+    doneRule: null,
+    progressBasis: null,
     createdAt: '2026-06-01T00:00:00.000Z',
     archived: false,
     ...overrides

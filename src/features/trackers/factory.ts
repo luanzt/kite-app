@@ -3,7 +3,10 @@ import type {
   TrackerType,
   Accumulation,
   Period,
-  Routine
+  Routine,
+  AverageWindow,
+  DoneRule,
+  ProgressBasis
 } from '@features/trackers/types'
 import { toISODate } from '@utils/date'
 
@@ -30,6 +33,10 @@ export type BuildTrackerInput = {
   repeatDays?: number[] | null
   routine?: Routine | null
   reminderTime?: string | null
+  averageWindow?: AverageWindow | null
+  rollingDays?: number | null
+  doneRule?: DoneRule | null
+  progressBasis?: ProgressBasis | null
 }
 
 /**
@@ -40,6 +47,7 @@ export type BuildTrackerInput = {
 export function buildTracker(input: BuildTrackerInput): Tracker {
   const { type } = input
   const isHabit = type === 'habit'
+  const isAverage = type === 'average'
   return {
     id: uuid(),
     name: input.name,
@@ -60,6 +68,13 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     routine: isHabit ? input.routine ?? 'any' : null,
     reminderTime: input.reminderTime ?? null,
     goalNote: null,
+    averageWindow: isAverage ? input.averageWindow ?? 'since_start' : null,
+    rollingDays:
+      isAverage && (input.averageWindow ?? 'since_start') === 'rolling'
+        ? input.rollingDays ?? 7
+        : null,
+    doneRule: isAverage ? input.doneRule ?? 'when_logged' : null,
+    progressBasis: isAverage ? input.progressBasis ?? 'overall_avg' : null,
     createdAt: new Date().toISOString(),
     archived: false
   }

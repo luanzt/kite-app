@@ -55,3 +55,38 @@ describe('buildTracker — target startValue / schedule / reminders', () => {
     expect(t.repeatDays).toBeNull()
   })
 })
+
+describe('buildTracker — average Strides options', () => {
+  it('defaults the four average fields for an average tracker', () => {
+    const t = buildTracker({ name: 'Water', type: 'average', targetValue: 8 })
+    expect(t.averageWindow).toBe('since_start')
+    expect(t.rollingDays).toBeNull() // only set when rolling
+    expect(t.doneRule).toBe('when_logged')
+    expect(t.progressBasis).toBe('overall_avg')
+  })
+
+  it('rolling window defaults rollingDays to 7 and keeps explicit values', () => {
+    const t = buildTracker({
+      name: 'Water',
+      type: 'average',
+      averageWindow: 'rolling'
+    })
+    expect(t.averageWindow).toBe('rolling')
+    expect(t.rollingDays).toBe(7)
+    const t14 = buildTracker({
+      name: 'Water',
+      type: 'average',
+      averageWindow: 'rolling',
+      rollingDays: 14
+    })
+    expect(t14.rollingDays).toBe(14)
+  })
+
+  it('non-average types get null for all four fields', () => {
+    const h = buildTracker({ name: 'Meditate', type: 'habit' })
+    expect(h.averageWindow).toBeNull()
+    expect(h.rollingDays).toBeNull()
+    expect(h.doneRule).toBeNull()
+    expect(h.progressBasis).toBeNull()
+  })
+})

@@ -23,7 +23,11 @@ export function trackerToRow(t: Tracker): Row {
     reminder_time: t.reminderTime,
     goal_note: t.goalNote,
     created_at: t.createdAt,
-    archived: t.archived ? 1 : 0
+    archived: t.archived ? 1 : 0,
+    average_window: t.averageWindow,
+    rolling_days: t.rollingDays,
+    done_rule: t.doneRule,
+    progress_basis: t.progressBasis
   }
 }
 
@@ -47,12 +51,16 @@ export function rowToTracker(r: Row): Tracker {
     reminderTime: r.reminder_time ?? null,
     goalNote: r.goal_note ?? null,
     createdAt: r.created_at,
-    archived: r.archived === 1
+    archived: r.archived === 1,
+    averageWindow: r.average_window ?? null,
+    rollingDays: r.rolling_days ?? null,
+    doneRule: r.done_rule ?? null,
+    progressBasis: r.progress_basis ?? null
   }
 }
 
 const COLS =
-  'id,name,type,icon,color,unit,direction,target_value,start_value,accumulation,start_date,deadline,period,repeat_days,routine,reminder_time,goal_note,created_at,archived'
+  'id,name,type,icon,color,unit,direction,target_value,start_value,accumulation,start_date,deadline,period,repeat_days,routine,reminder_time,goal_note,created_at,archived,average_window,rolling_days,done_rule,progress_basis'
 const PLACEHOLDERS = COLS.split(',')
   .map(() => '?')
   .join(',')

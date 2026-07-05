@@ -31,6 +31,10 @@ const base: Tracker = {
   routine: 'any',
   reminderTime: null,
   goalNote: null,
+  averageWindow: null,
+  rollingDays: null,
+  doneRule: null,
+  progressBasis: null,
   createdAt: '2026-06-01T00:00:00Z',
   archived: false
 }

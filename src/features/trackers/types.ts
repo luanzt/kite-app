@@ -5,6 +5,12 @@ export type Accumulation = 'sum' | 'latest'
 export type PaceStatus = 'on_track' | 'behind' | 'ahead' | 'none'
 /** Time-of-day grouping for a habit (Strides-style "Routine"). */
 export type Routine = 'any' | 'morning' | 'afternoon' | 'evening'
+/** Average only: which entries feed the mean (Strides "Average"). */
+export type AverageWindow = 'since_start' | 'rolling'
+/** Average only: when the Today row counts as done (Strides "Move to Done"). */
+export type DoneRule = 'when_logged' | 'when_goal_met'
+/** Average only: what fills the progress bar (Strides "Progress Bar"). */
+export type ProgressBasis = 'overall_avg' | 'today_total'
 
 export type Tracker = {
   id: string
@@ -24,6 +30,10 @@ export type Tracker = {
   routine: Routine | null // time-of-day grouping (habit)
   reminderTime: string | null // "HH:MM" 24h, null = reminders off
   goalNote: string | null // free-text motivation note pinned to the goal (habit Notes tab)
+  averageWindow: AverageWindow | null // average only; null = since_start
+  rollingDays: number | null // average only: rolling window in calendar days
+  doneRule: DoneRule | null // average only; null = when_logged
+  progressBasis: ProgressBasis | null // average only; null = overall_avg
   createdAt: string // ISO datetime
   archived: boolean
 }
