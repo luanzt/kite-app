@@ -145,6 +145,30 @@ describe('buildCalendarMonth', () => {
     expect(cell(5).hasEntry).toBe(true)
     expect(cell(6).hasEntry).toBe(false) // no entry at all
   })
+
+  test('a non-scheduled day with an entry is not rest', () => {
+    // Mon/Wed/Fri schedule; 2026-06-06 is a Saturday (rest), but it has a "No" log.
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(mwf, [log('2026-06-06', 0)], 2026, 5, '2026-06-10')
+    const cell = m.cells.find((c) => c.day === 6)!
+    expect(cell.status).not.toBe('rest') // logged → rendered like a normal day
+    expect(cell.hasEntry).toBe(true)
+  })
+
+  test('a non-scheduled day with no entry is still rest', () => {
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(mwf, [], 2026, 5, '2026-06-10')
+    const cell = m.cells.find((c) => c.day === 6)! // Saturday, no log
+    expect(cell.status).toBe('rest')
+  })
+
+  test('a non-scheduled day logged to goal is done', () => {
+    // goal 1 (default habit); a Saturday with a Yes reaches goal → done beats rest.
+    const mwf = { ...base, repeatDays: [1, 3, 5], targetValue: 1 }
+    const m = buildCalendarMonth(mwf, [log('2026-06-06', 1)], 2026, 5, '2026-06-10')
+    const cell = m.cells.find((c) => c.day === 6)!
+    expect(cell.status).toBe('done')
+  })
 })
 
 describe('dayTotalsOf', () => {

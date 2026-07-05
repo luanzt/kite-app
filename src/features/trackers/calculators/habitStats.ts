@@ -147,20 +147,14 @@ export function buildCalendarMonth(
   const cells: CalendarCell[] = []
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${year}-${pad2(month + 1)}-${pad2(d)}`
+    const hasEntry = (counts.get(iso) ?? 0) > 0
     let status: CalendarStatus
     if (done.has(iso)) status = 'done'
-    else if (!isDueOn(tracker, iso)) status = 'rest'
+    else if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
     else if (iso === todayISO) status = 'today'
     else if (iso > todayISO) status = 'future'
     else status = 'none'
-    cells.push({
-      day: d,
-      status,
-      iso,
-      value: totals.get(iso) ?? 0,
-      goal,
-      hasEntry: (counts.get(iso) ?? 0) > 0
-    })
+    cells.push({ day: d, status, iso, value: totals.get(iso) ?? 0, goal, hasEntry })
   }
   return { year, month, daysInMonth, firstWeekdayMon, cells }
 }
