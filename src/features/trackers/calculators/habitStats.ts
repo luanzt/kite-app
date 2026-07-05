@@ -34,14 +34,40 @@ export function isDueOn(tracker: Tracker, iso: string): boolean {
   return tracker.repeatDays.includes(weekdayOf(iso))
 }
 
-/** The set of ISO dates whose summed logged value met the per-day goal. */
-export function doneDatesOf(tracker: Tracker, entries: Entry[]): Set<string> {
-  const goal = perDayGoal(tracker)
+/** Summed logged value per ISO day (YYYY-MM-DD). Single source of daily totals. */
+export function dayTotalsOf(
+  tracker: Tracker,
+  entries: Entry[]
+): Map<string, number> {
   const totals = new Map<string, number>()
   for (const e of entries) {
     const day = e.date.slice(0, 10)
     totals.set(day, (totals.get(day) ?? 0) + e.value)
   }
+  return totals
+}
+
+/**
+ * Number of log records per ISO day (YYYY-MM-DD), regardless of value — so a
+ * "No" entry (value 0) still counts. Lets the calendar tell "logged only No"
+ * (value 0 with count > 0) apart from "not logged at all" (count 0).
+ */
+export function dayCountsOf(
+  tracker: Tracker,
+  entries: Entry[]
+): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const e of entries) {
+    const day = e.date.slice(0, 10)
+    counts.set(day, (counts.get(day) ?? 0) + 1)
+  }
+  return counts
+}
+
+/** The set of ISO dates whose summed logged value met the per-day goal. */
+export function doneDatesOf(tracker: Tracker, entries: Entry[]): Set<string> {
+  const goal = perDayGoal(tracker)
+  const totals = dayTotalsOf(tracker, entries)
   return new Set(
     [...totals].filter(([, total]) => total >= goal).map(([day]) => day)
   )
@@ -78,7 +104,14 @@ export function bestStreak(
 }
 
 export type CalendarStatus = 'done' | 'today' | 'rest' | 'future' | 'none'
-export type CalendarCell = { day: number; status: CalendarStatus }
+export type CalendarCell = {
+  day: number
+  status: CalendarStatus
+  iso: string // full YYYY-MM-DD, for tap-to-log
+  value: number // summed logged value that day (Yes = 1, No = 0)
+  goal: number // perDayGoal(tracker)
+  hasEntry: boolean // at least one log record that day (value 0 "No" counts)
+}
 export type CalendarMonth = {
   year: number
   month: number // 0-based
@@ -94,7 +127,9 @@ function pad2(n: number): string {
 
 /**
  * Build a month's calendar with each day's habit status. Status priority:
- * done > today > rest (not scheduled) > future > none (a plain past day).
+ * done > future > rest (unscheduled & unlogged) > today > none (a plain past
+ * day). `future` beats `rest` so an unactionable future rest day isn't marked;
+ * `rest` requires `!hasEntry` so a logged rest day renders like a normal day.
  */
 export function buildCalendarMonth(
   tracker: Tracker,
@@ -104,6 +139,9 @@ export function buildCalendarMonth(
   todayISO: string
 ): CalendarMonth {
   const done = doneDatesOf(tracker, entries)
+  const totals = dayTotalsOf(tracker, entries)
+  const counts = dayCountsOf(tracker, entries)
+  const goal = perDayGoal(tracker)
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const firstISO = `${year}-${pad2(month + 1)}-01`
   const firstWeekdayMon = (weekdayOf(firstISO) + 6) % 7
@@ -111,13 +149,21 @@ export function buildCalendarMonth(
   const cells: CalendarCell[] = []
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${year}-${pad2(month + 1)}-${pad2(d)}`
+    const hasEntry = (counts.get(iso) ?? 0) > 0
     let status: CalendarStatus
     if (done.has(iso)) status = 'done'
-    else if (iso === todayISO) status = 'today'
-    else if (!isDueOn(tracker, iso)) status = 'rest'
     else if (iso > todayISO) status = 'future'
+    else if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
+    else if (iso === todayISO) status = 'today'
     else status = 'none'
-    cells.push({ day: d, status })
+    cells.push({
+      day: d,
+      status,
+      iso,
+      value: totals.get(iso) ?? 0,
+      goal,
+      hasEntry
+    })
   }
   return { year, month, daysInMonth, firstWeekdayMon, cells }
 }

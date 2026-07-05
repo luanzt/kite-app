@@ -1,19 +1,49 @@
 diff --git a/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js b/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js
-index f9ea035..9cd67a4 100644
+index f9ea035..9484357 100644
 --- a/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js
 +++ b/node_modules/heroui-native/lib/module/helpers/internal/components/bottom-sheet-content-container.js
-@@ -72,6 +72,14 @@ export function BottomSheetContentContainer({
+@@ -32,9 +32,11 @@ export function BottomSheetContentContainer({
+ }) {
+   const {
+     close,
+-    snapToIndex
++    snapToIndex,
++    animatedIndex
+   } = useBottomSheet();
+   const prevIsOpenRef = useRef(isOpen);
++  const openRafRef = useRef(0);
+   const closeBottomSheet = () => {
+     onOpenChange(false);
+   };
+@@ -72,7 +74,31 @@ export function BottomSheetContentContainer({
        // Only snap to initial index when transitioning from closed to open
        isPanActivated.set(false);
        snapToIndex(initialIndex);
-+      // PATCH: on the very first open after mount, gorhom's layout isn't ready
-+      // yet, so this synchronous snapToIndex is silently ignored (animatedIndex
-+      // stays at -1) and the sheet only opens on the ~3rd tap. Re-issue the snap
-+      // on the next frames, once the content/handle layout has been measured.
-+      requestAnimationFrame(() => {
++      // PATCH: on open, gorhom's content/handle layout often isn't measured yet,
++      // so this synchronous snapToIndex is silently ignored (animatedIndex stays
++      // at -1) and the sheet only opens after several taps. A FIXED number of
++      // retry frames is unreliable — layout can become ready on frame 1, 3, or
++      // later depending on JS-thread load (heavier when editing hydrates state).
++      // Instead, re-issue the snap every frame until animatedIndex leaves -1
++      // (i.e. layout is measured and the open animation has begun), capped so a
++      // sheet that legitimately stays closed can't loop forever.
++      openRafRef.current += 1;
++      const token = openRafRef.current;
++      let tries = 0;
++      const MAX_TRIES = 20;
++      const retrySnap = () => {
++        // a newer open/close superseded this loop, or we transitioned closed
++        if (token !== openRafRef.current || !prevIsOpenRef.current) return;
++        const idx = animatedIndex?.get?.();
++        if (typeof idx === 'number' && idx > -1) return; // layout ready, opening
++        if (tries++ >= MAX_TRIES) return;
 +        snapToIndex(initialIndex);
-+        requestAnimationFrame(() => snapToIndex(initialIndex));
-+      });
++        requestAnimationFrame(retrySnap);
++      };
++      requestAnimationFrame(retrySnap);
      } else if (!isOpen && wasOpen) {
++      // invalidate any in-flight open-retry loop so it can't re-open the sheet
++      openRafRef.current += 1;
        // Close when transitioning from open to closed
        close();
+     }

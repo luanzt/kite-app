@@ -1,5 +1,7 @@
 import {
   doneDatesOf,
+  dayTotalsOf,
+  dayCountsOf,
   bestStreak,
   buildCalendarMonth,
   weeklyGoalOf,
@@ -118,6 +120,190 @@ describe('buildCalendarMonth', () => {
     expect(status(6)).toBe('rest') // Saturday, not scheduled
     expect(status(10)).toBe('today')
     expect(status(12)).toBe('future') // Friday after today
+  })
+
+  test('today on a non-scheduled day is rest, not today', () => {
+    // Mon/Wed/Fri schedule; today = 2026-06-09 is a Tuesday (not scheduled).
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(mwf, [], 2026, 5, '2026-06-09')
+    const cell = m.cells.find((c) => c.day === 9)!
+    expect(cell.status).toBe('rest')
+  })
+
+  test('cells carry hasEntry: true only for days with at least one log', () => {
+    // June 4 has a No entry (value 0), June 5 has a Yes, June 6 has nothing.
+    const m = buildCalendarMonth(
+      base,
+      [log('2026-06-04', 0), log('2026-06-05', 1)],
+      2026,
+      5,
+      '2026-06-10'
+    )
+    const cell = (day: number) => m.cells.find((c) => c.day === day)!
+    expect(cell(4).hasEntry).toBe(true) // a No entry still counts as an entry
+    expect(cell(4).value).toBe(0)
+    expect(cell(5).hasEntry).toBe(true)
+    expect(cell(6).hasEntry).toBe(false) // no entry at all
+  })
+
+  test('a non-scheduled day with an entry is not rest', () => {
+    // Mon/Wed/Fri schedule; 2026-06-06 is a Saturday (rest), but it has a "No" log.
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(
+      mwf,
+      [log('2026-06-06', 0)],
+      2026,
+      5,
+      '2026-06-10'
+    )
+    const cell = m.cells.find((c) => c.day === 6)!
+    expect(cell.status).not.toBe('rest') // logged → rendered like a normal day
+    expect(cell.hasEntry).toBe(true)
+  })
+
+  test('a non-scheduled day with no entry is still rest', () => {
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(mwf, [], 2026, 5, '2026-06-10')
+    const cell = m.cells.find((c) => c.day === 6)! // Saturday, no log
+    expect(cell.status).toBe('rest')
+  })
+
+  test('a FUTURE non-scheduled day is future, not rest', () => {
+    // Mon/Wed/Fri; today = 2026-06-10 (Wed). 2026-06-13 is a future Saturday.
+    const mwf = { ...base, repeatDays: [1, 3, 5] }
+    const m = buildCalendarMonth(mwf, [], 2026, 5, '2026-06-10')
+    const cell = m.cells.find((c) => c.day === 13)!
+    expect(cell.status).toBe('future') // future rest day → not marked as rest
+  })
+
+  test('a non-scheduled day logged to goal is done', () => {
+    // goal 1 (default habit); a Saturday with a Yes reaches goal → done beats rest.
+    const mwf = { ...base, repeatDays: [1, 3, 5], targetValue: 1 }
+    const m = buildCalendarMonth(
+      mwf,
+      [log('2026-06-06', 1)],
+      2026,
+      5,
+      '2026-06-10'
+    )
+    const cell = m.cells.find((c) => c.day === 6)!
+    expect(cell.status).toBe('done')
+  })
+})
+
+describe('dayTotalsOf', () => {
+  const tracker = { targetValue: 5, period: 'daily', repeatDays: [] } as any
+  it('sums multiple entries on the same day', () => {
+    const entries = [
+      {
+        id: 'a',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 2,
+        note: null,
+        createdAt: '2026-07-01T01:00:00Z'
+      },
+      {
+        id: 'b',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 3,
+        note: null,
+        createdAt: '2026-07-01T02:00:00Z'
+      },
+      {
+        id: 'c',
+        trackerId: 't',
+        date: '2026-07-02',
+        value: 1,
+        note: null,
+        createdAt: '2026-07-02T01:00:00Z'
+      }
+    ] as any
+    const totals = dayTotalsOf(tracker, entries)
+    expect(totals.get('2026-07-01')).toBe(5)
+    expect(totals.get('2026-07-02')).toBe(1)
+    expect(totals.get('2026-07-03')).toBeUndefined()
+  })
+})
+
+describe('dayCountsOf', () => {
+  it('counts entries per day regardless of value (No entries count too)', () => {
+    const entries = [
+      {
+        id: 'a',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 0,
+        note: null,
+        createdAt: '2026-07-01T01:00:00Z'
+      }, // No
+      {
+        id: 'b',
+        trackerId: 't',
+        date: '2026-07-01',
+        value: 0,
+        note: null,
+        createdAt: '2026-07-01T02:00:00Z'
+      }, // No
+      {
+        id: 'c',
+        trackerId: 't',
+        date: '2026-07-02',
+        value: 1,
+        note: null,
+        createdAt: '2026-07-02T01:00:00Z'
+      } // Yes
+    ] as any
+    const counts = dayCountsOf({} as any, entries)
+    expect(counts.get('2026-07-01')).toBe(2) // two No entries still count
+    expect(counts.get('2026-07-02')).toBe(1)
+    expect(counts.get('2026-07-03')).toBeUndefined()
+  })
+})
+
+describe('buildCalendarMonth cell progress fields', () => {
+  const tracker = {
+    startDate: '2026-07-01',
+    targetValue: 5,
+    period: 'daily',
+    repeatDays: []
+  } as any
+  const entries = [
+    {
+      id: 'a',
+      trackerId: 't',
+      date: '2026-07-01',
+      value: 2,
+      note: null,
+      createdAt: '2026-07-01T01:00:00Z'
+    }, // partial 2/5
+    {
+      id: 'b',
+      trackerId: 't',
+      date: '2026-07-02',
+      value: 5,
+      note: null,
+      createdAt: '2026-07-02T01:00:00Z'
+    } // done 5/5
+  ] as any
+  const month = buildCalendarMonth(tracker, entries, 2026, 6, '2026-07-03') // month 6 = July
+
+  it('carries iso, value and goal on each cell', () => {
+    const d1 = month.cells.find((c) => c.day === 1)!
+    expect(d1.iso).toBe('2026-07-01')
+    expect(d1.value).toBe(2)
+    expect(d1.goal).toBe(5)
+  })
+  it('a below-goal day is not "done"', () => {
+    const d1 = month.cells.find((c) => c.day === 1)!
+    expect(d1.status).not.toBe('done')
+    expect(d1.value).toBeLessThan(d1.goal)
+  })
+  it('an at-or-above-goal day is "done"', () => {
+    const d2 = month.cells.find((c) => c.day === 2)!
+    expect(d2.status).toBe('done')
+    expect(d2.value).toBeGreaterThanOrEqual(d2.goal)
   })
 })
 

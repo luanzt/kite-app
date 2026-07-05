@@ -10,6 +10,7 @@ import type {
 import { useThemeColors } from '@hooks/useThemeColors'
 
 const CHART_H = 144
+const BAR_W = 44 // fixed per-bar column width (see renderItem's w-[44px])
 
 /**
  * Daily chart — one bar per day, horizontally scrollable (newest on the right,
@@ -99,7 +100,7 @@ function DailyBarChart({
       </View>
 
       {/* scrollable bars */}
-      <View className='relative flex-1 border-b border-l border-line'>
+      <View className='relative flex-1 border-b border-l border-r border-line'>
         {/* target line — fixed across the plot at the per-day target value.
             Pinned to a 144px overlay from the top so it lines up with the bar
             baseline (bars sit at the bottom of their own 144px column).
@@ -132,7 +133,17 @@ function DailyBarChart({
           renderItem={renderItem}
           horizontal
           showsHorizontalScrollIndicator={false}
-          // newest bar is last → jump to the end so today is visible first
+          // bars are fixed-width → a static layout lets us open scrolled to the
+          // end (today) without waiting on measurement, so the user starts on
+          // the most recent day and scrolls LEFT into the past.
+          getItemLayout={(_, index) => ({
+            length: BAR_W,
+            offset: BAR_W * index,
+            index
+          })}
+          initialScrollIndex={Math.max(0, data.bars.length - 1)}
+          // belt-and-suspenders: also snap to the end once content is laid out,
+          // in case initialScrollIndex is clamped on the first frame
           onContentSizeChange={() =>
             listRef.current?.scrollToEnd({ animated: false })
           }
