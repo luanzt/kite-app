@@ -26,11 +26,13 @@ const CIRC = 2 * Math.PI * R
 function DayCell({
   cell,
   todayISO,
-  onLogDay
+  onLogDay,
+  onLongPressDay
 }: {
   cell: CalendarCell
   todayISO: string
   onLogDay?: (iso: string) => void
+  onLongPressDay?: (iso: string) => void
 }) {
   const c = useThemeColors()
   const done = cell.status === 'done'
@@ -40,6 +42,8 @@ function DayCell({
   const due = !isRest && !isFuture && isPastOrToday
   const frac = cell.goal > 0 ? Math.min(1, cell.value / cell.goal) : 0
   const tappable = due && !done && !!onLogDay
+  // longpress opens the day menu for any past-or-today day (rest included)
+  const longPressable = isPastOrToday && !isFuture && !!onLongPressDay
   // due day with progress → show the ring; logged only "No" → red pill
   const isPartial = due && !done && cell.value > 0
   const isFailed = due && !done && cell.value === 0 && cell.hasEntry
@@ -124,11 +128,13 @@ function DayCell({
     </View>
   )
 
-  if (tappable) {
+  if (tappable || longPressable) {
     return (
       <View className='aspect-square flex-1 items-center justify-center'>
         <Pressable
-          onPress={() => onLogDay?.(cell.iso)}
+          onPress={() => tappable && onLogDay?.(cell.iso)}
+          onLongPress={() => longPressable && onLongPressDay?.(cell.iso)}
+          delayLongPress={300}
           hitSlop={4}
           className='active:opacity-70'
         >
@@ -152,11 +158,13 @@ function DayCell({
 export function HabitCalendar({
   month,
   todayISO,
-  onLogDay
+  onLogDay,
+  onLongPressDay
 }: {
   month: CalendarMonth
   todayISO: string
   onLogDay?: (iso: string) => void
+  onLongPressDay?: (iso: string) => void
 }) {
   const { t } = useTranslation()
   const dow = t('detail.dow', { returnObjects: true }) as string[]
@@ -194,6 +202,7 @@ export function HabitCalendar({
                 cell={cell}
                 todayISO={todayISO}
                 onLogDay={onLogDay}
+                onLongPressDay={onLongPressDay}
               />
             ) : (
               <View key={`pad-${wi}-${di}`} className='aspect-square flex-1' />
