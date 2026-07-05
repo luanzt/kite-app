@@ -133,7 +133,13 @@ function DayCell({
     return (
       <View className='aspect-square flex-1 items-center justify-center'>
         <Pressable
-          onPress={() => tappable && onLogDay?.(cell.iso)}
+          // tap logs +1 Yes; but a done day taps into the menu (like longpress)
+          // so the user can view / delete instead of silently doing nothing
+          onPress={() =>
+            tappable
+              ? onLogDay?.(cell.iso)
+              : done && longPressable && onLongPressDay?.(cell.iso)
+          }
           onLongPress={() => longPressable && onLongPressDay?.(cell.iso)}
           delayLongPress={300}
           hitSlop={4}
