@@ -50,7 +50,7 @@ export type ProgressBasis = 'overall_avg' | 'today_total'
 
 // on Tracker:
 averageWindow: AverageWindow | null
-rollingDays: number | null   // rolling window size in entries; null unless rolling
+rollingDays: number | null   // rolling window size in calendar days; null unless rolling
 doneRule: DoneRule | null
 progressBasis: ProgressBasis | null
 ```
