@@ -172,8 +172,8 @@ export function AverageComparisonCard({
           {deltaEl}
         </View>
         <View
-          className='h-[34px] justify-center rounded-md-k bg-pace-on px-s3'
-          style={{ width: `${widthPct(current.avg)}%` }} // value-derived width
+          className='h-[34px] self-start justify-center rounded-md-k bg-pace-on px-s3'
+          style={{ minWidth: `${widthPct(current.avg)}%` }} // value-derived minimum; bar never narrower than its label
         >
           <Typography
             numberOfLines={1}
@@ -195,8 +195,8 @@ export function AverageComparisonCard({
           <Typography className='text-sm text-ink-2'>{perLabel}</Typography>
         </View>
         <View
-          className='h-[34px] justify-center rounded-md-k bg-brand px-s3'
-          style={{ width: `${widthPct(previous.avg)}%` }} // value-derived width
+          className='h-[34px] self-start justify-center rounded-md-k bg-brand px-s3'
+          style={{ minWidth: `${widthPct(previous.avg)}%` }} // value-derived minimum; bar never narrower than its label
         >
           <Typography
             numberOfLines={1}
