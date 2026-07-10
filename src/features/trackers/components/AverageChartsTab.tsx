@@ -40,8 +40,9 @@ function barLabel(startISO: string, unit: PeriodUnit, lang: string): string {
 }
 
 /**
- * Average Charts tab — Strides-style: period-comparison card (window picker),
- * streak/average/success stats row, and a value bar chart with the goal line.
+ * Average Charts tab — Strides-style: streak/average/success hero (gradient,
+ * AchievementHero-styled), period-comparison card (window picker), and a value
+ * bar chart with the goal line.
  * The floating "Log today" opens the numeric log modal (adds a new record;
  * same-day logs sum, matching the Today screen).
  */
@@ -74,6 +75,7 @@ export function AverageChartsTab({
         contentContainerStyle={{ paddingBottom: insets.bottom + 88 }} // safe-area, runtime
         showsVerticalScrollIndicator={false}
       >
+        <AverageStatsRow tracker={tracker} average={average} stats={stats} />
         <AverageComparisonCard
           window={win}
           onChangeWindow={setWin}
@@ -81,7 +83,6 @@ export function AverageChartsTab({
           previous={cmp.previous}
           deltaPct={cmp.deltaPct}
         />
-        <AverageStatsRow tracker={tracker} average={average} stats={stats} />
 
         {/* value trend — adapts to the tracker's period */}
         <View className='m-s5 rounded-xl-k border border-line bg-surface p-s5'>
