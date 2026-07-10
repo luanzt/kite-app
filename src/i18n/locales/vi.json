@@ -124,7 +124,13 @@
     "perDay": "/ ngày",
     "chartActual": "Thực tế",
     "chartProjected": "Dự phóng",
-    "chartIdeal": "Lý tưởng"
+    "chartIdeal": "Lý tưởng",
+    "avgChartTitle": "Trung bình",
+    "avgWin": { "d7": "7 ngày", "d14": "14 ngày", "d30": "30 ngày", "w4": "4 tuần", "m3": "3 tháng", "m6": "6 tháng", "m12": "12 tháng", "log7": "7 log", "log30": "30 log" },
+    "avgPerDay": "TB/ngày", "avgPerLog": "TB/log",
+    "avgUnder": "thiếu {{n}}", "avgOver": "vượt {{n}}",
+    "unitWeeks": "tuần", "unitMonths": "tháng",
+    "valueBy": { "day": "Tổng theo ngày", "week": "Tổng theo tuần", "month": "Tổng theo tháng" }
   },
   "common": { "done": "Xong", "today": "Hôm nay", "cancel": "Hủy", "save": "Lưu", "ok": "OK", "close": "Đóng", "progress": "Tiến độ" },
   "log": {

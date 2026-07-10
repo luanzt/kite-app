@@ -16,6 +16,7 @@ import {
 import { progressFor } from '@features/trackers/components/TrackerCard'
 import { HabitDetailView } from '@features/trackers/components/HabitDetailView'
 import { TargetDetailView } from '@features/trackers/components/TargetDetailView'
+import { AverageDetailView } from '@features/trackers/components/AverageDetailView'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
 import { showLogSuccess } from '@features/trackers/components/LogSuccessToast'
 import { DetailAppbar } from '@features/trackers/components/DetailAppbar'
@@ -125,6 +126,22 @@ export function TrackerDetailScreen({
       <View className='flex-1 bg-bg'>
         {appbar}
         <TargetDetailView
+          tracker={tracker}
+          entries={entries}
+          onAddLog={openAddLog}
+          onEditEntry={openEditLog}
+          onLogForDate={openLogForDate}
+        />
+        {logModalEl}
+      </View>
+    )
+  }
+
+  if (tracker.type === 'average') {
+    return (
+      <View className='flex-1 bg-bg'>
+        {appbar}
+        <AverageDetailView
           tracker={tracker}
           entries={entries}
           onAddLog={openAddLog}
