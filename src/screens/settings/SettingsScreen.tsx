@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
-import { AppState, Pressable, ScrollView, View } from 'react-native'
+import { AppState, Platform, Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useNavigation } from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import type { RootStackParamList } from '@navigation/types'
 import { useAppStore } from '@store/useAppStore'
 import { changeLanguage, type Language } from '@i18n/index'
 import { Icons } from '@features/trackers/icons'
@@ -37,6 +40,7 @@ function Group({ children }: { children: React.ReactNode }) {
 }
 
 export function SettingsScreen() {
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const { t } = useTranslation()
   const alert = useAlert()
   const insets = useSafeAreaInsets()
@@ -229,6 +233,25 @@ export function SettingsScreen() {
         <View>
           <SectionTitle>{t('set.data')}</SectionTitle>
           <Group>
+            {Platform.OS === 'ios' ? (
+              <Pressable
+                onPress={() => nav.navigate('SyncBackup')}
+                className='flex-row items-center gap-s3 border-b border-line p-s4 active:opacity-80'
+              >
+                <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
+                  <Icons.Cloud size={18} color={c.ink} />
+                </View>
+                <View className='flex-1'>
+                  <Typography className='text-base font-semibold text-ink'>
+                    {t('sync.row')}
+                  </Typography>
+                  <Typography className='mt-[1px] text-xs text-ink-3'>
+                    {t('sync.rowSub')}
+                  </Typography>
+                </View>
+                <Icons.Chevron size={18} color={c.ink3} />
+              </Pressable>
+            ) : null}
             <Pressable className='flex-row items-center gap-s3 border-b border-line p-s4 active:opacity-80'>
               <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
                 <Icons.Download size={18} color={c.ink} />

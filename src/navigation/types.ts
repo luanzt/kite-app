@@ -13,6 +13,7 @@ export type RootStackParamList = {
   TrackerDetail: { trackerId: string }
   TrackerForm: { trackerId?: string; type: TrackerType }
   TrackerTypePicker: undefined
+  SyncBackup: undefined
 }
 
 export type MainTabProps<T extends keyof MainTabParamList> =
