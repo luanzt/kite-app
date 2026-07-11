@@ -85,3 +85,71 @@ export function parseSnapshot(json: string): Snapshot {
     tombstones: s.tombstones as Tombstone[]
   }
 }
+
+/** LWW stamp: prefer updatedAt, fall back to createdAt (pre-sync rows), else ''. */
+function stampOf(r: { updatedAt?: string | null; createdAt?: string }): string {
+  return r.updatedAt ?? r.createdAt ?? ''
+}
+
+/** Union tombstones by id, keeping the latest deletedAt for duplicates. */
+function mergeTombstones(a: Tombstone[], b: Tombstone[]): Tombstone[] {
+  const byId = new Map<string, Tombstone>()
+  for (const tb of [...a, ...b]) {
+    const prev = byId.get(tb.id)
+    if (!prev || tb.deletedAt > prev.deletedAt) byId.set(tb.id, tb)
+  }
+  return [...byId.values()]
+}
+
+/**
+ * Union two row arrays by id. When both sides have a record the higher stamp
+ * wins; on a tie the LOCAL copy wins (a device keeps its own bytes). Ids in
+ * `dead` are dropped — a tombstone always beats a live record.
+ */
+function mergeRows<
+  T extends { id: string; updatedAt?: string | null; createdAt?: string }
+>(local: T[], cloud: T[], dead: Set<string>): T[] {
+  const byId = new Map<string, T>()
+  for (const row of cloud) byId.set(row.id, row)
+  for (const row of local) {
+    const other = byId.get(row.id)
+    if (!other || stampOf(row) >= stampOf(other)) byId.set(row.id, row)
+  }
+  return [...byId.values()].filter((r) => !dead.has(r.id))
+}
+
+/**
+ * Merge the local DB with the cloud backup. Pure — the caller applies the
+ * result to SQLite and writes it back to iCloud. ISO-8601 strings compare
+ * correctly as plain strings, so no Date parsing is needed.
+ */
+export function mergeSnapshots(
+  local: Snapshot,
+  cloud: Snapshot,
+  now: string = new Date().toISOString()
+): Snapshot {
+  const tombstones = mergeTombstones(local.tombstones, cloud.tombstones)
+  const deadTrackers = new Set<string>()
+  const deadEntries = new Set<string>()
+  const deadMilestones = new Set<string>()
+  for (const tb of tombstones) {
+    if (tb.tableName === 'trackers') deadTrackers.add(tb.id)
+    else if (tb.tableName === 'entries') deadEntries.add(tb.id)
+    else deadMilestones.add(tb.id)
+  }
+
+  const trackers = mergeRows(local.trackers, cloud.trackers, deadTrackers)
+  // Cascade: children of a tombstoned tracker die with it (they carry no
+  // tombstone of their own — deleteTracker writes a single tracker tombstone).
+  const orphan = (r: { trackerId: string }) => deadTrackers.has(r.trackerId)
+  const entries = mergeRows(local.entries, cloud.entries, deadEntries).filter(
+    (e) => !orphan(e)
+  )
+  const milestones = mergeRows(
+    local.milestones,
+    cloud.milestones,
+    deadMilestones
+  ).filter((m) => !orphan(m))
+
+  return buildSnapshot(trackers, entries, milestones, tombstones, now)
+}
