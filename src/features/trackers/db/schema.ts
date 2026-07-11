@@ -59,7 +59,8 @@ export const TRACKER_COLUMNS: ColumnSpec[] = [
   { name: 'average_window', decl: 'average_window TEXT' },
   { name: 'rolling_days', decl: 'rolling_days INTEGER' },
   { name: 'done_rule', decl: 'done_rule TEXT' },
-  { name: 'progress_basis', decl: 'progress_basis TEXT' }
+  { name: 'progress_basis', decl: 'progress_basis TEXT' },
+  { name: 'updated_at', decl: 'updated_at TEXT' }
 ]
 
 export const ENTRY_COLUMNS: ColumnSpec[] = [
@@ -68,7 +69,8 @@ export const ENTRY_COLUMNS: ColumnSpec[] = [
   { name: 'date', decl: "date TEXT NOT NULL DEFAULT ''" },
   { name: 'value', decl: 'value REAL NOT NULL DEFAULT 0' },
   { name: 'note', decl: 'note TEXT' },
-  { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" }
+  { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" },
+  { name: 'updated_at', decl: 'updated_at TEXT' }
 ]
 
 export const MILESTONE_COLUMNS: ColumnSpec[] = [
@@ -77,7 +79,20 @@ export const MILESTONE_COLUMNS: ColumnSpec[] = [
   { name: 'title', decl: "title TEXT NOT NULL DEFAULT ''" },
   { name: 'due_date', decl: 'due_date TEXT' },
   { name: 'progress', decl: 'progress REAL NOT NULL DEFAULT 0' },
-  { name: 'order_index', decl: 'order_index INTEGER NOT NULL DEFAULT 0' }
+  { name: 'order_index', decl: 'order_index INTEGER NOT NULL DEFAULT 0' },
+  { name: 'updated_at', decl: 'updated_at TEXT' }
+]
+
+/**
+ * Sync tombstones: one row per deleted record so iCloud sync can tell
+ * "deleted here" apart from "never seen here". `id` is the dead record's id;
+ * a deleted tracker gets ONE tombstone (its entries/milestones are dropped by
+ * the merge cascade, not tombstoned individually).
+ */
+export const TOMBSTONE_COLUMNS: ColumnSpec[] = [
+  { name: 'id', decl: 'id TEXT PRIMARY KEY' },
+  { name: 'table_name', decl: "table_name TEXT NOT NULL DEFAULT ''" },
+  { name: 'deleted_at', decl: "deleted_at TEXT NOT NULL DEFAULT ''" }
 ]
 
 /** Every table the app owns, each self-describing for create + upgrade. */
@@ -90,7 +105,8 @@ export const TABLES: TableSpec[] = [
       'CREATE INDEX IF NOT EXISTS idx_entries_tracker_date ON entries(tracker_id, date);'
     ]
   },
-  { name: 'milestones', columns: MILESTONE_COLUMNS }
+  { name: 'milestones', columns: MILESTONE_COLUMNS },
+  { name: 'tombstones', columns: TOMBSTONE_COLUMNS }
 ]
 
 /**
