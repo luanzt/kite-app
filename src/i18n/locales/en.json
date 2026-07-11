@@ -33,7 +33,14 @@
     "empty": "Start something today",
     "emptyBody": "Pick a quick-start goal, or build your own from scratch.",
     "quickHint": "POPULAR GOALS",
-    "create": "Create tracker"
+    "create": "Create tracker",
+    "today": "today",
+    "avgPerDay": "avg / day",
+    "avgPerWeek": "avg / week",
+    "avgPerMonth": "avg / month",
+    "goalBy": "{{value}} by {{date}}",
+    "goal": "Goal {{value}}",
+    "due": "Due {{date}}"
   },
   "quickStart": {
     "heading": "Start with a goal",
@@ -84,6 +91,8 @@
     "orMore": "Or more", "orLess": "Or less",
     "avgDirectionHelp": "Or more: you aim to reach the goal or above (e.g. 8 glasses of water). Or less: you aim to stay at the goal or below (e.g. 2 coffees max).",
     "goal": "Goal", "goalPh": "5 times", "timePeriod": "Time Period", "startDate": "Start Date", "due": "Due",
+    "badHabit": "Bad habit", "limit": "Limit", "limitPh": "2 max · 0 = never",
+    "badHabitHelp": "Track something to avoid (e.g. beer). Log each slip; a day is successful when you stay at or under the limit. Days you don't log count as clean. Limit 0 means never.",
     "routine": "Routine", "routineAny": "Any", "routineMorning": "Morning",
     "routineAfternoon": "Afternoon", "routineEvening": "Evening",
     "reminders": "Reminders", "alert": "Alert",
@@ -142,6 +151,7 @@
   "common": { "done": "Done", "today": "Today", "cancel": "Cancel", "save": "Save", "ok": "OK", "close": "Close", "progress": "Progress" },
   "log": {
     "prompt": "Did you do this habit?", "yes": "Yes", "no": "No", "value": "Value", "valuePh": "0",
+    "promptBad": "Did you slip up?", "slipped": "Yes, I slipped", "stayedClean": "No, stayed clean",
     "notesPh": "Add a note about this session — how it felt, distance, pace…",
     "date": "Date", "time": "Time", "save": "Save log"
   },

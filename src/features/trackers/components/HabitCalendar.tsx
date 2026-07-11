@@ -45,9 +45,12 @@ function DayCell({
   const tappable = isPastOrToday && !isFuture && !done && !!onLogDay
   // longpress opens the day menu for any past-or-today day (rest included)
   const longPressable = isPastOrToday && !isFuture && !!onLongPressDay
-  // due day with progress → show the ring; logged only "No" → red pill
-  const isPartial = due && !done && cell.value > 0
-  const isFailed = due && !done && cell.value === 0 && cell.hasEntry
+  // due day with progress → show the ring; logged only "No" → red pill.
+  // Bad habits mark over-limit days with an explicit 'failed' status.
+  const isFailed =
+    cell.status === 'failed' ||
+    (due && !done && cell.value === 0 && cell.hasEntry)
+  const isPartial = due && !done && !isFailed && cell.value > 0
 
   const numberClass = done
     ? 'text-on-accent'

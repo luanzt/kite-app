@@ -171,13 +171,19 @@ export function TrackerFormScreen({
     const isTarget = type === 'target'
     const isAverage = type === 'average'
 
-    // Required fields: habit/target/average need a goal > 0; habit & average
-    // also need at least one Due day.
+    // Required fields: habit/target/average need a goal > 0 — except a bad
+    // habit, whose limit may be 0 or left empty (0 = full abstinence); habit
+    // & average also need at least one Due day.
     if (isHabit || isTarget || isAverage) {
       const goalNum = Number(target)
+      const isBadHabit = isHabit && dir === 'bad'
       const problems: string[] = []
-      if (!target.trim() || !Number.isFinite(goalNum) || goalNum <= 0)
+      if (isBadHabit) {
+        if (target.trim() && (!Number.isFinite(goalNum) || goalNum < 0))
+          problems.push(t('form.errGoal'))
+      } else if (!target.trim() || !Number.isFinite(goalNum) || goalNum <= 0) {
         problems.push(t('form.errGoal'))
+      }
       if ((isHabit || isAverage) && repeatDays.length === 0)
         problems.push(t('form.errDue'))
       if (problems.length) {
@@ -683,14 +689,33 @@ export function TrackerFormScreen({
         {/* habit-specific */}
         {type === 'habit' ? (
           <>
-            {/* goal + time period */}
+            {/* bad habit toggle — targetValue becomes a LIMIT (0 = never) */}
+            <View className='flex-row items-center justify-between'>
+              <View className='flex-row items-center gap-s2'>
+                <FieldLabel>{t('form.badHabit')}</FieldLabel>
+                <InfoTooltip
+                  title={t('form.helpTitle')}
+                  description={t('form.badHabitHelp')}
+                />
+              </View>
+              <Toggle
+                value={dir === 'bad'}
+                onChange={(v) => setDir(v ? 'bad' : 'good')}
+              />
+            </View>
+
+            {/* goal (or limit) + time period */}
             <View className='flex-row gap-s3'>
               <View className='flex-1 gap-s2'>
-                <FieldLabel>{t('form.goal')}</FieldLabel>
+                <FieldLabel>
+                  {t(dir === 'bad' ? 'form.limit' : 'form.goal')}
+                </FieldLabel>
                 <FormInput
                   value={target}
                   onChangeText={setTarget}
-                  placeholder={t('form.goalPh')}
+                  placeholder={t(
+                    dir === 'bad' ? 'form.limitPh' : 'form.goalPh'
+                  )}
                   keyboardType='decimal-pad'
                 />
               </View>

@@ -163,50 +163,68 @@ export function LogEntryModal({
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps='handled'
           >
-            {/* habit: Yes/No · others: numeric value */}
+            {/* habit: Yes/No · bad habit: slipped/clean · others: numeric value */}
             {tracker.type === 'habit' ? (
-              <View>
-                <Typography className='mt-s4 text-center text-h3-k font-bold text-ink'>
-                  {t('log.prompt')}
-                </Typography>
-                <View className='mt-s4 flex-row gap-s3'>
-                  <Pressable
-                    onPress={() => setDone(true)}
-                    className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
-                      done ? 'border-brand bg-brand' : 'border-line bg-surface'
-                    }`}
-                  >
-                    <Icons.Check size={28} color={done ? c.onAccent : c.ink3} />
-                    <Typography
-                      className={`text-body-k font-bold ${
-                        done ? 'text-on-accent' : 'text-ink-2'
-                      }`}
-                    >
-                      {t('log.yes')}
+              (() => {
+                // Bad habit inverts the buttons: "Yes" records a slip (red),
+                // an explicit "No" marks the day clean (green).
+                const isBad = tracker.direction === 'bad'
+                const yesSel = isBad
+                  ? 'border-pace-behind bg-pace-behind-weak'
+                  : 'border-brand bg-brand'
+                const yesTxt = isBad ? 'text-pace-behind' : 'text-on-accent'
+                const yesIcon = isBad ? c.pace.behind : c.onAccent
+                const noSel = isBad
+                  ? 'border-pace-on bg-pace-on-weak'
+                  : 'border-pace-behind bg-pace-behind-weak'
+                const noTxt = isBad ? 'text-pace-on' : 'text-pace-behind'
+                const noIcon = isBad ? c.pace.on_track : c.pace.behind
+                return (
+                  <View>
+                    <Typography className='mt-s4 text-center text-h3-k font-bold text-ink'>
+                      {t(isBad ? 'log.promptBad' : 'log.prompt')}
                     </Typography>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => setDone(false)}
-                    className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
-                      !done
-                        ? 'border-pace-behind bg-pace-behind-weak'
-                        : 'border-line bg-surface'
-                    }`}
-                  >
-                    <Icons.Close
-                      size={28}
-                      color={!done ? c.pace.behind : c.ink3}
-                    />
-                    <Typography
-                      className={`text-body-k font-bold ${
-                        !done ? 'text-pace-behind' : 'text-ink-2'
-                      }`}
-                    >
-                      {t('log.no')}
-                    </Typography>
-                  </Pressable>
-                </View>
-              </View>
+                    <View className='mt-s4 flex-row gap-s3'>
+                      <Pressable
+                        onPress={() => setDone(true)}
+                        className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
+                          done ? yesSel : 'border-line bg-surface'
+                        }`}
+                      >
+                        <Icons.Check
+                          size={28}
+                          color={done ? yesIcon : c.ink3}
+                        />
+                        <Typography
+                          className={`text-body-k font-bold ${
+                            done ? yesTxt : 'text-ink-2'
+                          }`}
+                        >
+                          {t(isBad ? 'log.slipped' : 'log.yes')}
+                        </Typography>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => setDone(false)}
+                        className={`h-[88px] flex-1 items-center justify-center gap-s2 rounded-lg-k border-2 ${
+                          !done ? noSel : 'border-line bg-surface'
+                        }`}
+                      >
+                        <Icons.Close
+                          size={28}
+                          color={!done ? noIcon : c.ink3}
+                        />
+                        <Typography
+                          className={`text-body-k font-bold ${
+                            !done ? noTxt : 'text-ink-2'
+                          }`}
+                        >
+                          {t(isBad ? 'log.stayedClean' : 'log.no')}
+                        </Typography>
+                      </Pressable>
+                    </View>
+                  </View>
+                )
+              })()
             ) : (
               <View className='mt-s4 overflow-hidden rounded-xl-k border border-line bg-surface'>
                 <Typography className='px-s4 pt-s4 text-xs-k font-bold uppercase text-ink-3'>

@@ -83,9 +83,30 @@ export function bestStreak(
   entries: Entry[],
   todayISO: string
 ): number {
-  const done = doneDatesOf(tracker, entries)
   const total = daysBetween(tracker.startDate, todayISO)
   if (total < 0) return 0
+
+  // Bad habit: longest run of CLEAN due days (unlogged = clean, today
+  // included); a day over the limit breaks the run and never counts.
+  if (tracker.direction === 'bad') {
+    const limit = tracker.targetValue ?? 0
+    const totals = dayTotalsOf(tracker, entries)
+    let best = 0
+    let run = 0
+    for (let i = 0; i <= total; i++) {
+      const day = isoAddDays(tracker.startDate, i)
+      if (!isDueOn(tracker, day)) continue
+      if ((totals.get(day) ?? 0) > limit) {
+        run = 0
+      } else {
+        run += 1
+        if (run > best) best = run
+      }
+    }
+    return best
+  }
+
+  const done = doneDatesOf(tracker, entries)
   let best = 0
   let run = 0
   for (let i = 0; i <= total; i++) {
@@ -103,7 +124,13 @@ export function bestStreak(
   return best
 }
 
-export type CalendarStatus = 'done' | 'today' | 'rest' | 'future' | 'none'
+export type CalendarStatus =
+  | 'done'
+  | 'failed' // bad habit only: the day went over the limit
+  | 'today'
+  | 'rest'
+  | 'future'
+  | 'none'
 export type CalendarCell = {
   day: number
   status: CalendarStatus
@@ -146,12 +173,23 @@ export function buildCalendarMonth(
   const firstISO = `${year}-${pad2(month + 1)}-01`
   const firstWeekdayMon = (weekdayOf(firstISO) + 6) % 7
 
+  // Bad habit: every settled day is either clean (done) or over the limit
+  // (failed) — an unlogged day IS clean, so there is no "none"/"today" state.
+  const isBad = tracker.direction === 'bad'
+  const limit = tracker.targetValue ?? 0
+
   const cells: CalendarCell[] = []
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${year}-${pad2(month + 1)}-${pad2(d)}`
     const hasEntry = (counts.get(iso) ?? 0) > 0
     let status: CalendarStatus
-    if (done.has(iso)) status = 'done'
+    if (isBad) {
+      if (iso > todayISO) status = 'future'
+      else if (iso < tracker.startDate.slice(0, 10) && !hasEntry)
+        status = 'none' // before the tracker existed — not "clean"
+      else if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
+      else status = (totals.get(iso) ?? 0) > limit ? 'failed' : 'done'
+    } else if (done.has(iso)) status = 'done'
     else if (iso > todayISO) status = 'future'
     else if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
     else if (iso === todayISO) status = 'today'
@@ -161,7 +199,7 @@ export function buildCalendarMonth(
       status,
       iso,
       value: totals.get(iso) ?? 0,
-      goal,
+      goal: isBad ? limit : goal,
       hasEntry
     })
   }
@@ -265,6 +303,34 @@ export function habitStreakStatus(
   const span = daysBetween(tracker.startDate, todayISO)
   if (span < 0) return { kind: 'none', n: 0 }
 
+  // Bad habit: the streak is "days clean" (unlogged = clean, today included).
+  // Going over the limit today ends it at the prior clean run.
+  if (tracker.direction === 'bad') {
+    const limit = tracker.targetValue ?? 0
+    const totals = dayTotalsOf(tracker, entries)
+    const overOn = (d: string) => (totals.get(d) ?? 0) > limit
+    const cleanRun = (startOffset: number): number => {
+      let run = 0
+      for (let i = startOffset; i <= span; i++) {
+        const day = isoAddDays(todayISO, -i)
+        if (!isDueOn(tracker, day)) continue
+        if (overOn(day)) break
+        run += 1
+      }
+      return run
+    }
+    if (overOn(todayISO)) {
+      const prior = cleanRun(1)
+      return prior >= 1
+        ? { kind: 'streakEnded', n: prior }
+        : { kind: 'none', n: 0 }
+    }
+    const run = cleanRun(0)
+    return run >= 2
+      ? { kind: 'streakOngoing', n: run }
+      : { kind: 'greatStart', n: 0 }
+  }
+
   const todayDone = done.has(todayISO)
 
   // Does any due day exist strictly before today?
@@ -352,6 +418,11 @@ export function classifyTodayRow(
     }
   }
   if (tracker.type !== 'habit') return yes > 0 ? 'completed' : 'due'
+  // Bad habit: staying at/under the limit reads "so far so good" (completed);
+  // the only failure is exceeding it. There is nothing to be "due" for.
+  if (tracker.direction === 'bad') {
+    return yes > (tracker.targetValue ?? 0) ? 'missed' : 'completed'
+  }
   const goal = perDayGoal(tracker)
   if (yes >= goal) return 'completed'
   if (yes + no >= goal) return 'missed'
@@ -423,12 +494,9 @@ export function periodSessions(
   const bars: WeekBar[] = []
 
   if (unit === 'day') {
-    // count the number of logs (records) per day, capped span start→today
-    const logsByDay = new Map<string, number>()
-    for (const e of entries) {
-      const day = e.date.slice(0, 10)
-      logsByDay.set(day, (logsByDay.get(day) ?? 0) + 1)
-    }
+    // Summed Yes value per day (same source as the done rule) — an explicit
+    // "No" record (value 0) must not inflate the bar.
+    const logsByDay = dayTotalsOf(tracker, entries)
     const span = Math.min(
       DAILY_MAX_BARS - 1,
       Math.max(0, daysBetween(tracker.startDate.slice(0, 10), todayISO))
@@ -441,13 +509,16 @@ export function periodSessions(
         partial: i === 0
       })
     }
-    const perDayTarget = perDayGoal(tracker)
+    // Bad habit: bars are slips per day against the LIMIT (met = at/below).
+    const isBad = tracker.direction === 'bad'
+    const perDayTarget = isBad ? tracker.targetValue ?? 0 : perDayGoal(tracker)
     // scaleMax spans both the data and the target so the goal line is to scale
     // (goal 2 + 1 log → half-height bar). The target is capped so a garbage
     // tracker with an absurd target can't blow up the Y axis.
     const maxCount = Math.max(0, ...bars.map((b) => b.count))
     const scaleMax = Math.max(maxCount, Math.min(perDayTarget, 100), 1)
-    return { bars, goal: 0, scaleMax, unit, perDayTarget }
+    const base: PeriodSessions = { bars, goal: 0, scaleMax, unit, perDayTarget }
+    return isBad ? { ...base, lessIsBetter: true } : base
   } else if (unit === 'week') {
     const currentMonday = mondayOf(todayISO)
     for (let i = n - 1; i >= 0; i--) {

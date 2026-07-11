@@ -1,7 +1,6 @@
-import type { ReactNode } from 'react'
 import { Pressable, View } from 'react-native'
 import { Typography } from 'heroui-native'
-import Svg, { Circle } from 'react-native-svg'
+import { useTranslation } from 'react-i18next'
 import type {
   Tracker,
   Entry,
@@ -14,6 +13,7 @@ import {
   calculateAverage,
   calculateProject
 } from '@features/trackers/calculators'
+import { perDayGoal } from '@features/trackers/calculators/habitStats'
 import { useEntries, useMilestones } from '@features/trackers/queries'
 import { toISODate } from '@utils/date'
 import {
@@ -23,8 +23,11 @@ import {
   hexA,
   iconEmoji
 } from '@features/trackers/icons'
-import { fmtVal } from '@features/trackers/detailFormat'
-import { useThemeColors } from '@hooks/useThemeColors'
+import {
+  fmtNum,
+  fmtCompact,
+  fmtShortDate
+} from '@features/trackers/detailFormat'
 import { PaceBar } from './PaceBar'
 
 export function progressFor(
@@ -47,54 +50,6 @@ export function progressFor(
   }
 }
 
-/** Circular progress ring (-90deg start), via react-native-svg. */
-function Ring({
-  fraction,
-  color,
-  trackColor,
-  size = 40,
-  strokeWidth = 5
-}: {
-  fraction: number
-  color: string
-  trackColor: string
-  size?: number
-  strokeWidth?: number
-}) {
-  const r = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * r
-  const clamped = Math.max(0, Math.min(1, fraction))
-  const offset = circumference * (1 - clamped)
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ transform: [{ rotate: '-90deg' }] }}
-    >
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke={trackColor}
-        strokeWidth={strokeWidth}
-      />
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap='round'
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-      />
-    </Svg>
-  )
-}
-
 export function TrackerCard({
   tracker,
   onPress
@@ -102,52 +57,104 @@ export function TrackerCard({
   tracker: Tracker
   onPress: () => void
 }) {
-  const c = useThemeColors()
+  const { t, i18n } = useTranslation()
   // Each card loads its own data — TanStack Query caches per tracker and the
   // log/save mutations invalidate these keys, so the list stays live.
   const { data: entries = [] } = useEntries(tracker.id)
   const { data: milestones = [] } = useMilestones(tracker.id)
   const p = progressFor(tracker, entries, milestones)
-  const showBar = tracker.type !== 'habit'
+  const today = toISODate(new Date())
+  const lang = i18n.language
 
-  // Type-appropriate sub-line.
-  let sub: ReactNode
+  // Habit bar/stat track today's Yes count vs the per-day goal; a bad habit
+  // counts slips against its limit instead (0 = full abstinence).
+  const isBadHabit = tracker.type === 'habit' && tracker.direction === 'bad'
+  const habitGoal = isBadHabit ? tracker.targetValue ?? 0 : perDayGoal(tracker)
+  const habitN =
+    tracker.type === 'habit'
+      ? entries.filter((e) => e.date.slice(0, 10) === today && e.value > 0)
+          .length
+      : 0
+  const badOver = isBadHabit && habitN > habitGoal
+  const barPercent =
+    tracker.type === 'habit'
+      ? isBadHabit
+        ? badOver
+          ? 1 // over the limit → full red
+          : habitGoal > 0
+          ? (habitGoal - habitN) / habitGoal // remaining quota drains per slip
+          : 1 // limit 0: full green while clean
+        : habitGoal
+        ? habitN / habitGoal
+        : 0
+      : p.percent
+  const barStatus: typeof p.paceStatus =
+    tracker.type === 'habit'
+      ? isBadHabit
+        ? badOver
+          ? 'behind'
+          : 'on_track'
+        : habitN >= habitGoal && habitGoal > 0
+        ? 'on_track'
+        : 'behind'
+      : p.paceStatus
+
+  // Strides-style right rail: big stat + a small context label under it.
+  let statValue: string
+  let statLabel: string
   if (tracker.type === 'habit') {
-    const streak = p.streak ?? 0
-    const success = Math.round((p.successRate ?? 0) * 100)
-    sub = (
+    statValue = `${habitN}/${habitGoal}`
+    statLabel = t('list.today')
+  } else if (tracker.type === 'average') {
+    if (tracker.progressBasis === 'today_total') {
+      const total = entries
+        .filter((e) => e.date.slice(0, 10) === today)
+        .reduce((s, e) => s + e.value, 0)
+      statValue = fmtNum(total)
+      statLabel = t('list.today')
+    } else {
+      statValue = fmtNum(p.current)
+      statLabel = t(
+        tracker.period === 'weekly'
+          ? 'list.avgPerWeek'
+          : tracker.period === 'monthly'
+          ? 'list.avgPerMonth'
+          : 'list.avgPerDay'
+      )
+    }
+  } else if (tracker.type === 'project') {
+    const done = milestones.filter((m) => m.progress >= 1).length
+    statValue = `${Math.round(p.percent * 100)}%`
+    statLabel = tracker.deadline
+      ? t('list.due', { date: fmtShortDate(tracker.deadline, lang) })
+      : `${done}/${milestones.length}`
+  } else {
+    // target
+    statValue = fmtCompact(p.current)
+    statLabel = tracker.deadline
+      ? t('list.goalBy', {
+          value: fmtCompact(p.goal),
+          date: fmtShortDate(tracker.deadline, lang)
+        })
+      : t('list.goal', { value: fmtCompact(p.goal) })
+  }
+
+  // Habit keeps its streak/success context under the bar.
+  const habitSub =
+    tracker.type === 'habit' ? (
       <View className='flex-row items-center gap-s2'>
         <View className='flex-row items-center gap-s1'>
           <Icons.Flame size={14} color={PACE_COLOR.on_track} />
-          <Typography className='text-sm text-ink-2'>{`${streak} days`}</Typography>
+          <Typography className='text-sm text-ink-2'>{`${p.streak ?? 0} ${t(
+            'detail.days'
+          )}`}</Typography>
         </View>
         <Typography className='text-sm text-ink-3'>·</Typography>
-        <Typography className='text-sm text-ink-2'>{`${success}% success`}</Typography>
+        <Typography className='text-sm text-ink-2'>{`${Math.round(
+          (p.successRate ?? 0) * 100
+        )}% ${t('detail.success')}`}</Typography>
       </View>
-    )
-  } else if (tracker.type === 'average') {
-    sub = (
-      <Typography className='text-sm text-ink-2'>
-        {`Target ${fmtVal(tracker, tracker.targetValue)} · Ø ${fmtVal(
-          tracker,
-          p.current
-        )}`}
-      </Typography>
-    )
-  } else if (tracker.type === 'project') {
-    const done = milestones.filter((m) => m.progress >= 1).length
-    sub = (
-      <Typography className='text-sm text-ink-2'>
-        {`${done}/${milestones.length} milestones`}
-      </Typography>
-    )
-  } else {
-    sub = (
-      <Typography className='text-sm text-ink-2'>
-        {`${fmtVal(tracker, p.current)} / ${fmtVal(tracker, p.goal)}`}
-      </Typography>
-    )
-  }
+    ) : null
 
   return (
     <Pressable onPress={onPress} className='active:opacity-90'>
@@ -177,30 +184,26 @@ export function TrackerCard({
             </Typography>
           </View>
 
-          {showBar ? (
-            <PaceBar percent={p.percent} paceStatus={p.paceStatus} height={7} />
-          ) : null}
+          <PaceBar percent={barPercent} paceStatus={barStatus} height={7} />
 
-          {sub}
+          {habitSub}
         </View>
 
-        {/* right rail */}
-        {tracker.type === 'habit' ? (
-          <View className='h-[40px] w-[40px] items-center justify-center'>
-            <Ring
-              fraction={p.successRate ?? 0}
-              color={PACE_COLOR.on_track}
-              trackColor={c.line}
-            />
-            <View className='absolute inset-0 items-center justify-center'>
-              <Typography className='text-xs font-extrabold text-ink'>
-                {Math.round((p.successRate ?? 0) * 100)}
-              </Typography>
-            </View>
-          </View>
-        ) : (
-          <Icons.Chevron size={20} color={PACE_COLOR.none} />
-        )}
+        {/* right rail — Strides-style stat */}
+        <View className='max-w-[112px] items-end gap-s1'>
+          <Typography
+            numberOfLines={1}
+            className='text-[14px] font-extrabold text-ink'
+          >
+            {statValue}
+          </Typography>
+          <Typography
+            numberOfLines={1}
+            className='text-right text-[10px] font-semibold text-ink-3'
+          >
+            {statLabel}
+          </Typography>
+        </View>
       </View>
     </Pressable>
   )

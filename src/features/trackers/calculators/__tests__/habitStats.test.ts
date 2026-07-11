@@ -48,6 +48,96 @@ const log = (date: string, value = 1): Entry => ({
   createdAt: `${date}T00:00:00Z`
 })
 
+describe('bad habit — calendar, streak status, sessions', () => {
+  // "≤ 1 slip a day"; each log(value 1) is a slip
+  const bad: Tracker = {
+    ...base,
+    direction: 'bad',
+    targetValue: 1,
+    startDate: '2026-07-01'
+  }
+  const slip = (date: string, hour: number): Entry => ({
+    id: `${date}-${hour}`,
+    trackerId: 'h1',
+    date,
+    value: 1,
+    note: null,
+    createdAt: `${date}T${hour < 10 ? `0${hour}` : hour}:00:00Z`
+  })
+
+  it('buildCalendarMonth: clean days (logged or not) are done, over-limit days are failed', () => {
+    const entries = [
+      slip('2026-07-02', 8), // 1 slip = at the limit → clean
+      slip('2026-07-03', 8),
+      slip('2026-07-03', 20) // 2 slips > limit → failed
+    ]
+    const m = buildCalendarMonth(bad, entries, 2026, 6, '2026-07-05')
+    const st = (d: number) => m.cells[d - 1].status
+    expect(st(1)).toBe('done') // unlogged past day = clean
+    expect(st(2)).toBe('done')
+    expect(st(3)).toBe('failed')
+    expect(st(5)).toBe('done') // today, clean so far
+    expect(st(6)).toBe('future')
+  })
+
+  it('bestStreak: longest CLEAN run — an over-limit day breaks it and never counts', () => {
+    // limit 1; two slips on 07-03 break the run. Today 07-11.
+    const entries = [slip('2026-07-03', 8), slip('2026-07-03', 20)]
+    // clean runs: 07-01..02 (2 days) and 07-04..11 (8 days)
+    expect(bestStreak(bad, entries, '2026-07-11')).toBe(8)
+  })
+
+  it('bestStreak: a binge-day on a fresh tracker is NOT a streak', () => {
+    const fresh = { ...bad, startDate: '2026-07-11' }
+    const entries = [slip('2026-07-11', 8), slip('2026-07-11', 20)] // over
+    expect(bestStreak(fresh, entries, '2026-07-11')).toBe(0)
+  })
+
+  it('buildCalendarMonth: days before startDate stay plain, not clean', () => {
+    const late = { ...bad, startDate: '2026-07-08' }
+    const m = buildCalendarMonth(late, [], 2026, 6, '2026-07-11')
+    const st = (d: number) => m.cells[d - 1].status
+    expect(st(5)).toBe('none') // before the tracker existed
+    expect(st(8)).toBe('done') // from startDate on, unlogged = clean
+    expect(st(11)).toBe('done')
+  })
+
+  it('habitStreakStatus: a clean run reads as an ongoing streak', () => {
+    expect(habitStreakStatus(bad, [], '2026-07-05')).toEqual({
+      kind: 'streakOngoing',
+      n: 5 // 07-01..07-05 all clean without logging
+    })
+  })
+
+  it('habitStreakStatus: first clean day → greatStart', () => {
+    const fresh = { ...bad, startDate: '2026-07-05' }
+    expect(habitStreakStatus(fresh, [], '2026-07-05')).toEqual({
+      kind: 'greatStart',
+      n: 0
+    })
+  })
+
+  it('habitStreakStatus: going over today ends the streak at the prior clean run', () => {
+    const entries = [slip('2026-07-05', 8), slip('2026-07-05', 20)]
+    expect(habitStreakStatus(bad, entries, '2026-07-05')).toEqual({
+      kind: 'streakEnded',
+      n: 4 // 07-01..07-04
+    })
+  })
+
+  it('periodSessions daily: bars count slips, target is the limit, lessIsBetter set', () => {
+    const s = periodSessions(
+      bad,
+      [slip('2026-07-03', 8), slip('2026-07-03', 20)],
+      '2026-07-05'
+    )
+    expect(s.perDayTarget).toBe(1)
+    expect(s.lessIsBetter).toBe(true)
+    const bar = s.bars.find((b) => b.startISO === '2026-07-03')
+    expect(bar?.count).toBe(2)
+  })
+})
+
 describe('isoAddDays', () => {
   test('crosses month boundaries in UTC', () => {
     expect(isoAddDays('2026-06-30', 1)).toBe('2026-07-01')
@@ -406,6 +496,21 @@ describe('periodSessions', () => {
     createdAt: `${date}T10:00:00Z`
   })
 
+  test('daily bars count Yes value, not records — a "No" log adds nothing', () => {
+    const t = { ...base, period: 'daily' as const, startDate: '2026-06-18' }
+    const no: Entry = {
+      id: 'no-1',
+      trackerId: 'h1',
+      date: '2026-06-20',
+      value: 0, // an explicit "No"
+      note: null,
+      createdAt: '2026-06-20T09:00:00Z'
+    }
+    const r = periodSessions(t, [log('2026-06-20'), no], '2026-06-20')
+    const bar = r.bars.find((b) => b.startISO === '2026-06-20')
+    expect(bar?.count).toBe(1) // one Yes; the No doesn't inflate the bar
+  })
+
   test('daily habit → one bar per day from start to today, unit "day"', () => {
     // start Jun 1, today Jun 20 → 20 day bars (oldest first)
     const t = { ...base, period: 'daily' as const, startDate: '2026-06-01' }
@@ -682,6 +787,21 @@ describe('classifyTodayRow', () => {
     expect(classifyTodayRow(avgGoal, 0, 0)).toBe('due')
     expect(classifyTodayRow(avgGoal, 5, 0)).toBe('due') // logged, but under goal
     expect(classifyTodayRow(avgGoal, 8, 0)).toBe('completed')
+  })
+
+  it('bad habit: within the limit reads completed, over it reads missed', () => {
+    const badH: Tracker = {
+      ...base,
+      type: 'habit',
+      direction: 'bad',
+      targetValue: 2
+    }
+    expect(classifyTodayRow(badH, 0, 0)).toBe('completed') // clean so far
+    expect(classifyTodayRow(badH, 2, 0)).toBe('completed') // at the limit
+    expect(classifyTodayRow(badH, 3, 0)).toBe('missed')
+    const abstain: Tracker = { ...badH, targetValue: null } // limit 0
+    expect(classifyTodayRow(abstain, 0, 0)).toBe('completed')
+    expect(classifyTodayRow(abstain, 1, 0)).toBe('missed')
   })
 
   it('average when_goal_met + "or less": completed once logged and still at/under goal', () => {
