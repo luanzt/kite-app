@@ -153,3 +153,24 @@ export function mergeSnapshots(
 
   return buildSnapshot(trackers, entries, milestones, tombstones, now)
 }
+
+/**
+ * How many local changes the next Sync will upload. Null lastSyncedAt means
+ * this device has never synced — everything counts. Rows whose stamp is ''
+ * (legacy rows with no timestamps) only count in the never-synced case.
+ */
+export function countPending(
+  local: Pick<Snapshot, 'trackers' | 'entries' | 'milestones' | 'tombstones'>,
+  lastSyncedAt: string | null
+): number {
+  const rows: { updatedAt?: string | null; createdAt?: string }[] = [
+    ...local.trackers,
+    ...local.entries,
+    ...local.milestones
+  ]
+  if (lastSyncedAt === null) return rows.length + local.tombstones.length
+  return (
+    rows.filter((r) => stampOf(r) > lastSyncedAt).length +
+    local.tombstones.filter((tb) => tb.deletedAt > lastSyncedAt).length
+  )
+}
