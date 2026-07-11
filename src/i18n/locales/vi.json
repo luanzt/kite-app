@@ -167,6 +167,25 @@
     "notifBlockedMsg": "Thông báo cho Kite đang bị tắt. Mở Cài đặt để cho phép nhắc nhở.",
     "openSettings": "Mở Cài đặt"
   },
+  "sync": {
+    "row": "Sync & Backup",
+    "rowSub": "Sao lưu qua iCloud",
+    "title": "iCloud Sync",
+    "enabledBody": "Dữ liệu của bạn đang được sao lưu và đồng bộ giữa các thiết bị.",
+    "disabledBody": "Sao lưu mục tiêu lên iCloud và đồng bộ giữa các thiết bị của bạn. Dữ liệu luôn riêng tư trong iCloud của bạn.",
+    "unavailableBody": "iCloud chưa sẵn sàng. Hãy đăng nhập iCloud trong ứng dụng Cài đặt và bật iCloud Drive.",
+    "enable": "Bật Sync & Backup",
+    "disable": "Tắt Sync & Backup",
+    "syncNow": "Đồng bộ ngay",
+    "stats": "Đang đồng bộ {{trackers}} mục tiêu và {{logs}} lượt ghi.",
+    "pending": "{{count}} thay đổi chưa đồng bộ",
+    "upToDate": "Đã đồng bộ tất cả",
+    "lastSynced": "Đồng bộ lần cuối: {{time}}",
+    "neverSynced": "Chưa đồng bộ — bấm Đồng bộ ngay",
+    "errTitle": "Đồng bộ thất bại",
+    "errBody": "Không thể đồng bộ với iCloud. Kiểm tra kết nối rồi thử lại.",
+    "errNewer": "Bản sao lưu này được tạo bởi phiên bản Kite mới hơn. Vui lòng cập nhật ứng dụng."
+  },
   "toast": { "saved": "Đã lưu mục tiêu", "logged": "Đã ghi", "logSuccess": "Đã ghi nhận thành công", "deleted": "Đã xóa mục tiêu" },
   "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" },
   "notification": { "habitBody": "Đến giờ giữ vững chuỗi ngày rồi", "targetBody": "Ghi lại tiến độ hướng tới mục tiêu", "averageBody": "Đến giờ ghi lại số liệu hôm nay" }
