@@ -14,6 +14,7 @@ import {
   calculateAverage,
   calculateProject
 } from '@features/trackers/calculators'
+import { useEntries, useMilestones } from '@features/trackers/queries'
 import { toISODate } from '@utils/date'
 import {
   Icons,
@@ -96,16 +97,16 @@ function Ring({
 
 export function TrackerCard({
   tracker,
-  entries,
-  milestones,
   onPress
 }: {
   tracker: Tracker
-  entries: Entry[]
-  milestones: Milestone[]
   onPress: () => void
 }) {
   const c = useThemeColors()
+  // Each card loads its own data — TanStack Query caches per tracker and the
+  // log/save mutations invalidate these keys, so the list stays live.
+  const { data: entries = [] } = useEntries(tracker.id)
+  const { data: milestones = [] } = useMilestones(tracker.id)
   const p = progressFor(tracker, entries, milestones)
   const showBar = tracker.type !== 'habit'
 

@@ -119,8 +119,6 @@ export function TrackerListScreen() {
         renderItem={({ item }) => (
           <TrackerCard
             tracker={item}
-            entries={[]}
-            milestones={[]}
             onPress={() =>
               nav.navigate('TrackerDetail', { trackerId: item.id })
             }
