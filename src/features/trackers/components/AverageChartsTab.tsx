@@ -82,6 +82,7 @@ export function AverageChartsTab({
           current={cmp.current}
           previous={cmp.previous}
           deltaPct={cmp.deltaPct}
+          lessIsBetter={tracker.direction === 'bad'}
         />
 
         {/* value trend — adapts to the tracker's period */}

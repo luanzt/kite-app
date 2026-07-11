@@ -70,22 +70,34 @@ describe('compareWindows — day windows', () => {
     expect(r.current).toEqual({
       startISO: '2026-06-29',
       endISO: '2026-07-05',
-      avg: 2, // (7+7)/7 days
+      avg: 7, // (7+7)/2 logged days
       perLog: false
     })
     expect(r.previous).toEqual({
       startISO: '2026-06-22',
       endISO: '2026-06-28',
-      avg: 4, // (14+14)/7
+      avg: 14, // (14+14)/2 logged days
       perLog: false
     })
     expect(r.deltaPct).toBe(-50)
   })
 
-  it('divides by the fixed window length even with sparse data', () => {
+  it('divides by logged days, not the window length (Strides-style)', () => {
     const r = compareWindows(avg, [e('2026-07-05', 14)], '2026-07-05', '14d')
-    expect(r.current.avg).toBe(1) // 14/14, not 14/1
+    expect(r.current.avg).toBe(14) // 14/1 logged day, not 14/14
     expect(r.current.startISO).toBe('2026-06-22')
+  })
+
+  it('Strides reference case: 8, 8, 8+5 over 3 logged days → 9.67', () => {
+    const entries = [
+      e('2026-07-08', 8),
+      e('2026-07-09', 8),
+      e('2026-07-10', 8),
+      e('2026-07-10', 5, '2026-07-10T19:04:00Z')
+    ]
+    const r = compareWindows(avg, entries, '2026-07-10', '7d')
+    expect(r.current.avg).toBeCloseTo(29 / 3)
+    expect(r.previous.avg).toBe(0) // 27 Jun – 3 Jul: no logs
   })
 
   it('4w is a 28-day window', () => {
@@ -107,7 +119,7 @@ describe('compareWindows — day windows', () => {
       '2026-07-05',
       '7d'
     )
-    expect(r.deltaPct).toBe(200) // 3 vs 1 avg/day
+    expect(r.deltaPct).toBe(200) // 21 vs 7 avg/day (one logged day each)
   })
 
   it('deltaPct is null even when the previous window has real zero-value logs (no % from a 0 baseline)', () => {
@@ -122,17 +134,17 @@ describe('compareWindows — day windows', () => {
 })
 
 describe('compareWindows — month windows', () => {
-  it('3m: windows are calendar-month spans divided by their true day count', () => {
-    // today 2026-07-05 → current (2026-04-06 .. 2026-07-05) = 91 days,
-    // previous (2026-01-06 .. 2026-04-05) = 90 days
-    const entries = [e('2026-05-10', 91), e('2026-02-10', 180)]
+  it('3m: calendar-month spans, averaged over logged days', () => {
+    // today 2026-07-05 → current window 2026-04-06 .. 2026-07-05,
+    // previous 2026-01-06 .. 2026-04-05 — one logged day in each
+    const entries = [e('2026-05-10', 91), e('2026-02-10', 182)]
     const r = compareWindows(avg, entries, '2026-07-05', '3m')
     expect(r.current.startISO).toBe('2026-04-06')
     expect(r.current.endISO).toBe('2026-07-05')
-    expect(r.current.avg).toBeCloseTo(1) // 91/91
+    expect(r.current.avg).toBeCloseTo(91) // 91/1 logged day
     expect(r.previous.startISO).toBe('2026-01-06')
     expect(r.previous.endISO).toBe('2026-04-05')
-    expect(r.previous.avg).toBeCloseTo(2) // 180/90
+    expect(r.previous.avg).toBeCloseTo(182)
     expect(r.deltaPct).toBeCloseTo(-50)
   })
 })
@@ -190,7 +202,7 @@ describe('compareWindows — log windows', () => {
   })
 })
 
-describe('averageBucketStats — daily', () => {
+describe('averageBucketStats — daily (logged days only)', () => {
   const t0: Tracker = { ...avg, startDate: '2026-07-01' } // goal 8/day
   it('met day = summed total >= goal; streak counts back from today', () => {
     const entries = [
@@ -203,31 +215,53 @@ describe('averageBucketStats — daily', () => {
     ]
     const s = averageBucketStats(t0, entries, '2026-07-05')
     expect(s.unit).toBe('day')
-    expect(s.dueBuckets).toBe(5) // 07-01..07-05
+    expect(s.loggedBuckets).toBe(5) // 07-01..07-05, all logged
     expect(s.metBuckets).toBe(4)
-    expect(s.streak).toBe(2) // 04 + 05; broken by 03
+    expect(s.streak).toBe(2) // 04 + 05; broken by the unmet log on 03
   })
 
-  it('today unmet is neutral (extends nothing, breaks nothing)', () => {
+  it('today not logged → neutral (extends nothing, breaks nothing)', () => {
     const entries = [e('2026-07-03', 8), e('2026-07-04', 8)]
     const s = averageBucketStats(t0, entries, '2026-07-05')
-    expect(s.streak).toBe(2) // today (05) not logged → neutral
+    expect(s.streak).toBe(2)
+    expect(s.loggedBuckets).toBe(2) // unlogged days don't count at all
   })
 
-  it('a past unmet due day breaks the streak even when today is met', () => {
-    const entries = [e('2026-07-03', 8), e('2026-07-05', 8)] // 04 missed
+  it('a skipped day does NOT break the streak (Strides-style)', () => {
+    const entries = [e('2026-07-03', 8), e('2026-07-05', 8)] // 04 unlogged
+    const s = averageBucketStats(t0, entries, '2026-07-05')
+    expect(s.streak).toBe(2)
+    expect(s.loggedBuckets).toBe(2)
+  })
+
+  it('a logged-but-unmet day DOES break the streak', () => {
+    const entries = [e('2026-07-03', 8), e('2026-07-04', 2), e('2026-07-05', 8)]
     const s = averageBucketStats(t0, entries, '2026-07-05')
     expect(s.streak).toBe(1)
   })
 
-  it('repeatDays: non-due days are skipped, not breaking', () => {
-    // due Mon/Wed/Fri only. 2026-07-01 = Wed, 07-03 = Fri, 07-06 = Mon.
+  it('logged non-repeat days still count', () => {
+    // due Mon/Wed/Fri; logs on Wed 07-01, Fri 07-03 and Sat 07-04
     const t1: Tracker = { ...t0, repeatDays: [1, 3, 5] }
-    const entries = [e('2026-07-01', 8), e('2026-07-03', 8)]
+    const entries = [e('2026-07-01', 8), e('2026-07-03', 8), e('2026-07-04', 9)]
     const s = averageBucketStats(t1, entries, '2026-07-05') // Sunday
-    expect(s.dueBuckets).toBe(2) // Wed + Fri only
-    expect(s.metBuckets).toBe(2)
-    expect(s.streak).toBe(2) // Sat/Sun not due → skipped
+    expect(s.loggedBuckets).toBe(3)
+    expect(s.metBuckets).toBe(3)
+    expect(s.streak).toBe(3)
+  })
+
+  it('direction "or less": met = total <= goal; going over breaks the streak', () => {
+    const t1: Tracker = { ...t0, direction: 'bad', targetValue: 2 }
+    const entries = [
+      e('2026-07-02', 1),
+      e('2026-07-03', 5), // over → unmet
+      e('2026-07-04', 2),
+      e('2026-07-05', 0) // logged zero counts and is met
+    ]
+    const s = averageBucketStats(t1, entries, '2026-07-05')
+    expect(s.loggedBuckets).toBe(4)
+    expect(s.metBuckets).toBe(3)
+    expect(s.streak).toBe(2) // 04 + 05; broken by the over-goal log on 03
   })
 
   it('goal null/0 → nothing is met', () => {
@@ -235,13 +269,18 @@ describe('averageBucketStats — daily', () => {
     const s = averageBucketStats(t1, [e('2026-07-05', 99)], '2026-07-05')
     expect(s.metBuckets).toBe(0)
     expect(s.streak).toBe(0)
-    expect(s.dueBuckets).toBe(5)
+    expect(s.loggedBuckets).toBe(1)
   })
 
   it('startDate in the future → all zeros', () => {
     const t1: Tracker = { ...t0, startDate: '2026-08-01' }
-    const s = averageBucketStats(t1, [], '2026-07-05')
-    expect(s).toEqual({ streak: 0, metBuckets: 0, dueBuckets: 0, unit: 'day' })
+    const s = averageBucketStats(t1, [e('2026-07-05', 9)], '2026-07-05')
+    expect(s).toEqual({
+      streak: 0,
+      metBuckets: 0,
+      loggedBuckets: 0,
+      unit: 'day'
+    })
   })
 })
 
@@ -261,7 +300,7 @@ describe('averageBucketStats — weekly & monthly', () => {
     // the current bucket → neutral even though unmet
     const s = averageBucketStats(t1, entries, '2026-07-05')
     expect(s.unit).toBe('week')
-    expect(s.dueBuckets).toBe(2)
+    expect(s.loggedBuckets).toBe(2)
     expect(s.metBuckets).toBe(1)
     expect(s.streak).toBe(1)
   })
@@ -280,9 +319,9 @@ describe('averageBucketStats — weekly & monthly', () => {
     ]
     const s = averageBucketStats(t1, entries, '2026-07-05')
     expect(s.unit).toBe('month')
-    expect(s.dueBuckets).toBe(3) // May, Jun, Jul
+    expect(s.loggedBuckets).toBe(3) // May, Jun, Jul all logged
     expect(s.metBuckets).toBe(1) // only May
-    expect(s.streak).toBe(0) // Jun unmet breaks; Jul (current) neutral
+    expect(s.streak).toBe(0) // Jun logged-unmet breaks; Jul (current) neutral
   })
 })
 
@@ -343,6 +382,18 @@ describe('averageBarSeries', () => {
     ])
     expect(s.bars[0].count).toBe(50)
     expect(s.bars[2].partial).toBe(true)
+  })
+
+  it('daily "or less": series carries lessIsBetter for the met-coloring', () => {
+    const t1: Tracker = { ...avg, direction: 'bad', startDate: '2026-07-01' }
+    const s = averageBarSeries(t1, [], '2026-07-05')
+    expect(s.lessIsBetter).toBe(true)
+    const s2 = averageBarSeries(
+      { ...avg, startDate: '2026-07-01' },
+      [],
+      '2026-07-05'
+    )
+    expect(s2.lessIsBetter).toBeUndefined()
   })
 
   it('scaleMax is at least 1 with no data and no goal', () => {

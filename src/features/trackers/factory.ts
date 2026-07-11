@@ -55,7 +55,8 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     icon: input.icon ?? 'star',
     color: input.color ?? 'blue',
     unit: input.unit ?? null,
-    direction: isHabit ? 'good' : null,
+    // average: 'good' = "goal or more", 'bad' = "goal or less"
+    direction: isHabit || isAverage ? 'good' : null,
     targetValue: input.targetValue ?? null,
     startValue: type === 'target' ? input.startValue ?? 0 : null,
     accumulation: type === 'target' ? input.accumulation ?? 'sum' : null,

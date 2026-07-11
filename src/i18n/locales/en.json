@@ -72,10 +72,17 @@
     "accumulation": "Each log is", "accSum": "Added to total", "accLatest": "Current value",
     "save": "Save", "create": "Create tracker",
     "newTitle": "New tracker", "editTitle": "Edit tracker",
-    "namePh": "e.g. Read 24 books",
+    "namePh": {
+      "habit": "e.g. Read books",
+      "target": "e.g. Save $2,000",
+      "average": "e.g. Drink 8 glasses of water",
+      "project": "e.g. Learn guitar"
+    },
     "icon": "Icon", "color": "Color", "target": "Target value", "unitPh": "books, kg, $…",
     "mode": "Mode", "sum": "Accumulate", "latest": "Latest value",
     "direction": "Direction", "higher": "Higher is better", "lower": "Lower is better",
+    "orMore": "Or more", "orLess": "Or less",
+    "avgDirectionHelp": "Or more: you aim to reach the goal or above (e.g. 8 glasses of water). Or less: you aim to stay at the goal or below (e.g. 2 coffees max).",
     "goal": "Goal", "goalPh": "5 times", "timePeriod": "Time Period", "startDate": "Start Date", "due": "Due",
     "routine": "Routine", "routineAny": "Any", "routineMorning": "Morning",
     "routineAfternoon": "Afternoon", "routineEvening": "Evening",

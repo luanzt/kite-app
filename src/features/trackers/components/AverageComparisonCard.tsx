@@ -98,13 +98,16 @@ export function AverageComparisonCard({
   onChangeWindow,
   current,
   previous,
-  deltaPct
+  deltaPct,
+  lessIsBetter
 }: {
   window: CompareWindow
   onChangeWindow: (w: CompareWindow) => void
   current: ComparePeriod
   previous: ComparePeriod
   deltaPct: number | null
+  /** "or less" goal: a rising average is bad → flip the delta color. */
+  lessIsBetter?: boolean
 }) {
   const { t, i18n } = useTranslation()
   const c = useThemeColors()
@@ -117,13 +120,14 @@ export function AverageComparisonCard({
     maxAvg > 0 ? Math.max(38, Math.round((avg / maxAvg) * 100)) : 38
 
   const up = (deltaPct ?? 0) >= 0
+  const good = lessIsBetter ? !up : up
   const deltaEl =
     deltaPct == null ? (
       <Typography className='text-sm font-bold text-ink-3'>—</Typography>
     ) : (
       <Typography
         className={`text-sm font-bold ${
-          up ? 'text-pace-on' : 'text-pace-behind'
+          good ? 'text-pace-on' : 'text-pace-behind'
         }`}
       >
         {`${up ? '▲' : '▼'} ${fmtNum(Math.abs(deltaPct))}%`}

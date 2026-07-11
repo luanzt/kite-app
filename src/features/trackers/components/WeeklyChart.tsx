@@ -37,7 +37,8 @@ function DailyBarChart({
   const hideMidLabel = midValue === target
 
   const renderItem = ({ item: b }: { item: WeekBar }) => {
-    const met = b.count > 0 && b.count >= target
+    const met =
+      b.count > 0 && (data.lessIsBetter ? b.count <= target : b.count >= target)
     return (
       <View className='w-[44px] items-center'>
         <View className='h-[144px] w-full justify-end'>

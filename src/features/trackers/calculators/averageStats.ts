@@ -1,6 +1,6 @@
 import type { Tracker, Entry } from '@features/trackers/types'
 import { daysBetween, weekdayOf } from '@utils/date'
-import { dayTotalsOf, isDueOn, isoAddDays } from './habitStats'
+import { dayTotalsOf, isoAddDays } from './habitStats'
 import type { PeriodSessions, WeekBar } from './habitStats'
 
 /**
@@ -51,6 +51,26 @@ function sumRange(entries: Entry[], startISO: string, endISO: string): number {
   return sum
 }
 
+/** Number of distinct days with at least one log in [startISO, endISO]. */
+function loggedDaysIn(
+  entries: Entry[],
+  startISO: string,
+  endISO: string
+): number {
+  const days = new Set<string>()
+  for (const e of entries) {
+    const d = e.date.slice(0, 10)
+    if (d >= startISO && d <= endISO) days.add(d)
+  }
+  return days.size
+}
+
+/** Strides-style avg/day for a date range: sum ÷ logged days (0 when none). */
+function rangeAvg(entries: Entry[], startISO: string, endISO: string): number {
+  const days = loggedDaysIn(entries, startISO, endISO)
+  return days === 0 ? 0 : sumRange(entries, startISO, endISO) / days
+}
+
 /**
  * prev 0 → null: % change from a zero baseline is undefined, regardless of
  * whether zero came from no logs or real zero-value logs.
@@ -89,11 +109,11 @@ function logGroup(group: Entry[]): ComparePeriod {
 }
 
 /**
- * The comparison card's two periods. Day windows (7d/14d/30d/4w=28d) divide by
- * the FIXED window length ("avg/day"); month windows divide by the true day
- * count of their calendar span; log windows are the mean of the N newest logs
- * vs the N before them ("avg/log"). deltaPct is null when the previous period
- * has no value to compare against.
+ * The comparison card's two periods. Day windows (7d/14d/30d/4w=28d) and
+ * month windows average over the days that HAVE logs within their span
+ * ("avg/day", Strides-style — empty days are ignored, not zeros); log windows
+ * are the mean of the N newest logs vs the N before them ("avg/log").
+ * deltaPct is null when the previous period has no value to compare against.
  */
 export function compareWindows(
   _tracker: Tracker,
@@ -113,13 +133,13 @@ export function compareWindows(
     const current: ComparePeriod = {
       startISO: curStart,
       endISO: todayISO,
-      avg: sumRange(entries, curStart, todayISO) / dayN,
+      avg: rangeAvg(entries, curStart, todayISO),
       perLog: false
     }
     const previous: ComparePeriod = {
       startISO: prevStart,
       endISO: prevEnd,
-      avg: sumRange(entries, prevStart, prevEnd) / dayN,
+      avg: rangeAvg(entries, prevStart, prevEnd),
       perLog: false
     }
     return { current, previous, deltaPct: deltaOf(current.avg, previous.avg) }
@@ -130,18 +150,16 @@ export function compareWindows(
     const curStart = isoAddDays(isoAddMonths(todayISO, -monthN), 1)
     const prevEnd = isoAddMonths(todayISO, -monthN)
     const prevStart = isoAddDays(isoAddMonths(todayISO, -2 * monthN), 1)
-    const curDays = daysBetween(curStart, todayISO) + 1
-    const prevDays = daysBetween(prevStart, prevEnd) + 1
     const current: ComparePeriod = {
       startISO: curStart,
       endISO: todayISO,
-      avg: sumRange(entries, curStart, todayISO) / curDays,
+      avg: rangeAvg(entries, curStart, todayISO),
       perLog: false
     }
     const previous: ComparePeriod = {
       startISO: prevStart,
       endISO: prevEnd,
-      avg: sumRange(entries, prevStart, prevEnd) / prevDays,
+      avg: rangeAvg(entries, prevStart, prevEnd),
       perLog: false
     }
     return { current, previous, deltaPct: deltaOf(current.avg, previous.avg) }
@@ -175,7 +193,7 @@ function monthStartOf(iso: string): string {
 export type AverageBucketStats = {
   streak: number
   metBuckets: number
-  dueBuckets: number
+  loggedBuckets: number
   unit: 'day' | 'week' | 'month'
 }
 
@@ -185,17 +203,50 @@ function unitOf(tracker: Tracker): 'day' | 'week' | 'month' {
   return 'day'
 }
 
+/**
+ * Ordered period buckets (oldest first) holding the entries dated within
+ * [fromISO, todayISO], keyed by day / Monday-week / calendar month per
+ * tracker.period, each with its summed total. Strides semantics: ONLY periods
+ * that have at least one log become buckets — empty days/weeks/months are
+ * ignored, they neither count as zero nor appear at all. Single source for
+ * the detail stats AND the main calculateAverage mean.
+ */
+export function periodBuckets(
+  tracker: Tracker,
+  entries: Entry[],
+  todayISO: string,
+  fromISO: string
+): { key: string; total: number }[] {
+  const unit = unitOf(tracker)
+  const keyOf =
+    unit === 'day'
+      ? (d: string) => d
+      : unit === 'week'
+      ? mondayOf
+      : monthStartOf
+  const totals = new Map<string, number>()
+  for (const e of entries) {
+    const d = e.date.slice(0, 10)
+    if (d < fromISO || d > todayISO) continue
+    const k = keyOf(d)
+    totals.set(k, (totals.get(k) ?? 0) + e.value)
+  }
+  return [...totals.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, total]) => ({ key, total }))
+}
+
 function round1(n: number): number {
   return Math.round(n * 10) / 10
 }
 
 /**
- * Streak & success-rate over period buckets (days / Monday-weeks / calendar
- * months, per tracker.period). A bucket is met when its summed total ≥
- * targetValue. Daily buckets respect repeatDays (non-due days don't count and
- * don't break streaks). The current (in-progress) bucket is neutral: it
- * extends a streak when met but never breaks one — mirroring habit's
- * today-neutral rule.
+ * Streak & success-rate over LOGGED period buckets (days / Monday-weeks /
+ * calendar months, per tracker.period) — Strides semantics: periods without a
+ * log are invisible, so they don't count against the success rate and never
+ * break a streak. A bucket is met when its summed total ≥ targetValue. The
+ * current (in-progress) bucket is neutral: it extends a streak when met but
+ * never breaks one — mirroring habit's today-neutral rule.
  */
 export function averageBucketStats(
   tracker: Tracker,
@@ -205,41 +256,20 @@ export function averageBucketStats(
   const goal = tracker.targetValue ?? 0
   const unit = unitOf(tracker)
   if (daysBetween(tracker.startDate, todayISO) < 0) {
-    return { streak: 0, metBuckets: 0, dueBuckets: 0, unit }
+    return { streak: 0, metBuckets: 0, loggedBuckets: 0, unit }
   }
 
-  // Ordered due buckets (oldest first): key = bucket start, total = summed value.
-  const buckets: { key: string; total: number }[] = []
-  let currentKey: string
-  if (unit === 'day') {
-    const totals = dayTotalsOf(tracker, entries)
-    currentKey = todayISO
-    for (let d = tracker.startDate; d <= todayISO; d = isoAddDays(d, 1)) {
-      if (!isDueOn(tracker, d)) continue
-      buckets.push({ key: d, total: totals.get(d) ?? 0 })
-    }
-  } else if (unit === 'week') {
-    currentKey = mondayOf(todayISO)
-    for (
-      let w = mondayOf(tracker.startDate);
-      w <= todayISO;
-      w = isoAddDays(w, 7)
-    ) {
-      buckets.push({ key: w, total: sumRange(entries, w, isoAddDays(w, 6)) })
-    }
-  } else {
-    currentKey = monthStartOf(todayISO)
-    for (
-      let m = monthStartOf(tracker.startDate);
-      m <= todayISO;
-      m = isoAddMonths(m, 1)
-    ) {
-      const end = isoAddDays(isoAddMonths(m, 1), -1)
-      buckets.push({ key: m, total: sumRange(entries, m, end) })
-    }
-  }
+  const buckets = periodBuckets(tracker, entries, todayISO, tracker.startDate)
+  const currentKey =
+    unit === 'day'
+      ? todayISO
+      : unit === 'week'
+      ? mondayOf(todayISO)
+      : monthStartOf(todayISO)
 
-  const met = (b: { total: number }) => goal > 0 && b.total >= goal
+  const lessIsBetter = tracker.direction === 'bad'
+  const met = (b: { total: number }) =>
+    goal > 0 && (lessIsBetter ? b.total <= goal : b.total >= goal)
   const metBuckets = buckets.filter(met).length
   let streak = 0
   for (let i = buckets.length - 1; i >= 0; i--) {
@@ -249,7 +279,7 @@ export function averageBucketStats(
     else if (b.key === currentKey) continue
     else break
   }
-  return { streak, metBuckets, dueBuckets: buckets.length, unit }
+  return { streak, metBuckets, loggedBuckets: buckets.length, unit }
 }
 
 /** Cap on daily bars so a very old start date doesn't build a huge list. */
@@ -306,5 +336,8 @@ export function averageBarSeries(
   const maxCount = bars.reduce((mx, b) => Math.max(mx, b.count), 0)
   const scaleMax = Math.max(1, Math.ceil(Math.max(goal, maxCount)))
   const base: PeriodSessions = { bars, goal, scaleMax, unit }
-  return unit === 'day' && goal > 0 ? { ...base, perDayTarget: goal } : base
+  if (unit !== 'day' || goal <= 0) return base
+  return tracker.direction === 'bad'
+    ? { ...base, perDayTarget: goal, lessIsBetter: true }
+    : { ...base, perDayTarget: goal }
 }

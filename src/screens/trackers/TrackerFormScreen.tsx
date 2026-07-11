@@ -233,7 +233,10 @@ export function TrackerFormScreen({
         isHabit || isTarget || isAverage
           ? base.startDate
           : editing?.startDate ?? base.startDate,
-      direction: type === 'target' || isHabit ? dir : base.direction,
+      direction:
+        type === 'target' || type === 'average' || isHabit
+          ? dir
+          : base.direction,
       deadline: deadline.trim() ? deadline.trim() : null
     }
     save.mutate(tracker, { onSuccess: () => navigation.navigate('MainTabs') })
@@ -299,7 +302,7 @@ export function TrackerFormScreen({
           <FormInput
             value={name}
             onChangeText={setName}
-            placeholder={t('form.namePh')}
+            placeholder={t(`form.namePh.${type}`)}
           />
         </View>
 
@@ -503,6 +506,28 @@ export function TrackerFormScreen({
                   ]}
                 />
               </View>
+            </View>
+
+            {/* goal direction — Strides' "5 or More" / "or Less" */}
+            <View className='gap-s2'>
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.avgDirectionHelp')}
+                  />
+                }
+              >
+                {t('form.direction')}
+              </FieldLabelRow>
+              <Segmented<HabitDirection>
+                value={dir}
+                onChange={setDir}
+                options={[
+                  { value: 'good', label: t('form.orMore') },
+                  { value: 'bad', label: t('form.orLess') }
+                ]}
+              />
             </View>
 
             {/* start date */}

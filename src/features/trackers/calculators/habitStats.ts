@@ -343,7 +343,13 @@ export function classifyTodayRow(
   if (tracker.type === 'average' && tracker.doneRule === 'when_goal_met') {
     const goal = tracker.targetValue ?? 0
     // No positive goal to meet → fall through to the any-log rule below.
-    if (goal > 0) return yes >= goal ? 'completed' : 'due'
+    if (goal > 0) {
+      // 'bad' = "goal or less": done once something is logged and the total
+      // is still at/under goal (an unlogged day stays due, per Strides).
+      const met =
+        tracker.direction === 'bad' ? yes > 0 && yes <= goal : yes >= goal
+      return met ? 'completed' : 'due'
+    }
   }
   if (tracker.type !== 'habit') return yes > 0 ? 'completed' : 'due'
   const goal = perDayGoal(tracker)
@@ -360,6 +366,8 @@ export type PeriodSessions = {
   unit: PeriodUnit
   /** Daily only: logs-per-day target — a bar at/above it counts as "done". */
   perDayTarget?: number
+  /** Average "or less" goals: a bar at/BELOW perDayTarget counts as "done". */
+  lessIsBetter?: boolean
 }
 
 /** Bars to show for non-daily units (daily spans start→today, capped below). */
