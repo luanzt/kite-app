@@ -35,6 +35,7 @@ export type Tracker = {
   doneRule: DoneRule | null // average only; null = when_logged
   progressBasis: ProgressBasis | null // average only; null = overall_avg
   createdAt: string // ISO datetime
+  updatedAt?: string | null // ISO datetime — stamped on every save; sync LWW key
   archived: boolean
 }
 
@@ -45,6 +46,7 @@ export type Entry = {
   value: number
   note: string | null
   createdAt: string // ISO datetime — when logged; orders multiple logs per day
+  updatedAt?: string | null // ISO datetime — stamped on every save; sync LWW key
 }
 
 export type Milestone = {
@@ -54,6 +56,7 @@ export type Milestone = {
   dueDate: string | null // ISO date
   progress: number // 0..1
   orderIndex: number
+  updatedAt?: string | null // ISO datetime — stamped on every save; sync LWW key
 }
 
 export type TrackerProgress = {
@@ -64,4 +67,18 @@ export type TrackerProgress = {
   streak?: number
   successRate?: number // 0..1
   expected?: number | null // value you should have reached by today (timeline)
+}
+
+/** Sync: which table a tombstone's dead record belonged to. */
+export type TombstoneTable = 'trackers' | 'entries' | 'milestones'
+
+/**
+ * A deletion marker kept for iCloud sync: without it, a record deleted on
+ * this device would look like "missing" to another device and be re-added on
+ * merge. `id` is the deleted record's id.
+ */
+export type Tombstone = {
+  id: string
+  tableName: TombstoneTable
+  deletedAt: string // ISO datetime
 }
