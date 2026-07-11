@@ -216,7 +216,9 @@ export function HabitChartsTab({
           <HabitCalendar
             month={calendar}
             todayISO={today}
-            onLogDay={onLogDay}
+            // Bad habit: never log a slip on a bare tap — always open the
+            // day menu so the user confirms what to record.
+            onLogDay={tracker.direction === 'bad' ? onLongPressDay : onLogDay}
             onLongPressDay={onLongPressDay}
           />
         </View>
@@ -257,6 +259,7 @@ export function HabitChartsTab({
         date={menuDate}
         title={menuTitle}
         hasEntry={menuHasEntry}
+        badHabit={tracker.direction === 'bad'}
         onLogYes={() => logValue(1)}
         onLogNo={() => logValue(0)}
         onDeleteLast={onDeleteLast}

@@ -197,16 +197,33 @@ function LogRow({
 
   const renderControl = () => {
     if (tracker.type === 'habit') {
-      const goal = perDayGoal(tracker)
+      // Bad habit: tap logs a slip against the limit — the ring is the
+      // REMAINING quota (starts full, drains per slip, full red once over).
+      const isBad = tracker.direction === 'bad'
+      const goal = isBad ? tracker.targetValue ?? 0 : perDayGoal(tracker)
       const n = todayLog
-      const ringColor = done ? c.pace.on_track : c.pace.ahead
+      const over = isBad && n > goal
+      const ringColor = over
+        ? c.pace.behind
+        : done
+        ? c.pace.on_track
+        : c.pace.ahead
+      const ringFraction = isBad
+        ? over
+          ? 1
+          : goal > 0
+          ? (goal - n) / goal
+          : 1
+        : goal
+        ? n / goal
+        : 0
       return (
         <Pressable
           onPress={logYes}
           className='h-[46px] w-[46px] items-center justify-center'
         >
           <Ring
-            fraction={goal ? n / goal : 0}
+            fraction={ringFraction}
             color={ringColor}
             size={46}
             strokeWidth={4}
@@ -214,7 +231,7 @@ function LogRow({
           <View className='absolute inset-0 items-center justify-center'>
             <Typography
               className={`text-xs font-extrabold ${
-                done ? 'text-pace-on' : 'text-ink-2'
+                over ? 'text-pace-behind' : done ? 'text-pace-on' : 'text-ink-2'
               }`}
             >
               {`${n}/${goal}`}

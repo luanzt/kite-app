@@ -9,6 +9,8 @@ type Props = {
   date: string | null
   title: string
   hasEntry: boolean
+  /** Bad habit: relabel the actions as "I slipped" / "stayed clean". */
+  badHabit?: boolean
   onLogYes: () => void
   onLogNo: () => void
   onDeleteLast: () => void
@@ -25,6 +27,7 @@ export function CalendarDayMenu({
   date,
   title,
   hasEntry,
+  badHabit,
   onLogYes,
   onLogNo,
   onDeleteLast,
@@ -60,9 +63,12 @@ export function CalendarDayMenu({
               className='h-[56px] flex-row items-center justify-between border-t border-line active:opacity-70'
             >
               <Typography className='text-base font-bold text-ink'>
-                {t('detail.logYes')}
+                {t(badHabit ? 'log.slipped' : 'detail.logYes')}
               </Typography>
-              <Check size={22} color={c.pace.on_track} />
+              <Check
+                size={22}
+                color={badHabit ? c.pace.behind : c.pace.on_track}
+              />
             </Pressable>
 
             <Pressable
@@ -70,9 +76,9 @@ export function CalendarDayMenu({
               className='h-[56px] flex-row items-center justify-between border-t border-line active:opacity-70'
             >
               <Typography className='text-base font-bold text-ink'>
-                {t('detail.logNo')}
+                {t(badHabit ? 'log.stayedClean' : 'detail.logNo')}
               </Typography>
-              <X size={22} color={c.ink2} />
+              <X size={22} color={badHabit ? c.pace.on_track : c.ink2} />
             </Pressable>
 
             {hasEntry ? (

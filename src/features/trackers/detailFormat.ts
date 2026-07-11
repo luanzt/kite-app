@@ -57,3 +57,23 @@ export function fmtValCompact(
   if (tracker.unit === '$') return `$${fmtCompact(n)}`
   return `${fmtCompact(n)}${tracker.unit ? ` ${tracker.unit}` : ''}`
 }
+
+/**
+ * Compact list-card date: "1 Aug" within `refYear`, "12 Feb 2027" otherwise.
+ * en-GB gives day-first order ("1 Aug"); vi-VN gives "1 thg 8".
+ */
+export function fmtShortDate(
+  iso: string,
+  lang: string,
+  refYear: number = new Date().getFullYear()
+): string {
+  const d = new Date(`${iso}T00:00:00Z`)
+  if (Number.isNaN(d.getTime())) return iso
+  const locale = lang === 'vi' ? 'vi-VN' : 'en-GB'
+  return d.toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+    ...(d.getUTCFullYear() === refYear ? {} : { year: 'numeric' })
+  })
+}

@@ -39,13 +39,15 @@ function DailyBarChart({
   const renderItem = ({ item: b }: { item: WeekBar }) => {
     const met =
       b.count > 0 && (data.lessIsBetter ? b.count <= target : b.count >= target)
+    // "or less" goals: a bar above the limit is a failure, not progress
+    const over = !!data.lessIsBetter && b.count > target
     return (
       <View className='w-[44px] items-center'>
         <View className='h-[144px] w-full justify-end'>
           {b.count > 0 ? (
             <View
               className={`mx-[3px] items-center rounded-t-[6px] pt-[3px] ${
-                met ? 'bg-pace-on' : 'bg-brand'
+                over ? 'bg-pace-behind' : met ? 'bg-pace-on' : 'bg-brand'
               }`}
               // value-derived height, floored so the count stays readable
               style={{
