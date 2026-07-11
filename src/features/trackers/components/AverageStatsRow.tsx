@@ -72,14 +72,23 @@ export function AverageStatsRow({
   const c = useThemeColors()
   const goal = tracker.targetValue ?? 0
   const diff = goal - average
+  // "or less" goals: ring is full while at/below goal, drains as it overshoots
+  const ringFraction =
+    goal <= 0
+      ? 0
+      : tracker.direction === 'bad'
+      ? average <= goal
+        ? 1
+        : goal / average
+      : average / goal
   const unitLabel =
     stats.unit === 'day'
       ? t('detail.days')
       : stats.unit === 'week'
       ? t('detail.unitWeeks')
       : t('detail.unitMonths')
-  const pct = stats.dueBuckets
-    ? Math.round((stats.metBuckets / stats.dueBuckets) * 100)
+  const pct = stats.loggedBuckets
+    ? Math.round((stats.metBuckets / stats.loggedBuckets) * 100)
     : 0
 
   return (
@@ -116,7 +125,7 @@ export function AverageStatsRow({
 
         {/* average ring */}
         <View className='items-center justify-center'>
-          <Ring fraction={goal > 0 ? average / goal : 0} color={c.onAccent} />
+          <Ring fraction={ringFraction} color={c.onAccent} />
           <View className='absolute items-center'>
             <Typography className='text-xs font-bold uppercase text-on-accent opacity-70'>
               {t('detail.avgChartTitle')}
@@ -143,7 +152,7 @@ export function AverageStatsRow({
             {`${pct}%`}
           </Typography>
           <Typography className='text-xs font-bold text-on-accent opacity-80'>
-            {`${stats.metBuckets}/${stats.dueBuckets} ${unitLabel}`}
+            {`${stats.metBuckets}/${stats.loggedBuckets} ${unitLabel}`}
           </Typography>
         </View>
       </View>

@@ -72,10 +72,17 @@
     "accumulation": "Mỗi lần ghi là", "accSum": "Cộng vào tổng", "accLatest": "Giá trị hiện tại",
     "save": "Lưu", "create": "Tạo mục tiêu",
     "newTitle": "Mục tiêu mới", "editTitle": "Sửa mục tiêu",
-    "namePh": "vd. Đọc 24 cuốn sách",
+    "namePh": {
+      "habit": "vd. Đọc sách",
+      "target": "vd. Tiết kiệm $2,000",
+      "average": "vd. Uống 8 ly nước mỗi ngày",
+      "project": "vd. Học đàn guitar"
+    },
     "icon": "Biểu tượng", "color": "Màu sắc", "target": "Giá trị mục tiêu", "unitPh": "cuốn, kg, $…",
     "mode": "Chế độ", "sum": "Tích lũy", "latest": "Giá trị mới nhất",
     "direction": "Hướng", "higher": "Càng cao càng tốt", "lower": "Càng thấp càng tốt",
+    "orMore": "Trở lên", "orLess": "Trở xuống",
+    "avgDirectionHelp": "Trở lên: đạt mục tiêu hoặc cao hơn là tốt (vd. 8 ly nước). Trở xuống: giữ ở mức mục tiêu hoặc thấp hơn (vd. tối đa 2 ly cà phê).",
     "goal": "Số lần", "goalPh": "5 lần", "timePeriod": "Chu kỳ", "startDate": "Ngày bắt đầu", "due": "Lặp lại",
     "routine": "Thời điểm", "routineAny": "Bất kỳ", "routineMorning": "Sáng",
     "routineAfternoon": "Chiều", "routineEvening": "Tối",

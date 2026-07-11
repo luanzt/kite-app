@@ -684,6 +684,19 @@ describe('classifyTodayRow', () => {
     expect(classifyTodayRow(avgGoal, 8, 0)).toBe('completed')
   })
 
+  it('average when_goal_met + "or less": completed once logged and still at/under goal', () => {
+    const lessGoal: Tracker = {
+      ...base,
+      type: 'average',
+      targetValue: 2,
+      direction: 'bad',
+      doneRule: 'when_goal_met'
+    }
+    expect(classifyTodayRow(lessGoal, 0, 0)).toBe('due') // nothing logged yet
+    expect(classifyTodayRow(lessGoal, 2, 0)).toBe('completed') // at goal
+    expect(classifyTodayRow(lessGoal, 5, 0)).toBe('due') // over goal
+  })
+
   it('average when_goal_met with no positive goal falls back to any-log', () => {
     const noGoal: Tracker = {
       ...base,
