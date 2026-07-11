@@ -274,3 +274,33 @@ export function deleteEntry(id: string): void {
     deletedAt: new Date().toISOString()
   })
 }
+
+/**
+ * Sync apply: make the local DB exactly equal to a merged snapshot. Full
+ * replace (not upsert) so records deleted by the merge disappear locally too.
+ * One transaction — an exception rolls everything back, so a failed sync can
+ * never leave SQLite half-written.
+ */
+export function replaceAllData(s: {
+  trackers: Tracker[]
+  entries: Entry[]
+  milestones: Milestone[]
+  tombstones: Tombstone[]
+}): void {
+  const db = getDb()
+  db.executeSync('BEGIN')
+  try {
+    db.executeSync('DELETE FROM trackers')
+    db.executeSync('DELETE FROM entries')
+    db.executeSync('DELETE FROM milestones')
+    db.executeSync('DELETE FROM tombstones')
+    for (const t of s.trackers) writeTrackerRow(t)
+    for (const e of s.entries) writeEntryRow(e)
+    for (const m of s.milestones) writeMilestoneRow(m)
+    for (const tb of s.tombstones) insertTombstone(tb)
+    db.executeSync('COMMIT')
+  } catch (err) {
+    db.executeSync('ROLLBACK')
+    throw err
+  }
+}
