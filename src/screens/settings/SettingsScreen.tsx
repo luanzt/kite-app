@@ -7,7 +7,11 @@ import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '@navigation/types'
 import { useAppStore } from '@store/useAppStore'
-import { changeLanguage, type Language } from '@i18n/index'
+import {
+  changeLanguage,
+  shouldShowLanguageSetting,
+  type Language
+} from '@i18n/index'
 import { Icons } from '@features/trackers/icons'
 import { KiteLogo } from '@features/trackers/components/KiteLogo'
 import { Segmented, useAlert, Toggle } from '@components/ui'
@@ -104,6 +108,7 @@ export function SettingsScreen() {
     }
   }
 
+  const showLang = shouldShowLanguageSetting()
   const langs: { value: Language; label: string }[] = [
     { value: 'en', label: 'EN' },
     { value: 'vi', label: 'VI' }
@@ -162,7 +167,9 @@ export function SettingsScreen() {
                 onChange={setThemeMode}
               />
             </View>
-            <View className='gap-s1 border-b border-line'>
+            <View
+              className={`gap-s1 ${showLang ? 'border-b border-line' : ''}`}
+            >
               <View className='flex-row items-center gap-s3 p-s4'>
                 <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
                   <Icons.Bell size={18} color={c.ink} />
@@ -196,36 +203,38 @@ export function SettingsScreen() {
                 </View>
               ) : null}
             </View>
-            <View className='flex-row items-center gap-s3 p-s4'>
-              <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
-                <Icons.Globe size={18} color={c.ink} />
-              </View>
-              <Typography className='flex-1 text-base font-semibold text-ink'>
-                {t('set.language')}
-              </Typography>
-              <View className='flex-row gap-s1 rounded-sm-k bg-surface-2 p-[3px]'>
-                {langs.map((l) => {
-                  const on = (language ?? 'en') === l.value
-                  return (
-                    <Pressable
-                      key={l.value}
-                      onPress={() => changeLanguage(l.value)}
-                      className={`rounded-xs-k px-[14px] py-[7px] ${
-                        on ? 'bg-surface shadow-sm' : ''
-                      }`}
-                    >
-                      <Typography
-                        className={`text-sm font-bold ${
-                          on ? 'text-ink' : 'text-ink-2'
+            {showLang ? (
+              <View className='flex-row items-center gap-s3 p-s4'>
+                <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
+                  <Icons.Globe size={18} color={c.ink} />
+                </View>
+                <Typography className='flex-1 text-base font-semibold text-ink'>
+                  {t('set.language')}
+                </Typography>
+                <View className='flex-row gap-s1 rounded-sm-k bg-surface-2 p-[3px]'>
+                  {langs.map((l) => {
+                    const on = (language ?? 'en') === l.value
+                    return (
+                      <Pressable
+                        key={l.value}
+                        onPress={() => changeLanguage(l.value)}
+                        className={`rounded-xs-k px-[14px] py-[7px] ${
+                          on ? 'bg-surface shadow-sm' : ''
                         }`}
                       >
-                        {l.label}
-                      </Typography>
-                    </Pressable>
-                  )
-                })}
+                        <Typography
+                          className={`text-sm font-bold ${
+                            on ? 'text-ink' : 'text-ink-2'
+                          }`}
+                        >
+                          {l.label}
+                        </Typography>
+                      </Pressable>
+                    )
+                  })}
+                </View>
               </View>
-            </View>
+            ) : null}
           </Group>
         </View>
 
