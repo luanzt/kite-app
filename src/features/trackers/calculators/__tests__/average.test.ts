@@ -17,7 +17,7 @@ const avg: Tracker = {
   period: 'daily',
   repeatDays: null,
   routine: null,
-  reminderTime: null,
+  reminderTimes: [],
   goalNote: null,
   averageWindow: null,
   rollingDays: null,

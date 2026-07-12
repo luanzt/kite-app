@@ -19,7 +19,7 @@ function baseTracker(overrides: Partial<Tracker> = {}): Tracker {
     period: 'daily',
     repeatDays: [],
     routine: 'any',
-    reminderTime: null,
+    reminderTimes: [],
     goalNote: null,
     averageWindow: null,
     rollingDays: null,

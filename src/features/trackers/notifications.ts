@@ -10,17 +10,18 @@ import * as repo from '@features/trackers/db/repository'
 
 /**
  * On-device reminder scheduling via notifee. The app is fully offline, so
- * reminders are local weekly-repeating trigger notifications — one per selected
- * `repeatDay` at the tracker's `reminderTime`. All functions swallow errors so a
- * denied permission or unavailable native module never crashes a save/delete.
+ * reminders are local weekly-repeating trigger notifications — one per
+ * selected `repeatDay` at each of the tracker's `reminderTimes`. All functions
+ * swallow errors so a denied permission or unavailable native module never
+ * crashes a save/delete.
  */
 
 const CHANNEL_ID = 'reminders'
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
 
-/** Stable per-tracker, per-weekday notification id. */
-function reminderId(trackerId: string, day: number): string {
-  return `rem-${trackerId}-${day}`
+/** Stable per-tracker, per-weekday, per-time notification id. */
+function reminderId(trackerId: string, day: number, index: number): string {
+  return `rem-${trackerId}-${day}-${index}`
 }
 
 /** Ask for notification permission. Returns true if granted/provisional. */
@@ -77,14 +78,14 @@ function parseTime(time: string): [number, number] | null {
   return [h, min]
 }
 
-/** Cancel every reminder previously scheduled for this tracker. */
+/** Cancel every reminder previously scheduled for this tracker. Looks up the
+ *  live trigger ids so it never depends on how many times/days the previous
+ *  version of the tracker had. */
 export async function cancelTrackerReminders(trackerId: string): Promise<void> {
   try {
-    await Promise.all(
-      ALL_DAYS.map((day) =>
-        notifee.cancelTriggerNotification(reminderId(trackerId, day))
-      )
-    )
+    const ids = await notifee.getTriggerNotificationIds()
+    const mine = ids.filter((id) => id.startsWith(`rem-${trackerId}-`))
+    await Promise.all(mine.map((id) => notifee.cancelTriggerNotification(id)))
   } catch {
     // ignore
   }
@@ -92,8 +93,8 @@ export async function cancelTrackerReminders(trackerId: string): Promise<void> {
 
 /**
  * (Re)schedule reminders for a tracker. Cancels any existing reminders first,
- * then — if the tracker has a `reminderTime` — schedules one weekly-repeating
- * notification per due weekday.
+ * then schedules one weekly-repeating notification per (reminder time × due
+ * weekday).
  *
  * Habits, targets and averages are reminded on their `repeatDays` (or every
  * day if none — their forms let the user pick weekdays). Projects are not
@@ -113,10 +114,7 @@ export async function scheduleTrackerReminders(
     tracker.type === 'habit' ||
     tracker.type === 'target' ||
     tracker.type === 'average'
-  if (!reminds || !tracker.reminderTime) return
-  const parsed = parseTime(tracker.reminderTime)
-  if (!parsed) return
-  const [hours, minutes] = parsed
+  if (!reminds || tracker.reminderTimes.length === 0) return
 
   const days =
     tracker.repeatDays && tracker.repeatDays.length > 0
@@ -126,29 +124,37 @@ export async function scheduleTrackerReminders(
   await ensureReminderChannel()
   try {
     await Promise.all(
-      days.map((day) => {
-        const trigger: TimestampTrigger = {
-          type: TriggerType.TIMESTAMP,
-          timestamp: nextOccurrence(day, hours, minutes).getTime(),
-          repeatFrequency: RepeatFrequency.WEEKLY
-        }
-        return notifee.createTriggerNotification(
-          {
-            id: reminderId(tracker.id, day),
-            title: tracker.name,
-            body,
-            android: { channelId: CHANNEL_ID, pressAction: { id: 'default' } },
-            // Show the reminder even when the app is open (foreground) on iOS.
-            ios: {
-              foregroundPresentationOptions: {
-                banner: true,
-                list: true,
-                sound: true
+      tracker.reminderTimes.flatMap((time, index) => {
+        const parsed = parseTime(time)
+        if (!parsed) return [] // skip malformed times individually
+        const [hours, minutes] = parsed
+        return days.map((day) => {
+          const trigger: TimestampTrigger = {
+            type: TriggerType.TIMESTAMP,
+            timestamp: nextOccurrence(day, hours, minutes).getTime(),
+            repeatFrequency: RepeatFrequency.WEEKLY
+          }
+          return notifee.createTriggerNotification(
+            {
+              id: reminderId(tracker.id, day, index),
+              title: tracker.name,
+              body,
+              android: {
+                channelId: CHANNEL_ID,
+                pressAction: { id: 'default' }
+              },
+              // Show the reminder even when the app is open (foreground) on iOS.
+              ios: {
+                foregroundPresentationOptions: {
+                  banner: true,
+                  list: true,
+                  sound: true
+                }
               }
-            }
-          },
-          trigger
-        )
+            },
+            trigger
+          )
+        })
       })
     )
   } catch {
@@ -201,7 +207,7 @@ export async function cancelAllReminders(): Promise<void> {
   }
 }
 
-/** (Re)schedule reminders for every habit/target that has a reminderTime.
+/** (Re)schedule reminders for every habit/target/average that has reminderTimes.
  *  `bodyFor` supplies the already-translated body per tracker, so this module
  *  stays free of the i18n runtime. */
 export async function rescheduleAllReminders(

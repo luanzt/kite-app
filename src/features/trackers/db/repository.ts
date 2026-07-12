@@ -25,7 +25,9 @@ export function trackerToRow(t: Tracker): Row {
     period: t.period,
     repeat_days: t.repeatDays ? JSON.stringify(t.repeatDays) : null,
     routine: t.routine,
-    reminder_time: t.reminderTime,
+    reminder_times: t.reminderTimes?.length
+      ? JSON.stringify(t.reminderTimes)
+      : null,
     goal_note: t.goalNote,
     created_at: t.createdAt,
     archived: t.archived ? 1 : 0,
@@ -54,7 +56,7 @@ export function rowToTracker(r: Row): Tracker {
     period: r.period ?? null,
     repeatDays: r.repeat_days ? JSON.parse(r.repeat_days) : null,
     routine: r.routine ?? null,
-    reminderTime: r.reminder_time ?? null,
+    reminderTimes: r.reminder_times ? JSON.parse(r.reminder_times) : [],
     goalNote: r.goal_note ?? null,
     createdAt: r.created_at,
     archived: r.archived === 1,
@@ -67,7 +69,7 @@ export function rowToTracker(r: Row): Tracker {
 }
 
 const COLS =
-  'id,name,type,icon,color,unit,direction,target_value,start_value,accumulation,start_date,deadline,period,repeat_days,routine,reminder_time,goal_note,created_at,archived,average_window,rolling_days,done_rule,progress_basis,updated_at'
+  'id,name,type,icon,color,unit,direction,target_value,start_value,accumulation,start_date,deadline,period,repeat_days,routine,reminder_times,goal_note,created_at,archived,average_window,rolling_days,done_rule,progress_basis,updated_at'
 const PLACEHOLDERS = COLS.split(',')
   .map(() => '?')
   .join(',')

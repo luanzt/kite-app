@@ -9,6 +9,7 @@ import type {
   ProgressBasis
 } from '@features/trackers/types'
 import { toISODate } from '@utils/date'
+import { DEFAULT_REMINDER } from '@features/trackers/reminders'
 
 export function uuid(): string {
   return (
@@ -32,7 +33,7 @@ export type BuildTrackerInput = {
   startDate?: string
   repeatDays?: number[] | null
   routine?: Routine | null
-  reminderTime?: string | null
+  reminderTimes?: string[]
   averageWindow?: AverageWindow | null
   rollingDays?: number | null
   doneRule?: DoneRule | null
@@ -67,7 +68,9 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
       input.repeatDays ??
       (isHabit || type === 'target' ? [0, 1, 2, 3, 4, 5, 6] : null),
     routine: isHabit ? input.routine ?? 'any' : null,
-    reminderTime: input.reminderTime ?? null,
+    reminderTimes:
+      input.reminderTimes ??
+      (isHabit || type === 'target' || isAverage ? [DEFAULT_REMINDER] : []),
     goalNote: null,
     averageWindow: isAverage ? input.averageWindow ?? 'since_start' : null,
     rollingDays:

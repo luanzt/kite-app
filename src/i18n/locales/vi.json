@@ -95,7 +95,7 @@
     "badHabitHelp": "Theo dõi thứ cần tránh (vd. bia). Mỗi lần lỡ thì log lại; ngày thành công là ngày không vượt giới hạn. Ngày không log được tính là sạch. Giới hạn 0 = không lần nào.",
     "routine": "Thời điểm", "routineAny": "Bất kỳ", "routineMorning": "Sáng",
     "routineAfternoon": "Chiều", "routineEvening": "Tối",
-    "reminders": "Nhắc nhở", "alert": "Giờ nhắc",
+    "reminders": "Nhắc nhở", "addReminder": "Thêm giờ nhắc", "reminderOff": "Tắt", "remindersOffHint": "Bật để được nhắc vào những ngày cần thực hiện.", "alert": "Giờ nhắc",
     "avgGoal": "Mục tiêu", "avgGoalPh": "5",
     "avgWindow": "Cách tính trung bình", "avgSinceStart": "Từ ngày bắt đầu", "avgRolling": "Trung bình trượt",
     "avgRollingDays": "Cửa sổ trượt (ngày)", "avgCustom": "Tùy chỉnh",

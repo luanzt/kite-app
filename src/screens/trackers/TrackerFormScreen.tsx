@@ -26,13 +26,14 @@ import {
   FieldLabelRow,
   FormInput,
   InfoTooltip,
+  ReminderField,
   Segmented,
   SelectField,
-  TimeField,
   Toggle,
   useAlert,
   WeekdayPicker
 } from '@components/ui'
+import { DEFAULT_REMINDER } from '@features/trackers/reminders'
 import { useAppStore } from '@store/useAppStore'
 import { toISODate } from '@utils/date'
 import type {
@@ -117,9 +118,14 @@ export function TrackerFormScreen({
     editing?.repeatDays ?? [0, 1, 2, 3, 4, 5, 6]
   )
   const [routine, setRoutine] = useState<Routine>(editing?.routine ?? 'any')
-  const [reminderOn, setReminderOn] = useState(!!editing?.reminderTime)
-  const [reminderTime, setReminderTime] = useState(
-    editing?.reminderTime ?? '18:00'
+  // Create defaults to one active 18:00 reminder; edit hydrates from the row.
+  const [reminderOn, setReminderOn] = useState(
+    editing ? editing.reminderTimes.length > 0 : true
+  )
+  const [reminderTimes, setReminderTimes] = useState<string[]>(
+    editing && editing.reminderTimes.length > 0
+      ? editing.reminderTimes
+      : [DEFAULT_REMINDER]
   )
   // Average-only Strides options.
   const [averageWindow, setAverageWindow] = useState<AverageWindow>(
@@ -154,8 +160,12 @@ export function TrackerFormScreen({
     setStartDate(editing.startDate)
     setRepeatDays(editing.repeatDays ?? [0, 1, 2, 3, 4, 5, 6])
     setRoutine(editing.routine ?? 'any')
-    setReminderOn(!!editing.reminderTime)
-    setReminderTime(editing.reminderTime ?? '18:00')
+    setReminderOn(editing.reminderTimes.length > 0)
+    setReminderTimes(
+      editing.reminderTimes.length > 0
+        ? editing.reminderTimes
+        : [DEFAULT_REMINDER]
+    )
     setAverageWindow(editing.averageWindow ?? 'since_start')
     setRollingDaysStr(
       editing.rollingDays != null ? String(editing.rollingDays) : '7'
@@ -219,10 +229,8 @@ export function TrackerFormScreen({
           : undefined,
       repeatDays: isHabit || isTarget || isAverage ? repeatDays : undefined,
       routine: isHabit ? routine : undefined,
-      reminderTime:
-        (isHabit || isTarget || isAverage) && reminderOn
-          ? reminderTime.trim() || null
-          : null,
+      reminderTimes:
+        (isHabit || isTarget || isAverage) && reminderOn ? reminderTimes : [],
       averageWindow: isAverage ? averageWindow : undefined,
       rollingDays:
         isAverage && averageWindow === 'rolling' ? rollingDaysNum : undefined,
@@ -463,25 +471,14 @@ export function TrackerFormScreen({
                 }}
               />
             </View>
-            <View className='gap-s2'>
-              <View className='flex-row items-center justify-between'>
-                <View className='flex-row items-center gap-s2'>
-                  <Icons.Bell size={18} color={TYPE_COLOR.target} />
-                  <FieldLabel>{t('form.reminders')}</FieldLabel>
-                </View>
-                <Toggle value={reminderOn} onChange={setReminderOn} />
-              </View>
-              {reminderOn ? (
-                <View className='gap-s2'>
-                  <FieldLabel>{t('form.alert')}</FieldLabel>
-                  <TimeField
-                    value={reminderTime}
-                    onChange={setReminderTime}
-                    placeholder='18:00'
-                  />
-                </View>
-              ) : null}
-            </View>
+            {/* reminders */}
+            <ReminderField
+              enabled={reminderOn}
+              onEnabledChange={setReminderOn}
+              times={reminderTimes}
+              onTimesChange={setReminderTimes}
+              accentColor={TYPE_COLOR.target}
+            />
           </>
         ) : null}
 
@@ -561,25 +558,13 @@ export function TrackerFormScreen({
             </View>
 
             {/* reminders */}
-            <View className='gap-s2'>
-              <View className='flex-row items-center justify-between'>
-                <View className='flex-row items-center gap-s2'>
-                  <Icons.Bell size={18} color={TYPE_COLOR.average} />
-                  <FieldLabel>{t('form.reminders')}</FieldLabel>
-                </View>
-                <Toggle value={reminderOn} onChange={setReminderOn} />
-              </View>
-              {reminderOn ? (
-                <View className='gap-s2'>
-                  <FieldLabel>{t('form.alert')}</FieldLabel>
-                  <TimeField
-                    value={reminderTime}
-                    onChange={setReminderTime}
-                    placeholder='18:00'
-                  />
-                </View>
-              ) : null}
-            </View>
+            <ReminderField
+              enabled={reminderOn}
+              onEnabledChange={setReminderOn}
+              times={reminderTimes}
+              onTimesChange={setReminderTimes}
+              accentColor={TYPE_COLOR.average}
+            />
 
             {/* average window (Strides "Average") */}
             <View className='gap-s2'>
@@ -776,25 +761,13 @@ export function TrackerFormScreen({
             </View>
 
             {/* reminders */}
-            <View className='gap-s2'>
-              <View className='flex-row items-center justify-between'>
-                <View className='flex-row items-center gap-s2'>
-                  <Icons.Bell size={18} color={TYPE_COLOR.habit} />
-                  <FieldLabel>{t('form.reminders')}</FieldLabel>
-                </View>
-                <Toggle value={reminderOn} onChange={setReminderOn} />
-              </View>
-              {reminderOn ? (
-                <View className='gap-s2'>
-                  <FieldLabel>{t('form.alert')}</FieldLabel>
-                  <TimeField
-                    value={reminderTime}
-                    onChange={setReminderTime}
-                    placeholder='18:00'
-                  />
-                </View>
-              ) : null}
-            </View>
+            <ReminderField
+              enabled={reminderOn}
+              onEnabledChange={setReminderOn}
+              times={reminderTimes}
+              onTimesChange={setReminderTimes}
+              accentColor={TYPE_COLOR.habit}
+            />
           </>
         ) : null}
 
