@@ -789,18 +789,18 @@ describe('classifyTodayRow', () => {
     expect(classifyTodayRow(avgGoal, 8, 0)).toBe('completed')
   })
 
-  it('bad habit: within the limit reads completed, over it reads missed', () => {
+  it('bad habit: clean stays due (actionable all day), over the limit is missed', () => {
     const badH: Tracker = {
       ...base,
       type: 'habit',
       direction: 'bad',
       targetValue: 2
     }
-    expect(classifyTodayRow(badH, 0, 0)).toBe('completed') // clean so far
-    expect(classifyTodayRow(badH, 2, 0)).toBe('completed') // at the limit
+    expect(classifyTodayRow(badH, 0, 0)).toBe('due') // clean so far
+    expect(classifyTodayRow(badH, 2, 0)).toBe('due') // at the limit, still clean
     expect(classifyTodayRow(badH, 3, 0)).toBe('missed')
-    const abstain: Tracker = { ...badH, targetValue: null } // limit 0
-    expect(classifyTodayRow(abstain, 0, 0)).toBe('completed')
+    const abstain: Tracker = { ...badH, targetValue: null } // limit 0 = never
+    expect(classifyTodayRow(abstain, 0, 0)).toBe('due')
     expect(classifyTodayRow(abstain, 1, 0)).toBe('missed')
   })
 

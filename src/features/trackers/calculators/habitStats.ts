@@ -418,10 +418,12 @@ export function classifyTodayRow(
     }
   }
   if (tracker.type !== 'habit') return yes > 0 ? 'completed' : 'due'
-  // Bad habit: staying at/under the limit reads "so far so good" (completed);
-  // the only failure is exceeding it. There is nothing to be "due" for.
+  // Bad habit: clean (at/under the limit) stays DUE all day so the slip
+  // control remains reachable; the only terminal state is exceeding the
+  // limit (missed). The summary ring still credits a clean day as done —
+  // see todaySummary().
   if (tracker.direction === 'bad') {
-    return yes > (tracker.targetValue ?? 0) ? 'missed' : 'completed'
+    return yes > (tracker.targetValue ?? 0) ? 'missed' : 'due'
   }
   const goal = perDayGoal(tracker)
   if (yes >= goal) return 'completed'
