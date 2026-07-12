@@ -9,9 +9,11 @@ import {
   buildHistoryRows,
   isoAddDays,
   habitStreakStatus,
-  classifyTodayRow
+  classifyTodayRow,
+  todaySummary
 } from '../habitStats'
 import type { Tracker, Entry } from '@features/trackers/types'
+import type { TodayRowStatus } from '../habitStats'
 
 const base: Tracker = {
   id: 'h1',
@@ -839,5 +841,43 @@ describe('classifyTodayRow', () => {
     expect(classifyTodayRow({ ...logged, doneRule: null }, 1, 0)).toBe(
       'completed'
     )
+  })
+})
+
+describe('todaySummary', () => {
+  const good: Tracker = { ...base, targetValue: 1 }
+  const bad: Tracker = {
+    ...base,
+    id: 'b1',
+    direction: 'bad',
+    targetValue: 2
+  }
+  const row = (tracker: Tracker, status: TodayRowStatus) => ({
+    tracker,
+    status
+  })
+
+  it('clean bad habit (due) counts as done; good due does not', () => {
+    const s = todaySummary([row(good, 'due'), row(bad, 'due')])
+    expect(s).toEqual({ done: 1, total: 2, allDone: false })
+  })
+
+  it('allDone when everything is completed or clean-bad', () => {
+    const s = todaySummary([row(good, 'completed'), row(bad, 'due')])
+    expect(s).toEqual({ done: 2, total: 2, allDone: true })
+  })
+
+  it('over-limit bad habit (missed) is not done and blocks allDone', () => {
+    const s = todaySummary([row(good, 'completed'), row(bad, 'missed')])
+    expect(s).toEqual({ done: 1, total: 2, allDone: false })
+  })
+
+  it('good missed is not done; empty list is trivially allDone', () => {
+    expect(todaySummary([row(good, 'missed')])).toEqual({
+      done: 0,
+      total: 1,
+      allDone: false
+    })
+    expect(todaySummary([])).toEqual({ done: 0, total: 0, allDone: true })
   })
 })

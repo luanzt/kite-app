@@ -431,6 +431,25 @@ export function classifyTodayRow(
   return 'due'
 }
 
+/**
+ * Today-screen summary counts, decoupled from section placement: a clean bad
+ * habit sits in Due Today (still actionable) yet counts as done — being at or
+ * under the limit IS today's success. `allDone` is true when every row is
+ * either completed or a clean bad habit (an empty day is trivially all done).
+ */
+export function todaySummary(
+  rows: { tracker: Tracker; status: TodayRowStatus }[]
+): { done: number; total: number; allDone: boolean } {
+  const done = rows.filter(
+    (r) =>
+      r.status === 'completed' ||
+      (r.tracker.type === 'habit' &&
+        r.tracker.direction === 'bad' &&
+        r.status === 'due')
+  ).length
+  return { done, total: rows.length, allDone: done === rows.length }
+}
+
 export type PeriodUnit = 'day' | 'week' | 'month' | 'year'
 export type PeriodSessions = {
   bars: WeekBar[] // oldest first; for daily, count = number of logs that day
