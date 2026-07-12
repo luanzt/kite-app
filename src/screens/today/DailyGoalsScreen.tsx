@@ -27,6 +27,7 @@ import {
   classifyTodayRow,
   habitStreakStatus,
   perDayGoal,
+  todaySummary,
   type StreakStatus,
   type TodayRowStatus
 } from '@features/trackers/calculators/habitStats'
@@ -108,6 +109,17 @@ const STREAK_KEY: Record<StreakStatus['kind'], string> = {
 const isMissedKind = (k: StreakStatus['kind']): boolean =>
   k === 'missedYesterday' || k === 'missedLastTime' || k === 'missedDays'
 
+// Amber warning tone shared by the limit icon and warn states on this screen.
+const AMBER = '#e8923a'
+
+// Bad-habit streak line: clean-day copy instead of "streak" wording. Only the
+// kinds habitStreakStatus can return for a bad habit are mapped.
+const BAD_STREAK_KEY: Partial<Record<StreakStatus['kind'], string>> = {
+  greatStart: 'today.cleanStart',
+  streakOngoing: 'today.cleanOngoing',
+  streakEnded: 'today.cleanEnded'
+}
+
 // Pace line color by status (literal classes — never interpolate).
 const PACE_TEXT_CLASS: Record<PaceStatus, string> = {
   on_track: 'text-pace-on',
@@ -150,11 +162,24 @@ function LogRow({
   const { t, i18n } = useTranslation()
   const c = useThemeColors()
   const { tracker, done, todayLog } = row
+  const isBad = tracker.type === 'habit' && tracker.direction === 'bad'
   const { data: allEntries = [] } = useEntries(tracker.id)
   const streak: StreakStatus | null =
     tracker.type === 'habit'
       ? habitStreakStatus(tracker, allEntries, today)
       : null
+  // Bad habits use clean-day copy; a bad-habit streakEnded (went over today)
+  // renders as a warning, mirroring isMissedKind for good habits.
+  const streakKey = streak
+    ? isBad
+      ? BAD_STREAK_KEY[streak.kind] ?? ''
+      : STREAK_KEY[streak.kind]
+    : ''
+  const streakNegative = streak
+    ? isBad
+      ? streak.kind === 'streakEnded'
+      : isMissedKind(streak.kind)
+    : false
   const progress: TrackerProgress | null =
     tracker.type === 'target'
       ? calculateTarget(tracker, allEntries, today)
@@ -197,33 +222,56 @@ function LogRow({
 
   const renderControl = () => {
     if (tracker.type === 'habit') {
-      // Bad habit: tap logs a slip against the limit — the ring is the
-      // REMAINING quota (starts full, drains per slip, full red once over).
-      const isBad = tracker.direction === 'bad'
-      const goal = isBad ? tracker.targetValue ?? 0 : perDayGoal(tracker)
       const n = todayLog
-      const over = isBad && n > goal
-      const ringColor = over
-        ? c.pace.behind
-        : done
-        ? c.pace.on_track
-        : c.pace.ahead
-      const ringFraction = isBad
-        ? over
-          ? 1
-          : goal > 0
-          ? (goal - n) / goal
-          : 1
-        : goal
-        ? n / goal
-        : 0
+      if (isBad) {
+        // Limit ring: shows the REMAINING quota (starts full, drains per
+        // slip). Center is the remaining count — or the overflow as "+X"
+        // once over the limit. Tap logs one slip.
+        const limit = tracker.targetValue ?? 0
+        const over = n > limit
+        const remaining = Math.max(0, limit - n)
+        const ringColor = over
+          ? c.pace.behind
+          : remaining === 0
+          ? AMBER
+          : c.pace.on_track
+        const ringFraction = over ? 1 : limit > 0 ? remaining / limit : 1
+        return (
+          <Pressable
+            onPress={logYes}
+            className='h-[46px] w-[46px] items-center justify-center'
+          >
+            <Ring
+              fraction={ringFraction}
+              color={ringColor}
+              size={46}
+              strokeWidth={4}
+            />
+            <View className='absolute inset-0 items-center justify-center'>
+              <Typography
+                className={`text-xs font-extrabold ${
+                  over
+                    ? 'text-pace-behind'
+                    : remaining === 0
+                    ? 'text-[#e8923a]'
+                    : 'text-pace-on'
+                }`}
+              >
+                {over ? `+${n - limit}` : `${remaining}`}
+              </Typography>
+            </View>
+          </Pressable>
+        )
+      }
+      const goal = perDayGoal(tracker)
+      const ringColor = done ? c.pace.on_track : c.pace.ahead
       return (
         <Pressable
           onPress={logYes}
           className='h-[46px] w-[46px] items-center justify-center'
         >
           <Ring
-            fraction={ringFraction}
+            fraction={goal ? n / goal : 0}
             color={ringColor}
             size={46}
             strokeWidth={4}
@@ -231,7 +279,7 @@ function LogRow({
           <View className='absolute inset-0 items-center justify-center'>
             <Typography
               className={`text-xs font-extrabold ${
-                over ? 'text-pace-behind' : done ? 'text-pace-on' : 'text-ink-2'
+                done ? 'text-pace-on' : 'text-ink-2'
               }`}
             >
               {`${n}/${goal}`}
@@ -296,34 +344,47 @@ function LogRow({
         <Typography numberOfLines={1} className='text-base font-bold text-ink'>
           {tracker.name}
         </Typography>
-        <View className='flex-row items-center gap-s2 mt-[2px]'>
-          <View
-            className='rounded-full h-2 w-2'
-            // runtime: user-chosen tracker.color
-            style={{ backgroundColor: colorHex(tracker.color) }}
-          />
-          <Typography className='text-sm text-ink-2'>{subText}</Typography>
-        </View>
-        {row.status === 'missed' ? (
+        {isBad ? (
+          <View className='flex-row items-center gap-s2 mt-[2px]'>
+            <Icons.Ban size={13} color={AMBER} />
+            <Typography className='text-sm text-ink-2'>
+              {t('today.limitPerDay', {
+                value: fmtCompact(tracker.targetValue ?? 0)
+              })}
+            </Typography>
+          </View>
+        ) : (
+          <View className='flex-row items-center gap-s2 mt-[2px]'>
+            <View
+              className='rounded-full h-2 w-2'
+              // runtime: user-chosen tracker.color
+              style={{ backgroundColor: colorHex(tracker.color) }}
+            />
+            <Typography className='text-sm text-ink-2'>{subText}</Typography>
+          </View>
+        )}
+        {row.status === 'missed' && !isBad ? (
           // Missed today (attempts filled the goal but not enough Yes) — a muted
           // encouragement line instead of the streak text.
           <Typography className='text-sm text-ink-2 mt-[2px]'>
             {t('today.missedEncourage')}
           </Typography>
-        ) : streak && streak.kind !== 'none' ? (
+        ) : streak && streak.kind !== 'none' && streakKey ? (
           <View className='flex-row items-center gap-s1 mt-[2px]'>
-            {isMissedKind(streak.kind) ? (
+            {streakNegative ? (
               // amber warning icon; the text stays muted (like the cadence line)
-              <Icons.Warn size={13} color='#e8923a' />
+              <Icons.Warn size={13} color={AMBER} />
+            ) : isBad && streak.kind === 'greatStart' ? (
+              <Icons.Check size={13} color={c.pace.on_track} />
             ) : (
               <Icons.Flame size={13} color={c.pace.on_track} />
             )}
             <Typography
               className={`text-sm ${
-                isMissedKind(streak.kind) ? 'text-ink-2' : 'text-pace-on'
+                streakNegative ? 'text-ink-2' : 'text-pace-on'
               }`}
             >
-              {t(STREAK_KEY[streak.kind], { count: streak.n })}
+              {t(streakKey, { count: streak.n })}
             </Typography>
           </View>
         ) : null}
@@ -367,11 +428,12 @@ export function DailyGoalsScreen() {
     return { tracker, status, done: status === 'completed', todayLog }
   })
 
-  const total = rows.length
   const dueRows = rows.filter((r) => r.status === 'due')
   const missed = rows.filter((r) => r.status === 'missed')
   const completed = rows.filter((r) => r.status === 'completed')
-  const doneCount = completed.length
+  // Summary decouples from sections: a clean bad habit sits in Due Today yet
+  // counts as done, and allDone tolerates clean bad habits still listed below.
+  const { done: doneCount, total, allDone } = todaySummary(rows)
 
   const hours = new Date().getHours()
   const greetKey =
@@ -441,10 +503,6 @@ export function DailyGoalsScreen() {
     )
   }
 
-  // "All caught up" — nothing left to log today: no due and no missed rows.
-  // Covers both everything-completed and nothing-due-today (total === 0).
-  const allDone = dueRows.length === 0 && missed.length === 0
-
   return (
     <View className='flex-1 bg-bg'>
       {/* head */}
@@ -500,7 +558,7 @@ export function DailyGoalsScreen() {
           </View>
         ) : null}
 
-        {dueRows.length > 0 && !allDone ? (
+        {dueRows.length > 0 ? (
           <>
             <Typography className='text-xs font-bold uppercase text-ink px-s4 pt-5 pb-2'>
               {t('today.dueToday')}
