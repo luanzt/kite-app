@@ -400,6 +400,9 @@ milestones from the form), and wiring the Settings **Data → Export / Clear** r
 now DONE: **dark mode** is implemented (see Theme above), reminders are wired
 (`notifications.ts` + save/delete mutations), the TrackerForm has
 deadline/period/accumulation/weekday/reminder editors, and Today logs real
-numeric values for target/average via `LogEntryModal`.
+numeric values for target/average via `LogEntryModal`. Deferred on the sync
+side: recovering from a **corrupted iCloud backup file** (today every sync
+fails with the generic error until the cloud file is replaced) and an in-app
+**"delete cloud backup"** action.
 
 The iOS/Android project has been renamed from `RnHeroUITemplate` to **Kite**: RN/AppRegistry name is `Kite`, the iOS target/scheme/folder is `Kite` (`ios/Kite/`, `Kite.xcodeproj`, `Kite.xcworkspace`), the Android Java package is `com.kite.app`, and the bundle id / `applicationId` is **`com.kite.app`** on both platforms.

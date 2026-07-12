@@ -12,6 +12,10 @@ import { Icons } from '@features/trackers/icons'
 import { runSync } from '@features/trackers/sync/syncService'
 import { SnapshotError } from '@features/trackers/sync/snapshot'
 import { useSyncStats } from '@features/trackers/queries'
+import {
+  cancelAllScheduledReminders,
+  rescheduleAllReminders
+} from '@features/trackers/notifications'
 import { useAppStore } from '@store/useAppStore'
 import { useAlert } from '@components/ui'
 import { useThemeColors } from '@hooks/useThemeColors'
@@ -36,13 +40,29 @@ export function SyncBackupScreen() {
   const enabled = useAppStore((s) => s.icloudSyncEnabled)
   const setEnabled = useAppStore((s) => s.setIcloudSyncEnabled)
   const lastSyncedAt = useAppStore((s) => s.lastSyncedAt)
+  const notifyEnabled = useAppStore((s) => s.notifyEnabled)
   const { data: stats } = useSyncStats(lastSyncedAt)
   const [syncing, setSyncing] = useState(false)
+
+  // Body used when rescheduling reminders after sync, translated per type.
+  const reminderBodyFor = (tr: { type: string }) =>
+    tr.type === 'target'
+      ? t('notification.targetBody')
+      : tr.type === 'average'
+      ? t('notification.averageBody')
+      : t('notification.habitBody')
 
   const onSyncNow = async () => {
     setSyncing(true)
     try {
       await runSync(qc)
+      // Sync bypasses the save/delete mutations that manage reminders:
+      // clear every scheduled trigger (incl. orphans of trackers deleted on
+      // another device), then reschedule from the merged tracker list.
+      await cancelAllScheduledReminders()
+      if (notifyEnabled) {
+        await rescheduleAllReminders(reminderBodyFor)
+      }
     } catch (err) {
       const newer = err instanceof SnapshotError && err.code === 'newer_version'
       alert({
