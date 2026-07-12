@@ -83,15 +83,14 @@ export function SyncBackupScreen() {
 
   return (
     <View className='flex-1 bg-bg'>
-      {/* appbar */}
+      {/* appbar — back button styled like DetailAppbar's */}
       <View
-        className='flex-row items-center gap-s2 bg-surface px-s2 pb-s2'
-        style={{ paddingTop: insets.top + 6 }} // safe-area, runtime
+        className='flex-row items-center gap-s3 bg-surface px-s4 pb-s3'
+        style={{ paddingTop: insets.top + 8 }} // safe-area, runtime
       >
         <Pressable
           onPress={() => nav.goBack()}
-          hitSlop={8}
-          className='h-[38px] w-[38px] items-center justify-center'
+          className='h-[40px] w-[40px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
         >
           <Icons.Back size={22} color={c.ink} />
         </Pressable>
