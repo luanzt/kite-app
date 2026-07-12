@@ -34,9 +34,19 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string></string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>SanFranciscoDisplay-Italic.otf</string>
+		<string>SanFranciscoDisplay-Light.otf</string>
+		<string>SanFranciscoDisplay-Regular.otf</string>
+		<string>SanFranciscoDisplay-Black.otf</string>
+		<string>SanFranciscoDisplay-Bold.otf</string>
+		<string>SanFranciscoDisplay-Medium.otf</string>
+		<string>SanFranciscoDisplay-Semibold.otf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -56,15 +66,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>SanFranciscoDisplay-Italic.otf</string>
-		<string>SanFranciscoDisplay-Light.otf</string>
-		<string>SanFranciscoDisplay-Regular.otf</string>
-		<string>SanFranciscoDisplay-Black.otf</string>
-		<string>SanFranciscoDisplay-Bold.otf</string>
-		<string>SanFranciscoDisplay-Medium.otf</string>
-		<string>SanFranciscoDisplay-Semibold.otf</string>
-	</array>
 </dict>
 </plist>
