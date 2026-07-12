@@ -31,7 +31,7 @@ const tracker: Tracker = {
   period: null,
   repeatDays: [1, 3, 5],
   routine: null,
-  reminderTime: null,
+  reminderTimes: [],
   createdAt: '2026-01-01T00:00:00Z',
   goalNote: 'Build an emergency fund',
   averageWindow: null,
@@ -87,7 +87,7 @@ describe('tracker row mapping', () => {
       period: 'daily',
       repeatDays: null,
       routine: null,
-      reminderTime: null,
+      reminderTimes: [],
       createdAt: '2026-06-01T00:00:00Z',
       goalNote: null,
       averageWindow: null,
@@ -133,6 +133,25 @@ describe('tracker row mapping', () => {
     expect(back.rollingDays).toBeNull()
     expect(back.doneRule).toBeNull()
     expect(back.progressBasis).toBeNull()
+  })
+
+  test('trackerToRow serializes reminderTimes as JSON, empty as NULL', () => {
+    const row = trackerToRow({ ...tracker, reminderTimes: ['08:00', '18:00'] })
+    expect(row.reminder_times).toBe('["08:00","18:00"]')
+    expect(trackerToRow(tracker).reminder_times).toBeNull()
+  })
+
+  test('rowToTracker round-trips reminderTimes and defaults missing to []', () => {
+    const withTimes = { ...tracker, reminderTimes: ['08:00'] }
+    expect(rowToTracker(trackerToRow(withTimes))).toEqual(withTimes)
+    const row = trackerToRow(tracker)
+    delete row.reminder_times
+    expect(rowToTracker(row).reminderTimes).toEqual([])
+  })
+
+  test('trackerToRow tolerates a legacy tracker missing reminderTimes (old v1 snapshot)', () => {
+    const legacy = { ...tracker, reminderTimes: undefined } as unknown as Tracker
+    expect(trackerToRow(legacy).reminder_times).toBeNull()
   })
 })
 

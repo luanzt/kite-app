@@ -95,7 +95,7 @@
     "badHabitHelp": "Track something to avoid (e.g. beer). Log each slip; a day is successful when you stay at or under the limit. Days you don't log count as clean. Limit 0 means never.",
     "routine": "Routine", "routineAny": "Any", "routineMorning": "Morning",
     "routineAfternoon": "Afternoon", "routineEvening": "Evening",
-    "reminders": "Reminders", "alert": "Alert",
+    "reminders": "Reminders", "addReminder": "Add reminder", "reminderOff": "Off", "remindersOffHint": "Turn on to get reminded on due days.", "alert": "Alert",
     "avgGoal": "Goal", "avgGoalPh": "5",
     "avgWindow": "Average", "avgSinceStart": "Since Start Date", "avgRolling": "Rolling Average",
     "avgRollingDays": "Rolling window (days)", "avgCustom": "Custom",

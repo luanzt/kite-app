@@ -26,27 +26,50 @@ describe('buildTracker — target startValue / schedule / reminders', () => {
     expect(t.startValue).toBe(0)
   })
 
-  it('applies repeatDays and reminderTime to a target', () => {
+  it('applies repeatDays and reminderTimes to a target', () => {
     const t = buildTracker({
       name: 'Save',
       type: 'target',
       targetValue: 2000,
       repeatDays: [1, 3, 5],
-      reminderTime: '18:00'
+      reminderTimes: ['08:00', '18:00']
     })
     expect(t.repeatDays).toEqual([1, 3, 5])
-    expect(t.reminderTime).toBe('18:00')
+    expect(t.reminderTimes).toEqual(['08:00', '18:00'])
+  })
+
+  it("defaults reminderTimes to ['18:00'] for habit/target/average", () => {
+    const habit = buildTracker({ name: 'Meditate', type: 'habit' })
+    const target = buildTracker({
+      name: 'Save',
+      type: 'target',
+      targetValue: 1
+    })
+    const avg = buildTracker({ name: 'Water', type: 'average', targetValue: 8 })
+    expect(habit.reminderTimes).toEqual(['18:00'])
+    expect(target.reminderTimes).toEqual(['18:00'])
+    expect(avg.reminderTimes).toEqual(['18:00'])
+    expect(target.routine).toBeNull()
+  })
+
+  it('gives a project no reminders by default', () => {
+    expect(
+      buildTracker({ name: 'Ship', type: 'project' }).reminderTimes
+    ).toEqual([])
+  })
+
+  it('keeps an explicit empty reminderTimes (reminders switched off)', () => {
+    const t = buildTracker({
+      name: 'Meditate',
+      type: 'habit',
+      reminderTimes: []
+    })
+    expect(t.reminderTimes).toEqual([])
   })
 
   it('defaults target repeatDays to every day when omitted', () => {
     const t = buildTracker({ name: 'Save', type: 'target', targetValue: 2000 })
     expect(t.repeatDays).toEqual([0, 1, 2, 3, 4, 5, 6])
-  })
-
-  it('leaves target reminderTime null and routine null when omitted', () => {
-    const t = buildTracker({ name: 'Save', type: 'target', targetValue: 2000 })
-    expect(t.reminderTime).toBeNull()
-    expect(t.routine).toBeNull()
   })
 
   it('does not give a non-target/non-habit type a startValue or repeatDays', () => {

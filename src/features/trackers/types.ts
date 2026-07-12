@@ -28,7 +28,7 @@ export type Tracker = {
   period: Period | null
   repeatDays: number[] | null // 0=Sun..6=Sat
   routine: Routine | null // time-of-day grouping (habit)
-  reminderTime: string | null // "HH:MM" 24h, null = reminders off
+  reminderTimes: string[] // "HH:MM" 24h, insertion order; [] = reminders off
   goalNote: string | null // free-text motivation note pinned to the goal (habit Notes tab)
   averageWindow: AverageWindow | null // average only; null = since_start
   rollingDays: number | null // average only: rolling window in calendar days

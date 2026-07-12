@@ -16,9 +16,9 @@ import { useThemeColors } from '@hooks/useThemeColors'
  * `HH:mm` time. The trigger looks like the design's `.input` (showing the
  * chosen time); tapping it slides up the wheel, and "Save" confirms.
  *
- * `value`/`onChange` are plain `HH:mm` strings (what SQLite stores for
- * `reminderTime`), so this is a drop-in replacement for the old free-text
- * `18:00` input.
+ * `value`/`onChange` are plain `HH:mm` strings (what SQLite stores in each
+ * tracker's `reminderTimes` entry), so this is a drop-in replacement for the
+ * old free-text `18:00` input.
  *
  * Unlike `DateField` (where picking a day closes the sheet), a time wheel
  * scrolls continuously, so we keep a draft in local state and commit it on

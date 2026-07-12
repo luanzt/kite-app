@@ -17,7 +17,7 @@ const habit: Tracker = {
   period: 'daily',
   repeatDays: [0, 1, 2, 3, 4, 5, 6],
   routine: 'any',
-  reminderTime: null,
+  reminderTimes: [],
   goalNote: null,
   averageWindow: null,
   rollingDays: null,
