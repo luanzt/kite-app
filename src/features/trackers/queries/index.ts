@@ -6,6 +6,7 @@ import {
   scheduleTrackerReminders
 } from '@features/trackers/notifications'
 import { useAppStore } from '@store/useAppStore'
+import { countPending } from '@features/trackers/sync/snapshot'
 import type { Tracker, Entry, Milestone } from '@features/trackers/types'
 
 const keys = {
@@ -115,5 +116,29 @@ export function useSaveMilestone() {
     mutationFn: async (m: Milestone) => repo.upsertMilestone(m),
     onSuccess: (_d, m) =>
       qc.invalidateQueries({ queryKey: keys.milestones(m.trackerId) })
+  })
+}
+
+/**
+ * Sync & Backup screen stats. Keyed on lastSyncedAt so a completed sync
+ * refetches; runSync's blanket invalidateQueries() also covers it.
+ */
+export function useSyncStats(lastSyncedAt: string | null) {
+  return useQuery({
+    queryKey: ['syncStats', lastSyncedAt],
+    queryFn: () => {
+      const trackers = repo.listAllTrackers()
+      const entries = repo.listAllEntries()
+      const milestones = repo.listAllMilestones()
+      const tombstones = repo.listTombstones()
+      return {
+        trackers: trackers.length,
+        logs: entries.length,
+        pending: countPending(
+          { trackers, entries, milestones, tombstones },
+          lastSyncedAt
+        )
+      }
+    }
   })
 }

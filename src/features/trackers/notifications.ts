@@ -178,6 +178,19 @@ export async function openSystemNotificationSettings(): Promise<void> {
   }
 }
 
+/**
+ * Cancel EVERY scheduled trigger notification, including orphans whose tracker
+ * no longer exists locally — after a sync applies a deletion from another
+ * device, per-tracker cancellation can't reach those ids anymore.
+ */
+export async function cancelAllScheduledReminders(): Promise<void> {
+  try {
+    await notifee.cancelTriggerNotifications()
+  } catch {
+    // ignore — best-effort
+  }
+}
+
 /** Cancel reminders for every tracker (used when the preference is turned off). */
 export async function cancelAllReminders(): Promise<void> {
   try {

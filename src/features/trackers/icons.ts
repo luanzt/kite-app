@@ -24,6 +24,8 @@ import {
   X,
   History,
   StickyNote,
+  Cloud,
+  CloudOff,
   type LucideIcon
 } from 'lucide-react-native'
 import type { FC } from 'react'
@@ -127,6 +129,8 @@ export const Icons = {
   Globe,
   Moon,
   Download,
+  Cloud,
+  CloudOff,
   Bolt: Zap,
   Bell,
   Calendar,

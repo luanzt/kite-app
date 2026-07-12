@@ -57,7 +57,7 @@ Data flows: **UI → TanStack Query hooks → repository functions → SQLite (o
 
 - **SQLite (op-sqlite)** holds all tracker data. App runs fully offline.
 - **TanStack Query** is reused as a *reactive cache over local SQLite* (not over an API). Query hooks call repository functions; mutations `invalidate` the relevant keys so the UI refreshes. See `src/features/trackers/queries/index.ts`.
-- **Zustand + MMKV** hold ONLY app settings (theme, language). **Never** store tracker data in Zustand — it goes in SQLite.
+- **Zustand + MMKV** hold ONLY app settings (theme, language, and sync state — `icloudSyncEnabled`/`lastSyncedAt` are settings-level, not tracker data). **Never** store tracker data in Zustand — it goes in SQLite.
 
 Almost all domain code lives under **`src/features/trackers/`**:
 
@@ -70,6 +70,16 @@ Almost all domain code lives under **`src/features/trackers/`**:
 - `factory.ts` — `buildTracker(input)` is the single source of truth for constructing a `Tracker` (type-appropriate defaults + collision-resistant `uuid()`). Both the form and quick-starts use it; do not hand-build `Tracker` objects elsewhere.
 - `icons.ts` — the visual single-source-of-truth: `PACE_COLOR`/`PACE_WEAK`/`PACE_DOT_CLASS` (pace palette), `Icons` (lucide chrome-icon map), `TAB_ICON` (bottom-tab SVGs), `TYPE_ICON`/`TYPE_COLOR` (per tracker type), and the icon/color resolvers `iconEmoji(key)`, `iconKey(value)`, `colorHex(color)`, `hexA(hex, alpha)`. **A tracker's `icon` is persisted as an ASCII keyword (e.g. `"lotus"`, `"drop"`), NEVER a raw emoji** — op-sqlite v16 corrupts non-BMP (surrogate-pair) string bind params on write, so the emoji glyph exists only at render time via `iconEmoji()`. `iconSets.ts` holds `ICONSET` (the per-type keyword lists shown in the form picker) + `defaultIcon(type)`.
 - `notifications.ts` — on-device notifee reminder scheduling (fully offline: local weekly-repeating triggers, one per due weekday at `reminderTime`, habits only). `initNotifications()` runs at launch; `scheduleTrackerReminders`/`cancelTrackerReminders` are called from the save/delete mutations. All functions swallow errors so a denied permission never crashes a save.
+- `sync/` — iOS-only manual iCloud Sync & Backup (Settings → Sync & Backup).
+  `snapshot.ts` (pure, unit-tested): the `/kite-backup.json` format
+  (`SNAPSHOT_VERSION`), `mergeSnapshots` (per-record last-write-wins on
+  `updatedAt`, deletes win via `tombstones`, children of a deleted tracker are
+  cascade-dropped) and `countPending`. `icloud.ts`: thin
+  `react-native-cloud-storage` wrapper (AppData scope — survives uninstall).
+  `syncService.ts`: `runSync(qc)` = read cloud → merge → `replaceAllData`
+  (transaction) → write cloud → set `lastSyncedAt` (MMKV) → invalidate all
+  queries. Every save stamps `updatedAt`; deletes write a tombstone row.
+  Requires the iCloud Documents capability (`iCloud.com.kite.app`) in Xcode.
 - `detailFormat.ts` — number/value formatters: `fmtNum`, `fmtVal` (`$` prefix / unit suffix), `fmtCompact` (1K/30K/3M/1.5M), `fmtValCompact`, plus timeline helpers `pacePercent`/`daysLeft`.
 - `habitLabels.ts` — `cadenceLabel(tracker, t)` → human cadence string ("Every day", "5 times a week", …) via i18n.
 - `components/` — the shared `TrackerCard` (+ `progressFor()` dispatcher), `PaceBar`/`PaceChip`, `HistoryChart`, `MilestoneList`, `Stat`, plus the **tracker-detail subsystem** — see below.
@@ -390,6 +400,9 @@ milestones from the form), and wiring the Settings **Data → Export / Clear** r
 now DONE: **dark mode** is implemented (see Theme above), reminders are wired
 (`notifications.ts` + save/delete mutations), the TrackerForm has
 deadline/period/accumulation/weekday/reminder editors, and Today logs real
-numeric values for target/average via `LogEntryModal`.
+numeric values for target/average via `LogEntryModal`. Deferred on the sync
+side: recovering from a **corrupted iCloud backup file** (today every sync
+fails with the generic error until the cloud file is replaced) and an in-app
+**"delete cloud backup"** action.
 
 The iOS/Android project has been renamed from `RnHeroUITemplate` to **Kite**: RN/AppRegistry name is `Kite`, the iOS target/scheme/folder is `Kite` (`ios/Kite/`, `Kite.xcodeproj`, `Kite.xcworkspace`), the Android Java package is `com.kite.app`, and the bundle id / `applicationId` is **`com.kite.app`** on both platforms.

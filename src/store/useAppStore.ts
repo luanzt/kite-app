@@ -9,10 +9,14 @@ type AppState = {
   language: Language | null
   notifyEnabled: boolean
   permissionAsked: boolean
+  icloudSyncEnabled: boolean
+  lastSyncedAt: string | null
   setThemeMode: (mode: ThemeMode) => void
   setLanguage: (lang: Language) => void
   setNotifyEnabled: (v: boolean) => void
   markPermissionAsked: () => void
+  setIcloudSyncEnabled: (v: boolean) => void
+  setLastSyncedAt: (iso: string | null) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -25,7 +29,11 @@ export const useAppStore = create<AppState>()(
       notifyEnabled: false,
       permissionAsked: false,
       setNotifyEnabled: (v: boolean) => set({ notifyEnabled: v }),
-      markPermissionAsked: () => set({ permissionAsked: true })
+      markPermissionAsked: () => set({ permissionAsked: true }),
+      icloudSyncEnabled: false,
+      lastSyncedAt: null,
+      setIcloudSyncEnabled: (v: boolean) => set({ icloudSyncEnabled: v }),
+      setLastSyncedAt: (iso: string | null) => set({ lastSyncedAt: iso })
     }),
     {
       name: 'app-storage',

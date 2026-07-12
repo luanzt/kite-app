@@ -2,9 +2,18 @@ import {
   rowToTracker,
   trackerToRow,
   entryToRow,
-  rowToEntry
+  rowToEntry,
+  milestoneToRow,
+  rowToMilestone,
+  tombstoneToRow,
+  rowToTombstone
 } from '../repository'
-import type { Tracker, Entry } from '@features/trackers/types'
+import type {
+  Tracker,
+  Entry,
+  Milestone,
+  Tombstone
+} from '@features/trackers/types'
 
 const tracker: Tracker = {
   id: 't1',
@@ -29,6 +38,7 @@ const tracker: Tracker = {
   rollingDays: null,
   doneRule: null,
   progressBasis: null,
+  updatedAt: null,
   archived: false
 }
 
@@ -84,6 +94,7 @@ describe('tracker row mapping', () => {
       rollingDays: null,
       doneRule: null,
       progressBasis: null,
+      updatedAt: null,
       archived: false
     }
     const back = rowToTracker(trackerToRow(habit))
@@ -132,7 +143,8 @@ describe('entry row mapping', () => {
     date: '2026-06-18',
     value: 1,
     note: 'felt great',
-    createdAt: '2026-06-18T09:59:00Z'
+    createdAt: '2026-06-18T09:59:00Z',
+    updatedAt: null
   }
 
   test('entryToRow maps createdAt to created_at column', () => {
@@ -151,5 +163,86 @@ describe('entry row mapping', () => {
     const back = rowToEntry(row)
     expect(back.note).toBeNull()
     expect(back.createdAt).toBe('') // missing timestamp → empty string, not null
+  })
+})
+
+describe('updated_at mapping (sync LWW stamp)', () => {
+  test('trackerToRow maps updatedAt to updated_at and back', () => {
+    const t = { ...tracker, updatedAt: '2026-07-01T10:00:00Z' }
+    const row = trackerToRow(t)
+    expect(row.updated_at).toBe('2026-07-01T10:00:00Z')
+    expect(rowToTracker(row)).toEqual(t)
+  })
+
+  test('rowToTracker defaults missing updated_at to null (old rows)', () => {
+    const row = trackerToRow(tracker)
+    delete row.updated_at
+    expect(rowToTracker(row).updatedAt).toBeNull()
+  })
+
+  test('entry round-trips updatedAt', () => {
+    const e: Entry = {
+      id: 'e9',
+      trackerId: 't1',
+      date: '2026-07-01',
+      value: 3,
+      note: null,
+      createdAt: '2026-07-01T08:00:00Z',
+      updatedAt: '2026-07-02T08:00:00Z'
+    }
+    expect(rowToEntry(entryToRow(e))).toEqual(e)
+  })
+})
+
+describe('milestone row mapping', () => {
+  const milestone: Milestone = {
+    id: 'm1',
+    trackerId: 't1',
+    title: 'Chapter 1',
+    dueDate: '2026-08-01',
+    progress: 0.5,
+    orderIndex: 0,
+    updatedAt: '2026-07-01T10:00:00Z'
+  }
+
+  test('milestoneToRow maps to snake_case columns', () => {
+    const row = milestoneToRow(milestone)
+    expect(row.tracker_id).toBe('t1')
+    expect(row.due_date).toBe('2026-08-01')
+    expect(row.order_index).toBe(0)
+    expect(row.updated_at).toBe('2026-07-01T10:00:00Z')
+  })
+
+  test('rowToMilestone round-trips', () => {
+    expect(rowToMilestone(milestoneToRow(milestone))).toEqual(milestone)
+  })
+
+  test('rowToMilestone defaults missing due_date/updated_at to null', () => {
+    const row = milestoneToRow(milestone)
+    delete row.due_date
+    delete row.updated_at
+    const back = rowToMilestone(row)
+    expect(back.dueDate).toBeNull()
+    expect(back.updatedAt).toBeNull()
+  })
+})
+
+describe('tombstone row mapping', () => {
+  const tb: Tombstone = {
+    id: 't1',
+    tableName: 'trackers',
+    deletedAt: '2026-07-01T10:00:00Z'
+  }
+
+  test('tombstoneToRow maps to snake_case columns', () => {
+    expect(tombstoneToRow(tb)).toEqual({
+      id: 't1',
+      table_name: 'trackers',
+      deleted_at: '2026-07-01T10:00:00Z'
+    })
+  })
+
+  test('rowToTombstone round-trips', () => {
+    expect(rowToTombstone(tombstoneToRow(tb))).toEqual(tb)
   })
 })

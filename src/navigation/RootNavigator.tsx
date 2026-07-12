@@ -10,6 +10,7 @@ import { MainNavigator } from '@navigation/MainNavigator'
 import { TrackerDetailScreen } from '@screens/trackers/TrackerDetailScreen'
 import { TrackerFormScreen } from '@screens/trackers/TrackerFormScreen'
 import { TrackerTypePickerScreen } from '@screens/trackers/TrackerTypePickerScreen'
+import { SyncBackupScreen } from '@screens/settings/SyncBackupScreen'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
@@ -40,6 +41,7 @@ export function RootNavigator() {
           name='TrackerTypePicker'
           component={TrackerTypePickerScreen}
         />
+        <Stack.Screen name='SyncBackup' component={SyncBackupScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   )

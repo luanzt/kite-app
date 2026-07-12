@@ -167,6 +167,26 @@
     "notifBlockedMsg": "Notifications are turned off for Kite. Open Settings to allow reminders.",
     "openSettings": "Open Settings"
   },
+  "sync": {
+    "row": "Sync & Backup",
+    "rowSub": "Back up to iCloud",
+    "title": "iCloud Sync",
+    "enabledBody": "Your data is backed up and synced between your devices.",
+    "disabledBody": "Back up your trackers to iCloud and sync them across your devices. Your data stays private in your iCloud.",
+    "unavailableBody": "iCloud is not available. Sign in to iCloud in the Settings app and make sure iCloud Drive is turned on.",
+    "enable": "Enable Sync & Backup",
+    "disable": "Disable Sync & Backup",
+    "syncNow": "Sync Now",
+    "stats": "You're syncing {{trackers}} trackers and {{logs}} logs.",
+    "pending_one": "{{count}} change not synced yet",
+    "pending_other": "{{count}} changes not synced yet",
+    "upToDate": "Everything is synced",
+    "lastSynced": "Last synced: {{time}}",
+    "neverSynced": "Not synced yet — tap Sync Now",
+    "errTitle": "Sync failed",
+    "errBody": "Could not sync with iCloud. Check your connection and try again.",
+    "errNewer": "This backup was created by a newer version of Kite. Please update the app."
+  },
   "toast": { "saved": "Tracker saved", "logged": "Logged", "logSuccess": "Logged successfully", "deleted": "Tracker deleted" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" },
   "notification": { "habitBody": "Time to keep your streak going", "targetBody": "Log your progress toward the goal", "averageBody": "Time to log today's number" }
