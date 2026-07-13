@@ -228,21 +228,22 @@ function LogRow({
     if (tracker.type === 'habit') {
       const n = todayLog
       if (isBad) {
-        // Limit ring: shows the REMAINING quota (starts full, drains per
-        // slip). Center is the remaining count — or red "slips/limit"
-        // (e.g. "7/5") once over the limit. A tap never logs directly:
-        // under the limit it opens the log sheet to confirm; at/over the
-        // limit (or on long-press anytime) it opens the day action menu so
-        // the last log can be deleted.
+        // Limit ring: fills with today's slips like a normal habit ring
+        // ("0/5" → "1/5"), with the limit number in red; the arc is amber
+        // while clean and full red once over the limit. A tap never logs
+        // directly: under the limit it opens the log sheet to confirm; at/
+        // over the limit (or on long-press anytime) it opens the day action
+        // menu so the last log can be deleted.
         const limit = tracker.targetValue ?? 0
         const over = n > limit
-        const remaining = Math.max(0, limit - n)
-        const ringColor = over
-          ? c.pace.behind
-          : remaining === 0
-          ? AMBER
-          : c.pace.on_track
-        const ringFraction = over ? 1 : limit > 0 ? remaining / limit : 1
+        const ringColor = over ? c.pace.behind : AMBER
+        const ringFraction = over
+          ? 1
+          : limit > 0
+          ? n / limit
+          : n > 0
+          ? 1
+          : 0
         return (
           <Pressable
             onPress={() =>
@@ -260,14 +261,13 @@ function LogRow({
             <View className='absolute inset-0 items-center justify-center'>
               <Typography
                 className={`text-xs font-extrabold ${
-                  over
-                    ? 'text-pace-behind'
-                    : remaining === 0
-                    ? 'text-[#e8923a]'
-                    : 'text-pace-on'
+                  over ? 'text-pace-behind' : 'text-ink-2'
                 }`}
               >
-                {over ? `${n}/${limit}` : `${remaining}`}
+                {`${n}/`}
+                <Typography className='text-xs font-extrabold text-pace-behind'>
+                  {`${limit}`}
+                </Typography>
               </Typography>
             </View>
           </Pressable>
