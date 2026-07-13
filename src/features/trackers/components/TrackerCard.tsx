@@ -199,7 +199,17 @@ export function TrackerCard({
               badOver ? 'text-pace-behind' : 'text-ink'
             }`}
           >
-            {statValue}
+            {isBadHabit ? (
+              // limit number always red — it's a cap, not a goal
+              <>
+                {`${habitN}/`}
+                <Typography className='text-[14px] font-extrabold text-pace-behind'>
+                  {`${habitGoal}`}
+                </Typography>
+              </>
+            ) : (
+              statValue
+            )}
           </Typography>
           <Typography
             numberOfLines={1}
