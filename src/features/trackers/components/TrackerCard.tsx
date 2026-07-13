@@ -103,9 +103,9 @@ export function TrackerCard({
   let statValue: string
   let statLabel: string
   if (tracker.type === 'habit') {
-    // Over the limit the stat flips to the overflow count ("+2"), matching the
-    // Today ring; a clean bad habit keeps slips/limit.
-    statValue = badOver ? `+${habitN - habitGoal}` : `${habitN}/${habitGoal}`
+    // Always slips/limit (e.g. "7/5") — over the limit only the color flips
+    // to red, matching the Today ring.
+    statValue = `${habitN}/${habitGoal}`
     statLabel = t('list.today')
   } else if (tracker.type === 'average') {
     if (tracker.progressBasis === 'today_total') {

@@ -225,8 +225,8 @@ function LogRow({
       const n = todayLog
       if (isBad) {
         // Limit ring: shows the REMAINING quota (starts full, drains per
-        // slip). Center is the remaining count — or the overflow as "+X"
-        // once over the limit. Tap logs one slip.
+        // slip). Center is the remaining count — or red "slips/limit"
+        // (e.g. "7/5") once over the limit. Tap logs one slip.
         const limit = tracker.targetValue ?? 0
         const over = n > limit
         const remaining = Math.max(0, limit - n)
@@ -257,7 +257,7 @@ function LogRow({
                     : 'text-pace-on'
                 }`}
               >
-                {over ? `+${n - limit}` : `${remaining}`}
+                {over ? `${n}/${limit}` : `${remaining}`}
               </Typography>
             </View>
           </Pressable>
