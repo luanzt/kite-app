@@ -274,7 +274,8 @@ function LogRow({
         )
       }
       const goal = perDayGoal(tracker)
-      const ringColor = done ? c.pace.on_track : c.pace.ahead
+      // progress = good → green arc throughout (brand blue carried no meaning)
+      const ringColor = c.pace.on_track
       return (
         <Pressable
           onPress={logYes}
