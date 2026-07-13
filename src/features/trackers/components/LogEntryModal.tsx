@@ -174,7 +174,7 @@ export function LogEntryModal({
                 const isBad = tracker.direction === 'bad'
                 const yesSel = isBad
                   ? 'border-pace-behind bg-pace-behind-weak'
-                  : 'border-brand bg-brand'
+                  : 'border-pace-on bg-pace-on'
                 const yesTxt = isBad ? 'text-pace-behind' : 'text-on-accent'
                 const yesIcon = isBad ? c.pace.behind : c.onAccent
                 const noSel = isBad
