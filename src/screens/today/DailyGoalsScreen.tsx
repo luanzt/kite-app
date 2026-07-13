@@ -229,14 +229,14 @@ function LogRow({
       const n = todayLog
       if (isBad) {
         // Limit ring: fills with today's slips like a normal habit ring
-        // ("0/5" → "1/5"), with the limit number in red; the arc is amber
-        // while clean and full red once over the limit. A tap never logs
+        // ("0/5" → "1/5"), with the limit number in red; the arc is green
+        // while at/under the limit and full red once over. A tap never logs
         // directly: under the limit it opens the log sheet to confirm; at/
         // over the limit (or on long-press anytime) it opens the day action
         // menu so the last log can be deleted.
         const limit = tracker.targetValue ?? 0
         const over = n > limit
-        const ringColor = over ? c.pace.behind : AMBER
+        const ringColor = over ? c.pace.behind : c.pace.on_track
         const ringFraction = over
           ? 1
           : limit > 0
