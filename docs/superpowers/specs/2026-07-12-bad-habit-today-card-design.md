@@ -30,15 +30,18 @@ reads completely differently:
 4. **Card presentation** (habit branch of `LogRow`, `direction === 'bad'`):
    - Sub-line: `🚫 Limit 2/day` — lucide `Ban` (13px, amber `#e8923a`)
      replaces the tracker-color dot; new i18n key `today.limitPerDay`.
-   - Ring: keeps the existing drain-the-quota fraction, but the center shows
-     only the **remaining count** ("2"), not "0/2". Colors: remaining > 0 →
-     `pace.on_track` (green); at limit (0 left, still clean) → amber; over →
-     full red ring (`pace.behind`), center shows red slips/limit (e.g. "7/5").
+   - Ring (iterated with user): fills with today's slips like a normal habit
+     ring; the center reads **slips/limit** ("0/5" → "1/5") with the limit
+     number in red. Arc is amber while clean; over the limit → full red ring
+     (`pace.behind`) and the whole center text red.
    - Streak line: `habitStreakStatus` already returns clean-day runs for bad
      habits; add bad-specific copy keys instead of reusing good-habit "streak"
      wording — ongoing: "X days clean", start: "Clean so far today",
      ended: "X-day clean run ended".
-   - Tap ring still logs one slip (kept — the card now looks distinct enough).
+   - Tap never logs directly (iterated with user): under the limit it opens
+     the LogEntryModal to confirm; at/over the limit it opens the
+     CalendarDayMenu (slipped / stayed clean / delete last log). Long-press
+     anywhere on the card opens the same menu.
    - Card background does NOT flip to `bg-brand-faint` while merely clean.
 
 ## Changes
