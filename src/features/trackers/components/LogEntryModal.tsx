@@ -64,7 +64,7 @@ export function LogEntryModal({
     // editing → use the record's logged time; new → now
     const when = entry?.createdAt ? new Date(entry.createdAt) : new Date()
     setTimeHHMM(toHHMM(Number.isNaN(when.getTime()) ? new Date() : when))
-  }, [visible, entry, defaultDate])
+  }, [visible, entry, defaultDate, tracker.type, tracker.direction])
 
   // Always drop the keyboard when the sheet closes so it doesn't linger.
   const dismissAndClose = () => {
