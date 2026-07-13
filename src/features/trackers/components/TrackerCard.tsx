@@ -103,7 +103,9 @@ export function TrackerCard({
   let statValue: string
   let statLabel: string
   if (tracker.type === 'habit') {
-    statValue = `${habitN}/${habitGoal}`
+    // Over the limit the stat flips to the overflow count ("+2"), matching the
+    // Today ring; a clean bad habit keeps slips/limit.
+    statValue = badOver ? `+${habitN - habitGoal}` : `${habitN}/${habitGoal}`
     statLabel = t('list.today')
   } else if (tracker.type === 'average') {
     if (tracker.progressBasis === 'today_total') {
@@ -193,7 +195,9 @@ export function TrackerCard({
         <View className='max-w-[112px] items-end gap-s1'>
           <Typography
             numberOfLines={1}
-            className='text-[14px] font-extrabold text-ink'
+            className={`text-[14px] font-extrabold ${
+              badOver ? 'text-pace-behind' : 'text-ink'
+            }`}
           >
             {statValue}
           </Typography>
