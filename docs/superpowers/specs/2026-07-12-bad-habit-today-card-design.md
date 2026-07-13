@@ -33,7 +33,7 @@ reads completely differently:
    - Ring: keeps the existing drain-the-quota fraction, but the center shows
      only the **remaining count** ("2"), not "0/2". Colors: remaining > 0 →
      `pace.on_track` (green); at limit (0 left, still clean) → amber; over →
-     full red ring (`pace.behind`), center shows the overflow as "+1".
+     full red ring (`pace.behind`), center shows red slips/limit (e.g. "7/5").
    - Streak line: `habitStreakStatus` already returns clean-day runs for bad
      habits; add bad-specific copy keys instead of reusing good-habit "streak"
      wording — ongoing: "X days clean", start: "Clean so far today",
