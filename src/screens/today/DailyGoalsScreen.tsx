@@ -336,6 +336,9 @@ function LogRow({
   return (
     <Pressable
       onPress={() => onOpen(tracker.id)}
+      // Bad habit: long-press anywhere on the card opens the day action menu
+      // (same as long-pressing the ring).
+      onLongPress={isBad ? () => onOpenMenu(tracker) : undefined}
       className={`flex-row items-center gap-s3 rounded-lg-k border p-s3 px-s4 shadow-sm ${
         done ? 'bg-brand-faint border-brand-weak' : 'bg-surface border-line'
       }`}
