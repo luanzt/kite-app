@@ -170,13 +170,16 @@ function RecordRow({
           yes ? (
             <View
               className={`min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full px-s3 py-s1 ${
-                isBad ? 'bg-pace-behind-weak' : 'bg-brand-weak'
+                isBad ? 'bg-pace-behind-weak' : 'bg-pace-on-weak'
               }`}
             >
-              <Icons.Check size={12} color={isBad ? c.pace.behind : c.brand} />
+              <Icons.Check
+                size={12}
+                color={isBad ? c.pace.behind : c.pace.on_track}
+              />
               <Typography
                 className={`text-xs-k font-bold ${
-                  isBad ? 'text-pace-behind' : 'text-brand-ink'
+                  isBad ? 'text-pace-behind' : 'text-pace-on'
                 }`}
               >
                 {t('log.yes')}
