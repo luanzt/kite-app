@@ -51,10 +51,13 @@ export function LogEntryModal({
   const [dateISO, setDateISO] = useState('')
   const [timeHHMM, setTimeHHMM] = useState('')
 
-  // Reset the form each time the sheet opens for a different record.
+  // Reset the form each time the sheet opens for a different record. A new
+  // bad-habit record defaults to "No, stayed clean" — logging a slip is the
+  // deliberate choice, not the default.
   useEffect(() => {
     if (!visible) return
-    setDone(entry ? entry.value > 0 : true)
+    const isBadHabit = tracker.type === 'habit' && tracker.direction === 'bad'
+    setDone(entry ? entry.value > 0 : !isBadHabit)
     setValue(entry ? String(entry.value) : '')
     setNote(entry?.note ?? '')
     setDateISO(entry?.date ?? defaultDate ?? toISODate(new Date()))
