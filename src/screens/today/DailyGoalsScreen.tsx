@@ -9,6 +9,7 @@ import Svg, { Circle } from 'react-native-svg'
 import {
   useTrackers,
   useLogEntry,
+  useDeleteEntry,
   useEntriesForDate,
   useEntries
 } from '@features/trackers/queries'
@@ -36,6 +37,7 @@ import { calculateTarget } from '@features/trackers/calculators/target'
 import { calculateAverage } from '@features/trackers/calculators/average'
 import { fmtCompact, fmtValCompact } from '@features/trackers/detailFormat'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
+import { CalendarDayMenu } from '@features/trackers/components/CalendarDayMenu'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -151,13 +153,15 @@ function LogRow({
   today,
   onLog,
   onOpen,
-  onQuickLog
+  onQuickLog,
+  onOpenMenu
 }: {
   row: Row
   today: string
   onLog: (e: Entry) => void
   onOpen: (id: string) => void
   onQuickLog: (tracker: Tracker) => void
+  onOpenMenu: (tracker: Tracker) => void
 }) {
   const { t, i18n } = useTranslation()
   const c = useThemeColors()
@@ -226,7 +230,10 @@ function LogRow({
       if (isBad) {
         // Limit ring: shows the REMAINING quota (starts full, drains per
         // slip). Center is the remaining count — or red "slips/limit"
-        // (e.g. "7/5") once over the limit. Tap logs one slip.
+        // (e.g. "7/5") once over the limit. A tap never logs directly:
+        // under the limit it opens the log sheet to confirm; at/over the
+        // limit (or on long-press anytime) it opens the day action menu so
+        // the last log can be deleted.
         const limit = tracker.targetValue ?? 0
         const over = n > limit
         const remaining = Math.max(0, limit - n)
@@ -238,7 +245,10 @@ function LogRow({
         const ringFraction = over ? 1 : limit > 0 ? remaining / limit : 1
         return (
           <Pressable
-            onPress={logYes}
+            onPress={() =>
+              n >= limit ? onOpenMenu(tracker) : onQuickLog(tracker)
+            }
+            onLongPress={() => onOpenMenu(tracker)}
             className='h-[46px] w-[46px] items-center justify-center'
           >
             <Ring
@@ -462,6 +472,34 @@ export function DailyGoalsScreen() {
   }
   const closeQuickLog = () => setLogOpen(false)
 
+  // Bad-habit day action menu (log slip / stayed clean / delete last log) —
+  // opened by long-pressing the limit ring, or by a plain tap once today's
+  // slips reach the limit.
+  const [menuTracker, setMenuTracker] = useState<Tracker | null>(null)
+  const del = useDeleteEntry()
+  const menuEntries = menuTracker
+    ? todayEntries.filter((e) => e.trackerId === menuTracker.id)
+    : []
+  const menuLog = (value: number) => {
+    if (!menuTracker) return
+    log.mutate({
+      id: uuid(),
+      trackerId: menuTracker.id,
+      date: today,
+      value,
+      note: null,
+      createdAt: new Date().toISOString()
+    })
+  }
+  const menuDeleteLast = () => {
+    if (!menuTracker) return
+    // newest record of the day, by createdAt (fallback to date)
+    const last = [...menuEntries].sort((a, b) =>
+      (b.createdAt || b.date).localeCompare(a.createdAt || a.date)
+    )[0]
+    if (last) del.mutate({ id: last.id, trackerId: menuTracker.id })
+  }
+
   const onLog = (e: Entry) => log.mutate(e)
   const onOpen = (id: string) =>
     nav.navigate('TrackerDetail', { trackerId: id })
@@ -572,6 +610,7 @@ export function DailyGoalsScreen() {
                   onLog={onLog}
                   onOpen={onOpen}
                   onQuickLog={openQuickLog}
+                  onOpenMenu={setMenuTracker}
                 />
               ))}
             </View>
@@ -592,6 +631,7 @@ export function DailyGoalsScreen() {
                   onLog={onLog}
                   onOpen={onOpen}
                   onQuickLog={openQuickLog}
+                  onOpenMenu={setMenuTracker}
                 />
               ))}
             </View>
@@ -612,6 +652,7 @@ export function DailyGoalsScreen() {
                   onLog={onLog}
                   onOpen={onOpen}
                   onQuickLog={openQuickLog}
+                  onOpenMenu={setMenuTracker}
                 />
               ))}
             </View>
@@ -633,6 +674,17 @@ export function DailyGoalsScreen() {
           }}
         />
       ) : null}
+      {/* Bad-habit action menu — always mounted; `date` toggles visibility. */}
+      <CalendarDayMenu
+        date={menuTracker ? today : null}
+        title={menuTracker?.name ?? ''}
+        hasEntry={menuEntries.length > 0}
+        badHabit
+        onLogYes={() => menuLog(1)}
+        onLogNo={() => menuLog(0)}
+        onDeleteLast={menuDeleteLast}
+        onClose={() => setMenuTracker(null)}
+      />
     </View>
   )
 }
