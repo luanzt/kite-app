@@ -103,6 +103,8 @@ export function TrackerCard({
   let statValue: string
   let statLabel: string
   if (tracker.type === 'habit') {
+    // Always slips/limit (e.g. "7/5") — over the limit only the color flips
+    // to red, matching the Today ring.
     statValue = `${habitN}/${habitGoal}`
     statLabel = t('list.today')
   } else if (tracker.type === 'average') {
@@ -193,9 +195,21 @@ export function TrackerCard({
         <View className='max-w-[112px] items-end gap-s1'>
           <Typography
             numberOfLines={1}
-            className='text-[14px] font-extrabold text-ink'
+            className={`text-[14px] font-extrabold ${
+              badOver ? 'text-pace-behind' : 'text-ink'
+            }`}
           >
-            {statValue}
+            {isBadHabit ? (
+              // limit number always red — it's a cap, not a goal
+              <>
+                {`${habitN}/`}
+                <Typography className='text-[14px] font-extrabold text-pace-behind'>
+                  {`${habitGoal}`}
+                </Typography>
+              </>
+            ) : (
+              statValue
+            )}
           </Typography>
           <Typography
             numberOfLines={1}

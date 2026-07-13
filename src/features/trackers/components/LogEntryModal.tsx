@@ -51,17 +51,20 @@ export function LogEntryModal({
   const [dateISO, setDateISO] = useState('')
   const [timeHHMM, setTimeHHMM] = useState('')
 
-  // Reset the form each time the sheet opens for a different record.
+  // Reset the form each time the sheet opens for a different record. A new
+  // bad-habit record defaults to "No, stayed clean" — logging a slip is the
+  // deliberate choice, not the default.
   useEffect(() => {
     if (!visible) return
-    setDone(entry ? entry.value > 0 : true)
+    const isBadHabit = tracker.type === 'habit' && tracker.direction === 'bad'
+    setDone(entry ? entry.value > 0 : !isBadHabit)
     setValue(entry ? String(entry.value) : '')
     setNote(entry?.note ?? '')
     setDateISO(entry?.date ?? defaultDate ?? toISODate(new Date()))
     // editing → use the record's logged time; new → now
     const when = entry?.createdAt ? new Date(entry.createdAt) : new Date()
     setTimeHHMM(toHHMM(Number.isNaN(when.getTime()) ? new Date() : when))
-  }, [visible, entry, defaultDate])
+  }, [visible, entry, defaultDate, tracker.type, tracker.direction])
 
   // Always drop the keyboard when the sheet closes so it doesn't linger.
   const dismissAndClose = () => {
@@ -171,9 +174,9 @@ export function LogEntryModal({
                 const isBad = tracker.direction === 'bad'
                 const yesSel = isBad
                   ? 'border-pace-behind bg-pace-behind-weak'
-                  : 'border-brand bg-brand'
-                const yesTxt = isBad ? 'text-pace-behind' : 'text-on-accent'
-                const yesIcon = isBad ? c.pace.behind : c.onAccent
+                  : 'border-pace-on bg-pace-on-weak'
+                const yesTxt = isBad ? 'text-pace-behind' : 'text-pace-on'
+                const yesIcon = isBad ? c.pace.behind : c.pace.on_track
                 const noSel = isBad
                   ? 'border-pace-on bg-pace-on-weak'
                   : 'border-pace-behind bg-pace-behind-weak'

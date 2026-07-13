@@ -26,7 +26,11 @@
     "goal": "Goal: {{value}}",
     "pace": "Pace: {{value}}",
     "avg": "Avg: {{value}}",
-    "targetIs": "Target: {{value}}"
+    "targetIs": "Target: {{value}}",
+    "limitPerDay": "Limit {{value}}/day",
+    "cleanStart": "Clean so far today",
+    "cleanOngoing": "{{count}} days clean",
+    "cleanEnded": "{{count}}-day clean run ended"
   },
   "list": {
     "title": "Trackers",

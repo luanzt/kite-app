@@ -151,11 +151,15 @@ function RecordRow({
   const base = time ? `${wk} · ${time}` : wk
   const meta = entry.note && entry.note.trim() ? entry.note : base
   const isHabit = tracker.type === 'habit'
+  // Bad habit inverts the Yes/No semantics (mirroring LogEntryModal): a "Yes"
+  // record is a slip (red), an explicit "No" means stayed clean (green) — and
+  // the day tile highlights the clean record, not the slip.
+  const isBad = isHabit && tracker.direction === 'bad'
   return (
     <RowShell
       iso={entry.date}
       meta={meta}
-      tileDone={isHabit ? yes : true}
+      tileDone={isHabit ? (isBad ? !yes : yes) : true}
       isFirst={isFirst}
       isLast={isLast}
       lang={lang}
@@ -164,16 +168,38 @@ function RecordRow({
       status={
         isHabit ? (
           yes ? (
-            <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-brand-weak px-s3 py-s1'>
-              <Icons.Check size={12} color={c.brand} />
-              <Typography className='text-xs-k font-bold text-brand-ink'>
+            <View
+              className={`min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full px-s3 py-s1 ${
+                isBad ? 'bg-pace-behind-weak' : 'bg-pace-on-weak'
+              }`}
+            >
+              <Icons.Check
+                size={12}
+                color={isBad ? c.pace.behind : c.pace.on_track}
+              />
+              <Typography
+                className={`text-xs-k font-bold ${
+                  isBad ? 'text-pace-behind' : 'text-pace-on'
+                }`}
+              >
                 {t('log.yes')}
               </Typography>
             </View>
           ) : (
-            <View className='min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full bg-pace-behind-weak px-s3 py-s1'>
-              <Icons.Close size={12} color={c.pace.behind} />
-              <Typography className='text-xs-k font-bold text-pace-behind'>
+            <View
+              className={`min-w-[72px] flex-row items-center justify-center gap-s1 rounded-full px-s3 py-s1 ${
+                isBad ? 'bg-pace-on-weak' : 'bg-pace-behind-weak'
+              }`}
+            >
+              <Icons.Close
+                size={12}
+                color={isBad ? c.pace.on_track : c.pace.behind}
+              />
+              <Typography
+                className={`text-xs-k font-bold ${
+                  isBad ? 'text-pace-on' : 'text-pace-behind'
+                }`}
+              >
                 {t('log.no')}
               </Typography>
             </View>

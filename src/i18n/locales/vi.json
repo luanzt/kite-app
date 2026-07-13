@@ -26,7 +26,11 @@
     "goal": "Mục tiêu: {{value}}",
     "pace": "Nhịp: {{value}}",
     "avg": "TB: {{value}}",
-    "targetIs": "Mục tiêu: {{value}}"
+    "targetIs": "Mục tiêu: {{value}}",
+    "limitPerDay": "Giới hạn {{value}}/ngày",
+    "cleanStart": "Hôm nay vẫn sạch",
+    "cleanOngoing": "{{count}} ngày sạch",
+    "cleanEnded": "Đứt chuỗi {{count}} ngày sạch"
   },
   "list": {
     "title": "Mục tiêu",

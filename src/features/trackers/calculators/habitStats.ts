@@ -418,15 +418,38 @@ export function classifyTodayRow(
     }
   }
   if (tracker.type !== 'habit') return yes > 0 ? 'completed' : 'due'
-  // Bad habit: staying at/under the limit reads "so far so good" (completed);
-  // the only failure is exceeding it. There is nothing to be "due" for.
+  // Bad habit: clean (at/under the limit) stays DUE all day so the slip
+  // control remains reachable; exceeding the limit is missed. An explicit
+  // "stayed clean" record (a No) with zero slips completes the day — the
+  // user has confirmed it. The summary ring credits a clean day as done
+  // either way — see todaySummary().
   if (tracker.direction === 'bad') {
-    return yes > (tracker.targetValue ?? 0) ? 'missed' : 'completed'
+    if (yes > (tracker.targetValue ?? 0)) return 'missed'
+    return yes === 0 && no > 0 ? 'completed' : 'due'
   }
   const goal = perDayGoal(tracker)
   if (yes >= goal) return 'completed'
   if (yes + no >= goal) return 'missed'
   return 'due'
+}
+
+/**
+ * Today-screen summary counts, decoupled from section placement: a clean bad
+ * habit sits in Due Today (still actionable) yet counts as done — being at or
+ * under the limit IS today's success. `allDone` is true when every row is
+ * either completed or a clean bad habit (an empty day is trivially all done).
+ */
+export function todaySummary(
+  rows: { tracker: Tracker; status: TodayRowStatus }[]
+): { done: number; total: number; allDone: boolean } {
+  const done = rows.filter(
+    (r) =>
+      r.status === 'completed' ||
+      (r.tracker.type === 'habit' &&
+        r.tracker.direction === 'bad' &&
+        r.status === 'due')
+  ).length
+  return { done, total: rows.length, allDone: done === rows.length }
 }
 
 export type PeriodUnit = 'day' | 'week' | 'month' | 'year'

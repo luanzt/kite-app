@@ -9,9 +9,11 @@ import {
   buildHistoryRows,
   isoAddDays,
   habitStreakStatus,
-  classifyTodayRow
+  classifyTodayRow,
+  todaySummary
 } from '../habitStats'
 import type { Tracker, Entry } from '@features/trackers/types'
+import type { TodayRowStatus } from '../habitStats'
 
 const base: Tracker = {
   id: 'h1',
@@ -789,19 +791,34 @@ describe('classifyTodayRow', () => {
     expect(classifyTodayRow(avgGoal, 8, 0)).toBe('completed')
   })
 
-  it('bad habit: within the limit reads completed, over it reads missed', () => {
+  it('bad habit: clean stays due (actionable all day), over the limit is missed', () => {
     const badH: Tracker = {
       ...base,
       type: 'habit',
       direction: 'bad',
       targetValue: 2
     }
-    expect(classifyTodayRow(badH, 0, 0)).toBe('completed') // clean so far
-    expect(classifyTodayRow(badH, 2, 0)).toBe('completed') // at the limit
+    expect(classifyTodayRow(badH, 0, 0)).toBe('due') // clean so far
+    expect(classifyTodayRow(badH, 2, 0)).toBe('due') // at the limit, still clean
     expect(classifyTodayRow(badH, 3, 0)).toBe('missed')
-    const abstain: Tracker = { ...badH, targetValue: null } // limit 0
-    expect(classifyTodayRow(abstain, 0, 0)).toBe('completed')
+    const abstain: Tracker = { ...badH, targetValue: null } // limit 0 = never
+    expect(classifyTodayRow(abstain, 0, 0)).toBe('due')
     expect(classifyTodayRow(abstain, 1, 0)).toBe('missed')
+  })
+
+  it('bad habit: an explicit "stayed clean" (No) with zero slips completes the day', () => {
+    const badH: Tracker = {
+      ...base,
+      type: 'habit',
+      direction: 'bad',
+      targetValue: 2
+    }
+    expect(classifyTodayRow(badH, 0, 1)).toBe('completed') // confirmed clean
+    expect(classifyTodayRow(badH, 0, 2)).toBe('completed') // multiple No records
+    expect(classifyTodayRow(badH, 1, 1)).toBe('due') // a slip voids the confirmation
+    expect(classifyTodayRow(badH, 3, 1)).toBe('missed') // over the limit still missed
+    const abstain: Tracker = { ...badH, targetValue: null } // limit 0 = never
+    expect(classifyTodayRow(abstain, 0, 1)).toBe('completed')
   })
 
   it('average when_goal_met + "or less": completed once logged and still at/under goal', () => {
@@ -839,5 +856,43 @@ describe('classifyTodayRow', () => {
     expect(classifyTodayRow({ ...logged, doneRule: null }, 1, 0)).toBe(
       'completed'
     )
+  })
+})
+
+describe('todaySummary', () => {
+  const good: Tracker = { ...base, targetValue: 1 }
+  const bad: Tracker = {
+    ...base,
+    id: 'b1',
+    direction: 'bad',
+    targetValue: 2
+  }
+  const row = (tracker: Tracker, status: TodayRowStatus) => ({
+    tracker,
+    status
+  })
+
+  it('clean bad habit (due) counts as done; good due does not', () => {
+    const s = todaySummary([row(good, 'due'), row(bad, 'due')])
+    expect(s).toEqual({ done: 1, total: 2, allDone: false })
+  })
+
+  it('allDone when everything is completed or clean-bad', () => {
+    const s = todaySummary([row(good, 'completed'), row(bad, 'due')])
+    expect(s).toEqual({ done: 2, total: 2, allDone: true })
+  })
+
+  it('over-limit bad habit (missed) is not done and blocks allDone', () => {
+    const s = todaySummary([row(good, 'completed'), row(bad, 'missed')])
+    expect(s).toEqual({ done: 1, total: 2, allDone: false })
+  })
+
+  it('good missed is not done; empty list is trivially allDone', () => {
+    expect(todaySummary([row(good, 'missed')])).toEqual({
+      done: 0,
+      total: 1,
+      allDone: false
+    })
+    expect(todaySummary([])).toEqual({ done: 0, total: 0, allDone: true })
   })
 })
