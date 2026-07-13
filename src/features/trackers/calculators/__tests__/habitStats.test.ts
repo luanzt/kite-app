@@ -806,6 +806,21 @@ describe('classifyTodayRow', () => {
     expect(classifyTodayRow(abstain, 1, 0)).toBe('missed')
   })
 
+  it('bad habit: an explicit "stayed clean" (No) with zero slips completes the day', () => {
+    const badH: Tracker = {
+      ...base,
+      type: 'habit',
+      direction: 'bad',
+      targetValue: 2
+    }
+    expect(classifyTodayRow(badH, 0, 1)).toBe('completed') // confirmed clean
+    expect(classifyTodayRow(badH, 0, 2)).toBe('completed') // multiple No records
+    expect(classifyTodayRow(badH, 1, 1)).toBe('due') // a slip voids the confirmation
+    expect(classifyTodayRow(badH, 3, 1)).toBe('missed') // over the limit still missed
+    const abstain: Tracker = { ...badH, targetValue: null } // limit 0 = never
+    expect(classifyTodayRow(abstain, 0, 1)).toBe('completed')
+  })
+
   it('average when_goal_met + "or less": completed once logged and still at/under goal', () => {
     const lessGoal: Tracker = {
       ...base,
