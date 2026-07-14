@@ -28,6 +28,125 @@ export function perDayGoal(tracker: Tracker): number {
     : 1
 }
 
+/**
+ * Target for one whole period. Daily = the per-day goal (targetValue or 1);
+ * weekly/monthly/yearly = `targetValue` (the "N times per period" figure the
+ * form and `weeklyGoalOf` already use), floored at 1. For a bad habit this is
+ * the LIMIT for the period (use `targetValue ?? 0` directly at the call site so
+ * a limit of 0 = "never" is preserved).
+ */
+export function periodGoalOf(tracker: Tracker): number {
+  if (tracker.period == null || tracker.period === 'daily') {
+    return perDayGoal(tracker)
+  }
+  return Math.max(1, tracker.targetValue ?? 1)
+}
+
+/**
+ * Has a period (weekly/monthly/yearly) GOOD habit already filled its quota for
+ * the window with the given running total? Such a habit drops off "Due today"
+ * once met (Strides-style). Daily habits recur every day and bad habits are a
+ * limit rather than a quota, so neither is ever "met" this way.
+ */
+export function periodQuotaMet(tracker: Tracker, windowTotal: number): boolean {
+  if (tracker.type !== 'habit') return false
+  if (tracker.direction === 'bad') return false
+  if (tracker.period == null || tracker.period === 'daily') return false
+  return windowTotal >= periodGoalOf(tracker)
+}
+
+export type PeriodWindow = { startISO: string; endISO: string }
+
+/**
+ * Inclusive ISO bounds of the period window that contains `iso`, per the
+ * tracker's cadence: daily = that day; weekly = its Monday..Sunday; monthly =
+ * the calendar month; yearly = the calendar year. This is the window a habit's
+ * goal/limit applies over on the Today card.
+ */
+export function periodWindow(tracker: Tracker, iso: string): PeriodWindow {
+  const day = iso.slice(0, 10)
+  const period = tracker.period ?? 'daily'
+  if (period === 'weekly') {
+    const start = mondayOf(day)
+    return { startISO: start, endISO: isoAddDays(start, 6) }
+  }
+  if (period === 'monthly') {
+    const [y, m] = day.split('-').map(Number)
+    // day 0 of the next month is the last day of this one
+    const end = toISODate(new Date(Date.UTC(y, m, 0)))
+    return { startISO: `${y}-${pad2(m)}-01`, endISO: end }
+  }
+  if (period === 'yearly') {
+    const y = day.slice(0, 4)
+    return { startISO: `${y}-01-01`, endISO: `${y}-12-31` }
+  }
+  return { startISO: day, endISO: day }
+}
+
+/**
+ * Ordered period buckets from the tracker's start window through the window
+ * containing `todayISO`, each flagged `true` when the bucket "succeeded": for a
+ * good habit that means the total met the goal (`>= goal`); for a bad habit it
+ * means the total stayed at or under the limit (`<= limit`, so an empty bucket
+ * is clean). The single source of truth for bucket-based streak/success.
+ */
+export function periodBucketDone(
+  tracker: Tracker,
+  entries: Entry[],
+  todayISO: string
+): boolean[] {
+  const isBad = tracker.direction === 'bad'
+  const limit = tracker.targetValue ?? 0
+  const goal = periodGoalOf(tracker)
+  const succeeded = (total: number) => (isBad ? total <= limit : total >= goal)
+  const totalByBucket = new Map<string, number>()
+  for (const e of entries) {
+    const w = periodWindow(tracker, e.date)
+    totalByBucket.set(
+      w.startISO,
+      (totalByBucket.get(w.startISO) ?? 0) + e.value
+    )
+  }
+  const flags: boolean[] = []
+  let ws = periodWindow(tracker, tracker.startDate).startISO
+  const currentStart = periodWindow(tracker, todayISO).startISO
+  // Guard against a start date after today (empty range).
+  while (ws <= currentStart) {
+    flags.push(succeeded(totalByBucket.get(ws) ?? 0))
+    ws = isoAddDays(periodWindow(tracker, ws).endISO, 1)
+  }
+  return flags
+}
+
+/** Summed logged value within the current period window containing `iso`. */
+export function periodTotal(
+  tracker: Tracker,
+  entries: Entry[],
+  iso: string
+): number {
+  const { startISO, endISO } = periodWindow(tracker, iso)
+  let sum = 0
+  for (const e of entries) {
+    const d = e.date.slice(0, 10)
+    if (d >= startISO && d <= endISO) sum += e.value
+  }
+  return sum
+}
+
+/** The tracker's cadence as a bucket unit (drives period-worded streak copy). */
+export function periodUnitOf(tracker: Tracker): PeriodUnit {
+  switch (tracker.period) {
+    case 'weekly':
+      return 'week'
+    case 'monthly':
+      return 'month'
+    case 'yearly':
+      return 'year'
+    default:
+      return 'day'
+  }
+}
+
 /** Is the habit scheduled on this date? (no repeatDays = every day). */
 export function isDueOn(tracker: Tracker, iso: string): boolean {
   if (!tracker.repeatDays || tracker.repeatDays.length === 0) return true
@@ -85,6 +204,30 @@ export function bestStreak(
 ): number {
   const total = daysBetween(tracker.startDate, todayISO)
   if (total < 0) return 0
+
+  // Period (non-daily) habit: longest run of consecutive successful buckets
+  // (good = quota met, bad = at/under limit). For a GOOD habit the current
+  // bucket, if not yet met, is neutral (leaves the run intact) — mirroring the
+  // daily "today not done" rule; for a BAD habit going over is a real failure,
+  // so an over bucket (current included) resets the run.
+  if (tracker.period != null && tracker.period !== 'daily') {
+    const isBad = tracker.direction === 'bad'
+    const flags = periodBucketDone(tracker, entries, todayISO)
+    const last = flags.length - 1
+    let best = 0
+    let run = 0
+    for (let i = 0; i <= last; i++) {
+      if (flags[i]) {
+        run += 1
+        if (run > best) best = run
+      } else if (!isBad && i === last) {
+        // good habit's current bucket in progress — neutral, leave run intact
+      } else {
+        run = 0
+      }
+    }
+    return best
+  }
 
   // Bad habit: longest run of CLEAN due days (unlogged = clean, today
   // included); a day over the limit breaks the run and never counts.
@@ -303,6 +446,36 @@ export function habitStreakStatus(
   const span = daysBetween(tracker.startDate, todayISO)
   if (span < 0) return { kind: 'none', n: 0 }
 
+  // Period (non-daily) bad habit: the streak is "periods clean". A bucket at or
+  // under the limit is clean (empty = clean); the current bucket counts while
+  // still clean, and going over ends the run at the prior clean bucket.
+  if (
+    tracker.direction === 'bad' &&
+    tracker.period != null &&
+    tracker.period !== 'daily'
+  ) {
+    const flags = periodBucketDone(tracker, entries, todayISO)
+    const last = flags.length - 1
+    const cleanRunFrom = (idx: number): number => {
+      let run = 0
+      for (let i = idx; i >= 0; i--) {
+        if (flags[i]) run += 1
+        else break
+      }
+      return run
+    }
+    if (last < 0 || !flags[last]) {
+      const prior = cleanRunFrom(last - 1)
+      return prior >= 1
+        ? { kind: 'streakEnded', n: prior }
+        : { kind: 'none', n: 0 }
+    }
+    const run = cleanRunFrom(last)
+    return run >= 2
+      ? { kind: 'streakOngoing', n: run }
+      : { kind: 'greatStart', n: 0 }
+  }
+
   // Bad habit: the streak is "days clean" (unlogged = clean, today included).
   // Going over the limit today ends it at the prior clean run.
   if (tracker.direction === 'bad') {
@@ -329,6 +502,43 @@ export function habitStreakStatus(
     return run >= 2
       ? { kind: 'streakOngoing', n: run }
       : { kind: 'greatStart', n: 0 }
+  }
+
+  // Period (weekly/monthly/yearly) good habit: the streak counts whole PERIOD
+  // buckets that filled their quota, not individual days. The current bucket is
+  // neutral until met (like today in the daily case). Kinds mirror the daily
+  // logic; the Today screen maps them to period-worded copy ("2 month streak").
+  if (tracker.period != null && tracker.period !== 'daily') {
+    const doneFlags = periodBucketDone(tracker, entries, todayISO)
+    const n = doneFlags.length
+    const last = n - 1
+    const runBack = (idx: number): number => {
+      let r = 0
+      for (let i = idx; i >= 0; i--) {
+        if (doneFlags[i]) r += 1
+        else break
+      }
+      return r
+    }
+    const currentDone = doneFlags[last]
+    const hasPrior = n >= 2
+    if (!hasPrior && !currentDone) return { kind: 'none', n: 0 }
+    if (currentDone) {
+      const run = runBack(last)
+      return run >= 2
+        ? { kind: 'streakOngoing', n: run }
+        : { kind: 'greatStart', n: 0 }
+    }
+    // current bucket not yet met
+    const priorRun = runBack(last - 1)
+    if (priorRun >= 1) return { kind: 'streakEnded', n: priorRun }
+    let missedRun = 0
+    for (let i = last - 1; i >= 0; i--) {
+      if (!doneFlags[i]) missedRun += 1
+      else break
+    }
+    if (missedRun >= 2) return { kind: 'missedDays', n: missedRun }
+    return { kind: 'missedYesterday', n: 0 }
   }
 
   const todayDone = done.has(todayISO)

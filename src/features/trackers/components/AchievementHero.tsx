@@ -26,11 +26,13 @@ const styles = StyleSheet.create({
 export function AchievementHero({
   percent,
   currentStreak,
-  bestStreak
+  bestStreak,
+  unitKey
 }: {
   percent: number // 0..100
-  currentStreak: number // days
-  bestStreak: number // days
+  currentStreak: number // in the cadence unit
+  bestStreak: number // in the cadence unit
+  unitKey: string // i18n key of the pluralizable unit noun ("unit.month" …)
 }) {
   const { t } = useTranslation()
   const c = useThemeColors()
@@ -93,13 +95,13 @@ export function AchievementHero({
         <View className='flex-1 gap-s3'>
           <StreakStat
             value={currentStreak}
-            unit={t('detail.days')}
+            unit={t(unitKey, { count: currentStreak })}
             caption={t('detail.currentStreak')}
           />
           <View className='h-px bg-on-accent opacity-20' />
           <StreakStat
             value={bestStreak}
-            unit={t('detail.days')}
+            unit={t(unitKey, { count: bestStreak })}
             caption={t('detail.bestStreak')}
           />
         </View>

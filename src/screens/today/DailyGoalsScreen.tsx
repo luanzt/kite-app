@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
@@ -19,6 +19,7 @@ import {
   useLogEntry,
   useDeleteEntry,
   useEntriesForDate,
+  useAllEntries,
   useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
@@ -29,15 +30,20 @@ import type { RootStackParamList } from '@navigation/types'
 import type {
   Tracker,
   Entry,
+  Period,
   PaceStatus,
   TrackerProgress
 } from '@features/trackers/types'
 import {
   classifyTodayRow,
   habitStreakStatus,
-  perDayGoal,
+  periodGoalOf,
+  periodQuotaMet,
+  periodTotal,
+  periodUnitOf,
   todaySummary,
   todayStripDays,
+  type PeriodUnit,
   type StreakStatus,
   type StripDay,
   type TodayRowStatus
@@ -51,6 +57,22 @@ import { CalendarDayMenu } from '@features/trackers/components/CalendarDayMenu'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
+
+// Bad-habit sub-line ("Limit N/…") and the caption under the progress ring,
+// both keyed by the habit's period so a weekly limit reads "/week" + "This week"
+// instead of the old hard-coded "/day".
+const LIMIT_KEY: Record<Period, string> = {
+  daily: 'today.limitPerDay',
+  weekly: 'today.limitPerWeek',
+  monthly: 'today.limitPerMonth',
+  yearly: 'today.limitPerYear'
+}
+const WINDOW_KEY: Record<Period, string> = {
+  daily: 'today.windowDay',
+  weekly: 'today.windowWeek',
+  monthly: 'today.windowMonth',
+  yearly: 'today.windowYear'
+}
 
 function isDueOnDate(t: Tracker, iso: string): boolean {
   const dueByWeekday = t.type === 'habit' || t.type === 'average'
@@ -107,29 +129,82 @@ function Ring({
   )
 }
 
-// Streak status kind → i18n key. Negative ("missed*") kinds render in the
-// behind color with a warning icon; the rest are positive (flame).
-const STREAK_KEY: Record<StreakStatus['kind'], string> = {
-  none: '',
-  greatStart: 'today.streakGreatStart',
-  streakOngoing: 'today.streakOngoing',
-  streakEnded: 'today.streakEnded',
-  missedYesterday: 'today.missedYesterday',
-  missedLastTime: 'today.missedLastTime',
-  missedDays: 'today.missedDays'
-}
 const isMissedKind = (k: StreakStatus['kind']): boolean =>
   k === 'missedYesterday' || k === 'missedLastTime' || k === 'missedDays'
 
 // Amber warning tone shared by the limit icon and warn states on this screen.
 const AMBER = '#e8923a'
 
-// Bad-habit streak line: clean-day copy instead of "streak" wording. Only the
-// kinds habitStreakStatus can return for a bad habit are mapped.
-const BAD_STREAK_KEY: Partial<Record<StreakStatus['kind'], string>> = {
-  greatStart: 'today.cleanStart',
-  streakOngoing: 'today.cleanOngoing',
-  streakEnded: 'today.cleanEnded'
+// Minimal i18n `t` shape (dynamic key + count/interpolation) — the streak line
+// builds keys per cadence, so a Record-typed t would be awkward here.
+type TFunc = (key: string, opts?: Record<string, unknown>) => string
+
+// Pluralizable unit noun ("day"/"days"…), the lowercase window word for the
+// bad-habit "clean so far …" line, and the "missed last <period>" key — all keyed
+// by cadence unit.
+const UNIT_KEY: Record<PeriodUnit, string> = {
+  day: 'unit.day',
+  week: 'unit.week',
+  month: 'unit.month',
+  year: 'unit.year'
+}
+const WINDOW_WORD: Record<PeriodUnit, string> = {
+  day: 'list.today',
+  week: 'list.thisWeek',
+  month: 'list.thisMonth',
+  year: 'list.thisYear'
+}
+const MISSED_LAST_KEY: Record<PeriodUnit, string> = {
+  day: 'today.missedYesterday',
+  week: 'today.missedLastWeek',
+  month: 'today.missedLastMonth',
+  year: 'today.missedLastYear'
+}
+
+/**
+ * The streak/clean line, worded for the habit's cadence and pluralized. Good
+ * habits read "Streak: 2 months" / "Missed 3 weeks in a row"; bad habits read
+ * "5 days clean" / "Clean so far this week". Returns '' when there's nothing to
+ * show. `unit` count-plurals the noun; adjectival forms ("2 day streak") force
+ * the singular.
+ */
+function streakLine(
+  t: TFunc,
+  streak: StreakStatus,
+  unit: PeriodUnit,
+  isBad: boolean
+): string {
+  const { kind, n } = streak
+  const plural = t(UNIT_KEY[unit], { count: n })
+  const singular = t(UNIT_KEY[unit], { count: 1 })
+  if (isBad) {
+    switch (kind) {
+      case 'greatStart':
+        return t('today.cleanStart', { window: t(WINDOW_WORD[unit]) })
+      case 'streakOngoing':
+        return t('today.cleanOngoing', { count: n, unit: plural })
+      case 'streakEnded':
+        return t('today.cleanEnded', { count: n, unit: singular })
+      default:
+        return ''
+    }
+  }
+  switch (kind) {
+    case 'greatStart':
+      return t('today.streakGreatStart')
+    case 'streakOngoing':
+      return t('today.streakOngoing', { count: n, unit: plural })
+    case 'streakEnded':
+      return t('today.streakEnded', { count: n, unit: singular })
+    case 'missedDays':
+      return t('today.missedInARow', { count: n, unit: plural })
+    case 'missedYesterday':
+      return t(MISSED_LAST_KEY[unit])
+    case 'missedLastTime':
+      return t('today.missedLastTime')
+    default:
+      return ''
+  }
 }
 
 // Pace line color by status (literal classes — never interpolate).
@@ -283,14 +358,12 @@ function SectionHeader({
 function LogRow({
   row,
   date,
-  onLog,
   onOpen,
   onQuickLog,
   onOpenMenu
 }: {
   row: Row
   date: string
-  onLog: (e: Entry) => void
   onOpen: (id: string) => void
   onQuickLog: (tracker: Tracker) => void
   onOpenMenu: (tracker: Tracker) => void
@@ -305,11 +378,10 @@ function LogRow({
       ? habitStreakStatus(tracker, allEntries, date)
       : null
   // Bad habits use clean-day copy; a bad-habit streakEnded (went over today)
-  // renders as a warning, mirroring isMissedKind for good habits.
-  const streakKey = streak
-    ? isBad
-      ? BAD_STREAK_KEY[streak.kind] ?? ''
-      : STREAK_KEY[streak.kind]
+  // renders as a warning, mirroring isMissedKind for good habits. The line is
+  // worded and pluralized for the habit's cadence (day/week/month/year).
+  const streakText = streak
+    ? streakLine(t, streak, periodUnitOf(tracker), isBad)
     : ''
   const streakNegative = streak
     ? isBad
@@ -344,23 +416,24 @@ function LogRow({
       : t('today.goal', { value: goalVal })
   }
 
-  // Habit check/ring: each tap is its own Yes record (uuid + now), so History
-  // shows one row per tap — unlike the stepper's absolute set/overwrite.
-  const logYes = () =>
-    onLog({
-      id: uuid(),
-      trackerId: tracker.id,
-      date,
-      value: 1,
-      note: null,
-      createdAt: new Date().toISOString()
-    })
-
   const renderControl = () => {
     if (tracker.type === 'habit') {
-      const n = todayLog
+      const period = tracker.period ?? 'daily'
+      // The ring/limit are scored over the whole period window (day/week/month/
+      // year), not just the selected day, so a "5 per week" limit reads its
+      // week's slips — matching how good habits already treat a weekly target.
+      const n = periodTotal(tracker, allEntries, date)
+      // Caption naming the window the ring counts ("Today" / "This week" …).
+      const withCaption = (control: ReactNode) => (
+        <View className='items-center'>
+          {control}
+          <Typography className='mt-[1px] text-xs font-medium text-ink-3'>
+            {t(WINDOW_KEY[period])}
+          </Typography>
+        </View>
+      )
       if (isBad) {
-        // Limit ring: fills with the day's slips ("0/5" → "1/5") in the
+        // Limit ring: fills with the window's slips ("0/5" → "1/5") in the
         // behind red — slips are the thing being counted, and the arc maxes
         // out once over the limit. A tap never logs directly: under the limit
         // it opens the log sheet to confirm; at/over the limit (or on
@@ -369,7 +442,7 @@ function LogRow({
         const limit = tracker.targetValue ?? 0
         const over = n > limit
         const ringFraction = over ? 1 : limit > 0 ? n / limit : n > 0 ? 1 : 0
-        return (
+        return withCaption(
           <Pressable
             onPress={() =>
               n >= limit ? onOpenMenu(tracker) : onQuickLog(tracker)
@@ -389,19 +462,26 @@ function LogRow({
                   over ? 'text-pace-behind' : 'text-ink'
                 }`}
               >
-                {`${n}/${limit}`}
+                {`${n}`}
+                {/* "/limit" always red (slash included) — it's a cap */}
+                <Typography className='text-xs font-extrabold text-pace-behind'>
+                  {`/${limit}`}
+                </Typography>
               </Typography>
             </View>
           </Pressable>
         )
       }
-      const goal = perDayGoal(tracker)
-      if (goal === 1) {
-        // Once-a-day habit → check circle instead of a ring. Tapping the done
-        // check opens the day action menu so the log can be undone.
-        return (
+      const goal = periodGoalOf(tracker)
+      const isDone = goal > 0 && n >= goal
+      if (period === 'daily' && goal === 1) {
+        // Once-a-day habit → check circle instead of a ring. Like the bad-habit
+        // ring: tapping when not done opens the log sheet to confirm; tapping
+        // when done (or long-pressing) opens the day action menu to undo it.
+        return withCaption(
           <Pressable
-            onPress={done ? () => onOpenMenu(tracker) : logYes}
+            onPress={() => (done ? onOpenMenu(tracker) : onQuickLog(tracker))}
+            onLongPress={() => onOpenMenu(tracker)}
             className='h-[54px] w-[54px] items-center justify-center'
           >
             {done ? (
@@ -414,10 +494,13 @@ function LogRow({
           </Pressable>
         )
       }
-      // progress = good → green arc throughout (brand blue carried no meaning)
-      return (
+      // progress = good → green arc throughout (brand blue carried no meaning).
+      // Mirrors the bad-habit ring: tap logs via the sheet until the goal is
+      // met, then tap opens the action menu; long-press always opens the menu.
+      return withCaption(
         <Pressable
-          onPress={logYes}
+          onPress={() => (isDone ? onOpenMenu(tracker) : onQuickLog(tracker))}
+          onLongPress={() => onOpenMenu(tracker)}
           className='h-[54px] w-[54px] items-center justify-center'
         >
           <Ring
@@ -429,7 +512,7 @@ function LogRow({
           <View className='absolute inset-0 items-center justify-center'>
             <Typography
               className={`text-xs font-extrabold ${
-                done ? 'text-pace-on' : 'text-ink'
+                isDone ? 'text-pace-on' : 'text-ink'
               }`}
             >
               {`${n}/${goal}`}
@@ -476,9 +559,11 @@ function LogRow({
   return (
     <Pressable
       onPress={() => onOpen(tracker.id)}
-      // Bad habit: long-press anywhere on the card opens the day action menu
+      // Any habit: long-press anywhere on the card opens the day action menu
       // (same as long-pressing the ring).
-      onLongPress={isBad ? () => onOpenMenu(tracker) : undefined}
+      onLongPress={
+        tracker.type === 'habit' ? () => onOpenMenu(tracker) : undefined
+      }
       className='flex-row items-center gap-s3 border-t border-line px-s4 py-s3'
     >
       <View
@@ -502,7 +587,7 @@ function LogRow({
           <View className='flex-row items-center gap-s2 mt-[2px]'>
             <Icons.Ban size={13} color={AMBER} />
             <Typography className='text-sm text-ink-2'>
-              {t('today.limitPerDay', {
+              {t(LIMIT_KEY[tracker.period ?? 'daily'], {
                 value: fmtCompact(tracker.targetValue ?? 0)
               })}
             </Typography>
@@ -523,7 +608,7 @@ function LogRow({
           <Typography className='text-sm text-ink-2 mt-[2px]'>
             {t('today.missedEncourage')}
           </Typography>
-        ) : streak && streak.kind !== 'none' && streakKey ? (
+        ) : streak && streak.kind !== 'none' && streakText ? (
           <View className='flex-row items-center gap-s1 mt-[2px]'>
             {streakNegative ? (
               // amber warning icon; the text stays muted (like the cadence line)
@@ -538,7 +623,7 @@ function LogRow({
                 streakNegative ? 'text-ink-2' : 'text-pace-on'
               }`}
             >
-              {t(streakKey, { count: streak.n })}
+              {streakText}
             </Typography>
           </View>
         ) : null}
@@ -565,6 +650,7 @@ export function DailyGoalsScreen() {
 
   const { data: trackers = [] } = useTrackers()
   const { data: dayEntries = [] } = useEntriesForDate(selectedISO)
+  const { data: allEntries = [] } = useAllEntries()
   const log = useLogEntry()
 
   // Sum of the day's logged value per tracker.
@@ -580,13 +666,32 @@ export function DailyGoalsScreen() {
     if (e.value === 0) dayNo.set(e.trackerId, (dayNo.get(e.trackerId) ?? 0) + 1)
   }
 
+  // All entries grouped by tracker — lets us score a habit's whole period
+  // window (week/month/year), not just the selected day.
+  const entriesByTracker = new Map<string, Entry[]>()
+  for (const e of allEntries) {
+    const list = entriesByTracker.get(e.trackerId)
+    if (list) list.push(e)
+    else entriesByTracker.set(e.trackerId, [e])
+  }
+
   const due = trackers.filter((tr) => isDueOnDate(tr, selectedISO))
-  const rows: Row[] = due.map((tracker) => {
+  const rows: Row[] = []
+  for (const tracker of due) {
     const todayLog = dayValue.get(tracker.id) ?? 0
     const no = dayNo.get(tracker.id) ?? 0
+    // A period habit that has already filled its quota for the window drops
+    // off Today (Strides-style) — but a day it was logged still shows as
+    // completed, so only hide the untouched days.
+    const windowTotal = periodTotal(
+      tracker,
+      entriesByTracker.get(tracker.id) ?? [],
+      selectedISO
+    )
+    if (periodQuotaMet(tracker, windowTotal) && todayLog === 0) continue
     const status = classifyTodayRow(tracker, todayLog, no)
-    return { tracker, status, done: status === 'completed', todayLog }
-  })
+    rows.push({ tracker, status, done: status === 'completed', todayLog })
+  }
 
   // Summary decouples from sections: a clean bad habit sits in Due Today yet
   // counts as done, and allDone tolerates clean bad habits still listed below.
@@ -795,7 +900,6 @@ export function DailyGoalsScreen() {
                       key={row.tracker.id}
                       row={row}
                       date={selectedISO}
-                      onLog={onLog}
                       onOpen={onOpen}
                       onQuickLog={openQuickLog}
                       onOpenMenu={setMenuTracker}
