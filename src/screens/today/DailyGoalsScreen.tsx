@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
@@ -7,6 +7,14 @@ import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import Svg, { Circle } from 'react-native-svg'
 import {
+  ChevronDown,
+  Sunrise,
+  Sun,
+  Moon,
+  Hourglass,
+  CircleCheck
+} from 'lucide-react-native'
+import {
   useTrackers,
   useLogEntry,
   useDeleteEntry,
@@ -14,7 +22,7 @@ import {
   useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
-import { Icons, hexA, iconEmoji, colorHex } from '@features/trackers/icons'
+import { Icons, hexA, iconEmoji } from '@features/trackers/icons'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
@@ -29,7 +37,9 @@ import {
   habitStreakStatus,
   perDayGoal,
   todaySummary,
+  todayStripDays,
   type StreakStatus,
+  type StripDay,
   type TodayRowStatus
 } from '@features/trackers/calculators/habitStats'
 import { uuid } from '@features/trackers/factory'
@@ -42,10 +52,10 @@ import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
-function isDueToday(t: Tracker, todayISO: string): boolean {
+function isDueOnDate(t: Tracker, iso: string): boolean {
   const dueByWeekday = t.type === 'habit' || t.type === 'average'
   if (dueByWeekday && t.repeatDays && t.repeatDays.length) {
-    return t.repeatDays.includes(weekdayOf(todayISO))
+    return t.repeatDays.includes(weekdayOf(iso))
   }
   return true
 }
@@ -130,6 +140,21 @@ const PACE_TEXT_CLASS: Record<PaceStatus, string> = {
   none: 'text-ink-2'
 }
 
+type SectionKey = 'due' | 'completed' | 'missed'
+
+// Grouped-section header tint + text per section (literal classes — never
+// interpolate). The section header carries the status color; rows stay plain.
+const SECTION_HEAD_BG: Record<SectionKey, string> = {
+  due: 'bg-brand-weak',
+  completed: 'bg-pace-on-weak',
+  missed: 'bg-pace-behind-weak'
+}
+const SECTION_HEAD_TEXT: Record<SectionKey, string> = {
+  due: 'text-brand-ink',
+  completed: 'text-pace-on',
+  missed: 'text-pace-behind'
+}
+
 /** Deadline as "29 Nov 2026" in the active locale. */
 function fmtDeadline(iso: string, lang: string): string {
   const d = new Date(`${iso}T00:00:00`)
@@ -148,16 +173,123 @@ type Row = {
   todayLog: number
 }
 
+/** One pill of the horizontal date strip (month abbr + day number). */
+function DayPill({
+  day,
+  selected,
+  locale,
+  onSelect
+}: {
+  day: StripDay
+  selected: boolean
+  locale: string
+  onSelect: (iso: string) => void
+}) {
+  const mon = new Date(`${day.iso}T00:00:00`)
+    .toLocaleDateString(locale, { month: 'short' })
+    .toUpperCase()
+  const num = `${Number(day.iso.slice(8, 10))}`
+  return (
+    <Pressable
+      disabled={day.isFuture}
+      onPress={() => onSelect(day.iso)}
+      className={`items-center gap-[6px] ${day.isFuture ? 'opacity-40' : ''}`}
+    >
+      <View
+        className={`h-[52px] w-[52px] items-center justify-center rounded-full border-[1.5px] ${
+          selected ? 'bg-brand-weak border-brand' : 'bg-bg border-transparent'
+        }`}
+      >
+        <Typography
+          className={`text-[10px] font-bold ${
+            selected ? 'text-brand-ink' : 'text-ink-3'
+          }`}
+        >
+          {mon}
+        </Typography>
+        <Typography
+          className={`text-[17px] font-extrabold leading-[19px] ${
+            selected ? 'text-brand-ink' : 'text-ink'
+          }`}
+        >
+          {num}
+        </Typography>
+      </View>
+      <View
+        className={`h-[5px] w-[5px] rounded-full ${
+          selected ? 'bg-brand' : 'bg-transparent'
+        }`}
+      />
+    </Pressable>
+  )
+}
+
+/** Tinted header bar of a grouped section card: icon + title + count chip + chevron. */
+function SectionHeader({
+  sectionKey,
+  title,
+  count,
+  open,
+  onToggle
+}: {
+  sectionKey: SectionKey
+  title: string
+  count: number
+  open: boolean
+  onToggle: () => void
+}) {
+  const c = useThemeColors()
+  // Concrete hex for the lucide icons — mirrors SECTION_HEAD_TEXT.
+  const fg =
+    sectionKey === 'due'
+      ? c.brand
+      : sectionKey === 'completed'
+      ? c.pace.on_track
+      : c.pace.behind
+  const HeadIcon =
+    sectionKey === 'due'
+      ? Hourglass
+      : sectionKey === 'completed'
+      ? CircleCheck
+      : Icons.Ban
+  return (
+    <Pressable
+      onPress={onToggle}
+      className={`flex-row items-center gap-s2 px-s4 py-[15px] ${SECTION_HEAD_BG[sectionKey]}`}
+    >
+      <HeadIcon size={16} color={fg} />
+      <Typography
+        className={`text-[15px] font-extrabold ${SECTION_HEAD_TEXT[sectionKey]}`}
+      >
+        {title}
+      </Typography>
+      <View className='h-[20px] min-w-[22px] items-center justify-center rounded-full bg-surface px-[6px]'>
+        <Typography
+          className={`text-xs font-extrabold ${SECTION_HEAD_TEXT[sectionKey]}`}
+        >
+          {count}
+        </Typography>
+      </View>
+      <View className='flex-1' />
+      {open ? (
+        <ChevronDown size={16} color={fg} />
+      ) : (
+        <Icons.Chevron size={16} color={fg} />
+      )}
+    </Pressable>
+  )
+}
+
 function LogRow({
   row,
-  today,
+  date,
   onLog,
   onOpen,
   onQuickLog,
   onOpenMenu
 }: {
   row: Row
-  today: string
+  date: string
   onLog: (e: Entry) => void
   onOpen: (id: string) => void
   onQuickLog: (tracker: Tracker) => void
@@ -170,7 +302,7 @@ function LogRow({
   const { data: allEntries = [] } = useEntries(tracker.id)
   const streak: StreakStatus | null =
     tracker.type === 'habit'
-      ? habitStreakStatus(tracker, allEntries, today)
+      ? habitStreakStatus(tracker, allEntries, date)
       : null
   // Bad habits use clean-day copy; a bad-habit streakEnded (went over today)
   // renders as a warning, mirroring isMissedKind for good habits.
@@ -186,9 +318,9 @@ function LogRow({
     : false
   const progress: TrackerProgress | null =
     tracker.type === 'target'
-      ? calculateTarget(tracker, allEntries, today)
+      ? calculateTarget(tracker, allEntries, date)
       : tracker.type === 'average'
-      ? calculateAverage(tracker, allEntries, today)
+      ? calculateAverage(tracker, allEntries, date)
       : null
 
   // Sub-line text per type.
@@ -212,13 +344,13 @@ function LogRow({
       : t('today.goal', { value: goalVal })
   }
 
-  // Habit ring: each tap is its own Yes record (uuid + now), so History shows
-  // one row per tap — unlike the stepper's absolute set/overwrite.
+  // Habit check/ring: each tap is its own Yes record (uuid + now), so History
+  // shows one row per tap — unlike the stepper's absolute set/overwrite.
   const logYes = () =>
     onLog({
       id: uuid(),
       trackerId: tracker.id,
-      date: today,
+      date,
       value: 1,
       note: null,
       createdAt: new Date().toISOString()
@@ -228,69 +360,76 @@ function LogRow({
     if (tracker.type === 'habit') {
       const n = todayLog
       if (isBad) {
-        // Limit ring: fills with today's slips like a normal habit ring
-        // ("0/5" → "1/5"), with the limit number in red; the arc is green
-        // while at/under the limit and full red once over. A tap never logs
-        // directly: under the limit it opens the log sheet to confirm; at/
-        // over the limit (or on long-press anytime) it opens the day action
-        // menu so the last log can be deleted.
+        // Limit ring: fills with the day's slips ("0/5" → "1/5") in the
+        // behind red — slips are the thing being counted, and the arc maxes
+        // out once over the limit. A tap never logs directly: under the limit
+        // it opens the log sheet to confirm; at/over the limit (or on
+        // long-press anytime) it opens the day action menu so the last log
+        // can be deleted.
         const limit = tracker.targetValue ?? 0
         const over = n > limit
-        const ringColor = over ? c.pace.behind : c.pace.on_track
-        const ringFraction = over
-          ? 1
-          : limit > 0
-          ? n / limit
-          : n > 0
-          ? 1
-          : 0
+        const ringFraction = over ? 1 : limit > 0 ? n / limit : n > 0 ? 1 : 0
         return (
           <Pressable
             onPress={() =>
               n >= limit ? onOpenMenu(tracker) : onQuickLog(tracker)
             }
             onLongPress={() => onOpenMenu(tracker)}
-            className='h-[46px] w-[46px] items-center justify-center'
+            className='h-[54px] w-[54px] items-center justify-center'
           >
             <Ring
               fraction={ringFraction}
-              color={ringColor}
-              size={46}
+              color={c.pace.behind}
+              size={48}
               strokeWidth={4}
             />
             <View className='absolute inset-0 items-center justify-center'>
               <Typography
                 className={`text-xs font-extrabold ${
-                  over ? 'text-pace-behind' : 'text-ink-2'
+                  over ? 'text-pace-behind' : 'text-ink'
                 }`}
               >
-                {`${n}/`}
-                <Typography className='text-xs font-extrabold text-pace-behind'>
-                  {`${limit}`}
-                </Typography>
+                {`${n}/${limit}`}
               </Typography>
             </View>
           </Pressable>
         )
       }
       const goal = perDayGoal(tracker)
+      if (goal === 1) {
+        // Once-a-day habit → check circle instead of a ring. Tapping the done
+        // check opens the day action menu so the log can be undone.
+        return (
+          <Pressable
+            onPress={done ? () => onOpenMenu(tracker) : logYes}
+            className='h-[54px] w-[54px] items-center justify-center'
+          >
+            {done ? (
+              <View className='h-[32px] w-[32px] items-center justify-center rounded-full bg-pace-on'>
+                <Icons.Check size={18} color={c.onAccent} strokeWidth={3} />
+              </View>
+            ) : (
+              <View className='h-[32px] w-[32px] rounded-full border-[2.5px] border-line-strong' />
+            )}
+          </Pressable>
+        )
+      }
       // progress = good → green arc throughout (brand blue carried no meaning)
-      const ringColor = c.pace.on_track
       return (
         <Pressable
           onPress={logYes}
-          className='h-[46px] w-[46px] items-center justify-center'
+          className='h-[54px] w-[54px] items-center justify-center'
         >
           <Ring
             fraction={goal ? n / goal : 0}
-            color={ringColor}
-            size={46}
+            color={c.pace.on_track}
+            size={48}
             strokeWidth={4}
           />
           <View className='absolute inset-0 items-center justify-center'>
             <Typography
               className={`text-xs font-extrabold ${
-                done ? 'text-pace-on' : 'text-ink-2'
+                done ? 'text-pace-on' : 'text-ink'
               }`}
             >
               {`${n}/${goal}`}
@@ -306,7 +445,7 @@ function LogRow({
     const isAverage = tracker.type === 'average'
     // Big value drops the unit (the goal sub-line already carries it) — just the number.
     const bigValue = isAverage
-      ? fmtCompact(todayLog) // average shows today's logged value
+      ? fmtCompact(todayLog) // average shows the day's logged value
       : fmtCompact(progress?.current ?? 0) // target shows accumulated current
     const paceStatus: PaceStatus = progress?.paceStatus ?? 'none'
     // average → "Avg: <cumulative avg>"; target → "Pace: <expected>" (hidden if none)
@@ -340,22 +479,23 @@ function LogRow({
       // Bad habit: long-press anywhere on the card opens the day action menu
       // (same as long-pressing the ring).
       onLongPress={isBad ? () => onOpenMenu(tracker) : undefined}
-      className={`flex-row items-center gap-s3 rounded-lg-k border p-s3 px-s4 shadow-sm ${
-        done ? 'bg-brand-faint border-brand-weak' : 'bg-surface border-line'
-      }`}
+      className='flex-row items-center gap-s3 border-t border-line px-s4 py-s3'
     >
       <View
-        className='items-center justify-center rounded-md-k h-[38px] w-[38px]'
+        className='items-center justify-center rounded-full h-[48px] w-[48px]'
         // runtime: tint from user-chosen tracker.color
         style={{ backgroundColor: hexA(tracker.color, 0.14) }}
       >
-        <Typography className='text-[19px]'>
+        <Typography className='text-[22px]'>
           {iconEmoji(tracker.icon)}
         </Typography>
       </View>
 
       <View className='flex-1 min-w-0'>
-        <Typography numberOfLines={1} className='text-base font-bold text-ink'>
+        <Typography
+          numberOfLines={1}
+          className='text-[17px] font-bold text-ink'
+        >
           {tracker.name}
         </Typography>
         {isBad ? (
@@ -368,14 +508,9 @@ function LogRow({
             </Typography>
           </View>
         ) : (
-          <View className='flex-row items-center gap-s2 mt-[2px]'>
-            <View
-              className='rounded-full h-2 w-2'
-              // runtime: user-chosen tracker.color
-              style={{ backgroundColor: colorHex(tracker.color) }}
-            />
-            <Typography className='text-sm text-ink-2'>{subText}</Typography>
-          </View>
+          <Typography className='text-sm text-ink-2 mt-[2px]'>
+            {subText}
+          </Typography>
         )}
         {row.status === 'missed' && !isBad ? (
           // Missed today (attempts filled the goal but not enough Yes) — a muted
@@ -411,43 +546,70 @@ function LogRow({
 
 export function DailyGoalsScreen() {
   const { t, i18n } = useTranslation()
-  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const nav = useNavigation<Nav>()
   const today = toISODate(new Date())
+  const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US'
+
+  // The date strip can rewind the whole screen to a past day: entries,
+  // section classification, and logging all target `selectedISO`. It carries
+  // 90 days of history; on mount it scrolls to the end so today is in view.
+  const [selectedISO, setSelectedISO] = useState(today)
+  const stripDays = todayStripDays(today, 90)
+  const stripRef = useRef<ScrollView>(null)
 
   const { data: trackers = [] } = useTrackers()
-  const { data: todayEntries = [] } = useEntriesForDate(today)
+  const { data: dayEntries = [] } = useEntriesForDate(selectedISO)
   const log = useLogEntry()
 
-  // Sum of today's logged value per tracker.
-  const todayValue = new Map<string, number>()
-  for (const e of todayEntries) {
-    todayValue.set(e.trackerId, (todayValue.get(e.trackerId) ?? 0) + e.value)
+  // Sum of the day's logged value per tracker.
+  const dayValue = new Map<string, number>()
+  for (const e of dayEntries) {
+    dayValue.set(e.trackerId, (dayValue.get(e.trackerId) ?? 0) + e.value)
   }
 
-  // Count of today's "No" logs (value 0) per tracker — used to classify a
+  // Count of the day's "No" logs (value 0) per tracker — used to classify a
   // habit as missed (attempts filled the goal but not enough were Yes).
-  const todayNo = new Map<string, number>()
-  for (const e of todayEntries) {
-    if (e.value === 0)
-      todayNo.set(e.trackerId, (todayNo.get(e.trackerId) ?? 0) + 1)
+  const dayNo = new Map<string, number>()
+  for (const e of dayEntries) {
+    if (e.value === 0) dayNo.set(e.trackerId, (dayNo.get(e.trackerId) ?? 0) + 1)
   }
 
-  const due = trackers.filter((tr) => isDueToday(tr, today))
+  const due = trackers.filter((tr) => isDueOnDate(tr, selectedISO))
   const rows: Row[] = due.map((tracker) => {
-    const todayLog = todayValue.get(tracker.id) ?? 0
-    const no = todayNo.get(tracker.id) ?? 0
+    const todayLog = dayValue.get(tracker.id) ?? 0
+    const no = dayNo.get(tracker.id) ?? 0
     const status = classifyTodayRow(tracker, todayLog, no)
     return { tracker, status, done: status === 'completed', todayLog }
   })
 
-  const dueRows = rows.filter((r) => r.status === 'due')
-  const missed = rows.filter((r) => r.status === 'missed')
-  const completed = rows.filter((r) => r.status === 'completed')
   // Summary decouples from sections: a clean bad habit sits in Due Today yet
   // counts as done, and allDone tolerates clean bad habits still listed below.
   const { done: doneCount, total, allDone } = todaySummary(rows)
+
+  const sections: { key: SectionKey; title: string; rows: Row[] }[] = [
+    {
+      key: 'due',
+      title: t('today.dueToday'),
+      rows: rows.filter((r) => r.status === 'due')
+    },
+    {
+      key: 'completed',
+      title: t('today.completed'),
+      rows: rows.filter((r) => r.status === 'completed')
+    },
+    {
+      key: 'missed',
+      title: t('today.missed'),
+      rows: rows.filter((r) => r.status === 'missed')
+    }
+  ]
+  const [open, setOpen] = useState<Record<SectionKey, boolean>>({
+    due: true,
+    completed: true,
+    missed: true
+  })
+  const toggle = (key: SectionKey) => setOpen((s) => ({ ...s, [key]: !s[key] }))
 
   const hours = new Date().getHours()
   const greetKey =
@@ -456,13 +618,7 @@ export function DailyGoalsScreen() {
       : hours < 18
       ? 'today.greetAfternoon'
       : 'today.greetEvening'
-  const dateStr = new Date()
-    .toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric'
-    })
-    .toUpperCase()
+  const GreetIcon = hours < 12 ? Sunrise : hours < 18 ? Sun : Moon
 
   // Quick-log sheet. Mirrors TrackerDetailScreen: the LogEntryModal is ALWAYS
   // mounted (never gated on the tracker) so its BottomSheet sees a clean
@@ -476,20 +632,20 @@ export function DailyGoalsScreen() {
   }
   const closeQuickLog = () => setLogOpen(false)
 
-  // Bad-habit day action menu (log slip / stayed clean / delete last log) —
-  // opened by long-pressing the limit ring, or by a plain tap once today's
-  // slips reach the limit.
+  // Day action menu (log yes / no / delete last) — opened by long-pressing a
+  // bad-habit limit ring (or tapping it at/over the limit), and by tapping a
+  // once-a-day habit's done check to undo it.
   const [menuTracker, setMenuTracker] = useState<Tracker | null>(null)
   const del = useDeleteEntry()
   const menuEntries = menuTracker
-    ? todayEntries.filter((e) => e.trackerId === menuTracker.id)
+    ? dayEntries.filter((e) => e.trackerId === menuTracker.id)
     : []
   const menuLog = (value: number) => {
     if (!menuTracker) return
     log.mutate({
       id: uuid(),
       trackerId: menuTracker.id,
-      date: today,
+      date: selectedISO,
       value,
       note: null,
       createdAt: new Date().toISOString()
@@ -513,16 +669,19 @@ export function DailyGoalsScreen() {
     return (
       <View className='flex-1 bg-bg'>
         <View
-          className='bg-surface px-s4 pb-s4'
+          className='bg-surface px-s5 pb-s4'
           // safe-area, runtime
-          style={{ paddingTop: insets.top + 16 }}
+          style={{ paddingTop: insets.top }}
         >
-          <Typography className='text-sm font-bold text-brand-ink uppercase'>
-            {dateStr}
+          <Typography className='text-display-k font-extrabold text-ink'>
+            {t('today.header')}
           </Typography>
-          <Typography className='text-2xl font-extrabold text-ink mt-1'>
-            {t(greetKey)}
-          </Typography>
+          <View className='flex-row items-center gap-s2 mt-s1'>
+            <GreetIcon size={14} color={AMBER} />
+            <Typography className='text-sm font-semibold text-ink-2'>
+              {t(greetKey)}
+            </Typography>
+          </View>
         </View>
         <View className='flex-1 items-center justify-center px-s6 gap-s3'>
           <View className='mb-2'>
@@ -546,48 +705,58 @@ export function DailyGoalsScreen() {
   }
 
   return (
-    <View className='flex-1 bg-bg'>
+    <View className='flex-1 bg-surface'>
       {/* head */}
       <View
-        className='bg-surface px-s4 pb-s4'
+        className='px-s5 pb-s1'
         // safe-area, runtime
-        style={{ paddingTop: insets.top + 16 }}
+        style={{ paddingTop: insets.top }}
       >
-        <Typography className='text-sm font-bold text-brand-ink uppercase'>
-          {dateStr}
+        <Typography className='text-display-k font-extrabold text-ink'>
+          {t('today.header')}
         </Typography>
-        <Typography className='text-2xl font-extrabold text-ink mt-1'>
-          {t(greetKey)}
-        </Typography>
+        <View className='flex-row items-center gap-s2 mt-s1'>
+          <Typography className='text-sm font-extrabold text-brand-ink'>
+            {t('today.summary', { done: doneCount, total })}
+          </Typography>
+          <Typography className='text-sm text-ink-3'>·</Typography>
+          <GreetIcon size={14} color={AMBER} />
+          <Typography className='text-sm font-semibold text-ink-2'>
+            {t(greetKey)}
+          </Typography>
+        </View>
       </View>
 
-      <ScrollView contentContainerClassName='pb-8'>
-        <View className='flex-row items-center gap-s4 rounded-lg-k bg-brand-weak p-s4 mx-s4 mt-s4'>
-          <View className='items-center justify-center h-[52px] w-[52px]'>
-            <Ring
-              fraction={total ? doneCount / total : 0}
-              color={c.brand}
-              size={52}
-              strokeWidth={6}
-            />
-            <View className='absolute inset-0 items-center justify-center'>
-              <Typography className='font-extrabold text-brand-ink text-[14px]'>
-                {`${doneCount}/${total}`}
-              </Typography>
-            </View>
-          </View>
-          <View className='flex-1'>
-            <Typography className='text-xl font-extrabold text-brand-ink'>
-              {t('today.summaryDone', { done: doneCount, total })}
-            </Typography>
-            <Typography className='text-sm text-brand-ink opacity-80'>
-              {allDone ? t('today.allClear') : t('today.summaryCap')}
-            </Typography>
-          </View>
-        </View>
+      {/* date strip */}
+      <ScrollView
+        ref={stripRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className='flex-grow-0'
+        contentContainerClassName='gap-s3 px-s5 pt-s3 pb-s3'
+        // open at the right edge (today); fires once content is measured
+        onContentSizeChange={() =>
+          stripRef.current?.scrollToEnd({ animated: false })
+        }
+      >
+        {stripDays.map((day) => (
+          <DayPill
+            key={day.iso}
+            day={day}
+            selected={day.iso === selectedISO}
+            locale={locale}
+            onSelect={setSelectedISO}
+          />
+        ))}
+      </ScrollView>
 
+      {/* body */}
+      <ScrollView
+        className='flex-1 rounded-t-xl-k bg-bg'
+        contentContainerClassName='px-s4 pt-s3 pb-8'
+      >
         {allDone ? (
-          <View className='items-center px-s6 gap-s3 pt-12'>
+          <View className='items-center px-s6 gap-s3 py-8'>
             <View className='mb-s2 h-24 w-24 items-center justify-center rounded-xl-k bg-brand-weak'>
               <Typography className='text-[46px] leading-[60px]'>🎉</Typography>
             </View>
@@ -600,68 +769,37 @@ export function DailyGoalsScreen() {
           </View>
         ) : null}
 
-        {dueRows.length > 0 ? (
-          <>
-            <Typography className='text-xs font-bold uppercase text-ink px-s4 pt-5 pb-2'>
-              {t('today.dueToday')}
-            </Typography>
-            <View className='px-s4 gap-s3'>
-              {dueRows.map((row) => (
-                <LogRow
-                  key={row.tracker.id}
-                  row={row}
-                  today={today}
-                  onLog={onLog}
-                  onOpen={onOpen}
-                  onQuickLog={openQuickLog}
-                  onOpenMenu={setMenuTracker}
-                />
-              ))}
+        {sections
+          .filter((sec) => sec.rows.length > 0)
+          .map((sec) => (
+            <View
+              key={sec.key}
+              className='mb-[14px] overflow-hidden rounded-lg-k bg-surface shadow-sm'
+            >
+              <SectionHeader
+                sectionKey={sec.key}
+                title={sec.title}
+                count={sec.rows.length}
+                open={open[sec.key]}
+                onToggle={() => toggle(sec.key)}
+              />
+              {open[sec.key] ? (
+                <View>
+                  {sec.rows.map((row) => (
+                    <LogRow
+                      key={row.tracker.id}
+                      row={row}
+                      date={selectedISO}
+                      onLog={onLog}
+                      onOpen={onOpen}
+                      onQuickLog={openQuickLog}
+                      onOpenMenu={setMenuTracker}
+                    />
+                  ))}
+                </View>
+              ) : null}
             </View>
-          </>
-        ) : null}
-
-        {missed.length > 0 && !allDone ? (
-          <>
-            <Typography className='text-xs font-bold uppercase text-ink px-s4 pt-5 pb-2'>
-              {t('today.missed')}
-            </Typography>
-            <View className='px-s4 gap-s3'>
-              {missed.map((row) => (
-                <LogRow
-                  key={row.tracker.id}
-                  row={row}
-                  today={today}
-                  onLog={onLog}
-                  onOpen={onOpen}
-                  onQuickLog={openQuickLog}
-                  onOpenMenu={setMenuTracker}
-                />
-              ))}
-            </View>
-          </>
-        ) : null}
-
-        {completed.length > 0 && !allDone ? (
-          <>
-            <Typography className='text-xs font-bold uppercase text-ink px-s4 pt-5 pb-2'>
-              {t('today.completed')}
-            </Typography>
-            <View className='px-s4 gap-s3'>
-              {completed.map((row) => (
-                <LogRow
-                  key={row.tracker.id}
-                  row={row}
-                  today={today}
-                  onLog={onLog}
-                  onOpen={onOpen}
-                  onQuickLog={openQuickLog}
-                  onOpenMenu={setMenuTracker}
-                />
-              ))}
-            </View>
-          </>
-        ) : null}
+          ))}
       </ScrollView>
       {/* Always mounted (like TrackerDetailScreen) so the BottomSheet animates
           on a clean false→true. Falls back to a stable tracker before the first
@@ -669,7 +807,7 @@ export function DailyGoalsScreen() {
       {logTarget ?? trackers[0] ? (
         <LogEntryModal
           tracker={(logTarget ?? trackers[0])!}
-          defaultDate={today}
+          defaultDate={selectedISO}
           visible={logOpen}
           onClose={closeQuickLog}
           onSave={(e) => {
@@ -678,12 +816,14 @@ export function DailyGoalsScreen() {
           }}
         />
       ) : null}
-      {/* Bad-habit action menu — always mounted; `date` toggles visibility. */}
+      {/* Day action menu — always mounted; `date` toggles visibility. */}
       <CalendarDayMenu
-        date={menuTracker ? today : null}
+        date={menuTracker ? selectedISO : null}
         title={menuTracker?.name ?? ''}
         hasEntry={menuEntries.length > 0}
-        badHabit
+        badHabit={
+          menuTracker?.type === 'habit' && menuTracker.direction === 'bad'
+        }
         onLogYes={() => menuLog(1)}
         onLogNo={() => menuLog(0)}
         onDeleteLast={menuDeleteLast}

@@ -10,7 +10,8 @@ import {
   isoAddDays,
   habitStreakStatus,
   classifyTodayRow,
-  todaySummary
+  todaySummary,
+  todayStripDays
 } from '../habitStats'
 import type { Tracker, Entry } from '@features/trackers/types'
 import type { TodayRowStatus } from '../habitStats'
@@ -894,5 +895,60 @@ describe('todaySummary', () => {
       allDone: false
     })
     expect(todaySummary([])).toEqual({ done: 0, total: 0, allDone: true })
+  })
+})
+
+describe('todayStripDays', () => {
+  it('returns 7 days from today-4 to today+2, flagging today and future', () => {
+    const days = todayStripDays('2026-07-13')
+    expect(days.map((d) => d.iso)).toEqual([
+      '2026-07-09',
+      '2026-07-10',
+      '2026-07-11',
+      '2026-07-12',
+      '2026-07-13',
+      '2026-07-14',
+      '2026-07-15'
+    ])
+    expect(days.map((d) => d.isToday)).toEqual([
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ])
+    expect(days.map((d) => d.isFuture)).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ])
+  })
+
+  it('crosses month boundaries', () => {
+    const days = todayStripDays('2026-08-02')
+    expect(days[0].iso).toBe('2026-07-29')
+    expect(days[6].iso).toBe('2026-08-04')
+  })
+
+  it('accepts a custom past window so the strip can scroll into history', () => {
+    const days = todayStripDays('2026-07-13', 30)
+    expect(days).toHaveLength(33) // 30 past + today + 2 future
+    expect(days[0].iso).toBe('2026-06-13')
+    expect(days[30]).toEqual({
+      iso: '2026-07-13',
+      isToday: true,
+      isFuture: false
+    })
+    expect(days[32]).toEqual({
+      iso: '2026-07-15',
+      isToday: false,
+      isFuture: true
+    })
   })
 })

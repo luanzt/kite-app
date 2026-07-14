@@ -2,6 +2,7 @@
   "tabs": { "today": "Today", "trackers": "Trackers", "settings": "Settings" },
   "today": {
     "title": "Today",
+    "header": "Due now",
     "summary": "{{done}}/{{total}} done",
     "summaryDone": "{{done}} of {{total}} done",
     "summaryCap": "Keep your streaks alive today",

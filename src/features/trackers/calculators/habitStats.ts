@@ -452,6 +452,24 @@ export function todaySummary(
   return { done, total: rows.length, allDone: done === rows.length }
 }
 
+export type StripDay = { iso: string; isToday: boolean; isFuture: boolean }
+
+/**
+ * The Today-screen date strip: `pastDays` days of history, then today, then
+ * 2 future days (Today v2 layout). Future days are flagged so the UI can dim
+ * and disable them; the strip scrolls so today sits at the right edge.
+ */
+export function todayStripDays(todayISO: string, pastDays = 4): StripDay[] {
+  return Array.from({ length: pastDays + 3 }, (_, i) => {
+    const offset = i - pastDays
+    return {
+      iso: isoAddDays(todayISO, offset),
+      isToday: offset === 0,
+      isFuture: offset > 0
+    }
+  })
+}
+
 export type PeriodUnit = 'day' | 'week' | 'month' | 'year'
 export type PeriodSessions = {
   bars: WeekBar[] // oldest first; for daily, count = number of logs that day

@@ -2,6 +2,7 @@
   "tabs": { "today": "Hôm nay", "trackers": "Mục tiêu", "settings": "Cài đặt" },
   "today": {
     "title": "Hôm nay",
+    "header": "Cần làm ngay",
     "summary": "Đã xong {{done}}/{{total}}",
     "summaryDone": "Hoàn thành {{done}}/{{total}}",
     "summaryCap": "Giữ vững chuỗi ngày của bạn",
