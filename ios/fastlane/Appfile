@@ -1,0 +1,7 @@
+app_identifier("com.kite.habitapp") # The app's bundle identifier
+
+# Auth uses the App Store Connect API Key (read from env vars in the Fastfile),
+# so there's no need to declare apple_id / itc_team_id here.
+
+# Apple Developer account Team ID (used for code signing).
+team_id("FB48D89A55")

@@ -19,7 +19,9 @@
     "tsc": "tsc --noEmit",
     "test": "jest",
     "postinstall": "patch-package",
-    "pf": "git add -A && git commit --am --no-edit && git push origin HEAD -f"
+    "pf": "git add -A && git commit --am --no-edit && git push origin HEAD -f",
+    "install-pod": "cd ios && bundle exec pod install",
+    "release-ios": "cd ios && bundle exec fastlane beta"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.14",

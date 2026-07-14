@@ -1,0 +1,66 @@
+# Fastfile — automate iOS Release build and TestFlight upload.
+#
+# Run:  cd ios && bundle exec fastlane beta
+#
+# Requires 3 env vars (set them in ios/fastlane/.env — see .env.default):
+#   ASC_KEY_ID       App Store Connect API Key ID
+#   ASC_ISSUER_ID    Issuer ID
+#   ASC_KEY_PATH     Path to the .p8 file (e.g. ./fastlane/AuthKey_XXXX.p8)
+
+default_platform(:ios)
+
+WORKSPACE = "Kite.xcworkspace"
+SCHEME    = "Kite"
+# .env used by react-native-config at build time (release uses production).
+ENVFILE   = ".env.production"
+
+platform :ios do
+  desc "Build Release and upload to TestFlight"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id:      ENV.fetch("ASC_KEY_ID"),
+      issuer_id:   ENV.fetch("ASC_ISSUER_ID"),
+      key_filepath: ENV.fetch("ASC_KEY_PATH"),
+      in_house:    false
+    )
+
+    # Auto-increment build number: take the latest on TestFlight and +1.
+    latest = latest_testflight_build_number(
+      api_key:        api_key,
+      app_identifier: "com.kite.habitapp",
+      initial_build_number: 0
+    )
+    build_number = latest + 1
+
+    # Release version shown to users (e.g. 1.0.0). Set in .env; if empty,
+    # keep the MARKETING_VERSION already declared in the project.
+    app_version = ENV["APP_VERSION"]
+
+    # react-native-config reads the ENVFILE var when running its build phase.
+    ENV["ENVFILE"] = ENVFILE
+
+    # Do NOT write version/build into project.pbxproj (keep git clean):
+    # override them at archive time via xcargs.
+    xcargs = "CURRENT_PROJECT_VERSION=#{build_number}"
+    xcargs += " MARKETING_VERSION=#{app_version}" unless app_version.to_s.empty?
+
+    build_app(
+      workspace:     WORKSPACE,
+      scheme:        SCHEME,
+      configuration: "Release",
+      export_method: "app-store",
+      clean:         true,
+      output_directory: "./build",
+      output_name:   "Kite.ipa",
+      xcargs:        xcargs
+    )
+
+    upload_to_testflight(
+      api_key:                   api_key,
+      skip_waiting_for_build_processing: true, # return immediately, don't wait for Apple processing
+      skip_submission:           true          # upload only, don't submit for external review
+    )
+
+    UI.success("✅ Uploaded version #{app_version.to_s.empty? ? '(from project)' : app_version} build ##{build_number} to TestFlight!")
+  end
+end
