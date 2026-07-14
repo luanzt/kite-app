@@ -22,7 +22,7 @@ import {
   useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
-import { Icons, hexA, iconEmoji } from '@features/trackers/icons'
+import { Icons, hexA, iconEmoji, colorHex } from '@features/trackers/icons'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import type { RootStackParamList } from '@navigation/types'
@@ -508,9 +508,14 @@ function LogRow({
             </Typography>
           </View>
         ) : (
-          <Typography className='text-sm text-ink-2 mt-[2px]'>
-            {subText}
-          </Typography>
+          <View className='flex-row items-center gap-s2 mt-[2px]'>
+            <View
+              className='rounded-full h-2 w-2'
+              // runtime: user-chosen tracker.color
+              style={{ backgroundColor: colorHex(tracker.color) }}
+            />
+            <Typography className='text-sm text-ink-2'>{subText}</Typography>
+          </View>
         )}
         {row.status === 'missed' && !isBad ? (
           // Missed today (attempts filled the goal but not enough Yes) — a muted
