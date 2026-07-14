@@ -8,9 +8,19 @@ import { calculateHabit } from '@features/trackers/calculators/habit'
 import {
   bestStreak,
   buildCalendarMonth,
-  periodSessions
+  periodSessions,
+  periodUnitOf
 } from '@features/trackers/calculators/habitStats'
 import type { PeriodUnit } from '@features/trackers/calculators/habitStats'
+
+// Pluralizable streak-unit noun key by cadence — AchievementHero resolves it
+// per stat so "1 month" / "3 months" agree with each value.
+const UNIT_NOUN_KEY: Record<PeriodUnit, string> = {
+  day: 'unit.day',
+  week: 'unit.week',
+  month: 'unit.month',
+  year: 'unit.year'
+}
 import { Icons } from '@features/trackers/icons'
 import { useLogEntry, useDeleteEntry } from '@features/trackers/queries'
 import { uuid } from '@features/trackers/factory'
@@ -185,6 +195,7 @@ export function HabitChartsTab({
           percent={(progress.successRate ?? 0) * 100}
           currentStreak={progress.streak ?? 0}
           bestStreak={best}
+          unitKey={UNIT_NOUN_KEY[periodUnitOf(tracker)]}
         />
 
         {/* calendar */}

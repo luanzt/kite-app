@@ -14,6 +14,7 @@ const keys = {
   tracker: (id: string) => ['tracker', id] as const,
   entries: (id: string) => ['entries', id] as const,
   entriesForDate: (date: string) => ['entries', 'date', date] as const,
+  entriesAll: ['entries', 'all'] as const,
   milestones: (id: string) => ['milestones', id] as const
 }
 
@@ -45,6 +46,16 @@ export function useEntriesForDate(date: string) {
   return useQuery({
     queryKey: keys.entriesForDate(date),
     queryFn: () => repo.listEntriesForDate(date)
+  })
+}
+/**
+ * Every entry across all trackers — the Today screen needs this to score a
+ * habit's whole period window (e.g. "3 of 3 this month"), not just one day.
+ */
+export function useAllEntries() {
+  return useQuery({
+    queryKey: keys.entriesAll,
+    queryFn: () => repo.listAllEntries()
   })
 }
 
@@ -89,10 +100,10 @@ export function useLogEntry() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (e: Entry) => repo.insertEntry(e),
-    onSuccess: (_d, e) => {
-      // Invalidate the whole 'entries' tree: per-tracker AND per-date caches.
-      qc.invalidateQueries({ queryKey: keys.entries(e.trackerId) })
-      qc.invalidateQueries({ queryKey: ['entries', 'date'] })
+    onSuccess: () => {
+      // Invalidate the whole 'entries' subtree: per-tracker, per-date, and the
+      // all-entries cache the Today screen uses for period-window scoring.
+      qc.invalidateQueries({ queryKey: ['entries'] })
       qc.invalidateQueries({ queryKey: keys.trackers })
     }
   })
@@ -103,9 +114,8 @@ export function useDeleteEntry() {
     // trackerId is passed alongside id only so onSuccess can invalidate its cache.
     mutationFn: async ({ id }: { id: string; trackerId: string }) =>
       repo.deleteEntry(id),
-    onSuccess: (_d, { trackerId }) => {
-      qc.invalidateQueries({ queryKey: keys.entries(trackerId) })
-      qc.invalidateQueries({ queryKey: ['entries', 'date'] })
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['entries'] })
       qc.invalidateQueries({ queryKey: keys.trackers })
     }
   })

@@ -13,7 +13,12 @@ import {
   calculateAverage,
   calculateProject
 } from '@features/trackers/calculators'
-import { perDayGoal } from '@features/trackers/calculators/habitStats'
+import {
+  periodGoalOf,
+  periodTotal,
+  periodUnitOf,
+  type PeriodUnit
+} from '@features/trackers/calculators/habitStats'
 import { useEntries, useMilestones } from '@features/trackers/queries'
 import { toISODate } from '@utils/date'
 import {
@@ -29,6 +34,21 @@ import {
   fmtShortDate
 } from '@features/trackers/detailFormat'
 import { PaceBar } from './PaceBar'
+
+// Right-rail label naming the window the habit stat covers, per its cadence.
+const HABIT_WINDOW_LABEL: Record<PeriodUnit, string> = {
+  day: 'list.today',
+  week: 'list.thisWeek',
+  month: 'list.thisMonth',
+  year: 'list.thisYear'
+}
+// Streak unit noun (pluralizable) by cadence — reads "1 month" / "2 months".
+const UNIT_NOUN_KEY: Record<PeriodUnit, string> = {
+  day: 'unit.day',
+  week: 'unit.week',
+  month: 'unit.month',
+  year: 'unit.year'
+}
 
 export function progressFor(
   t: Tracker,
@@ -66,15 +86,16 @@ export function TrackerCard({
   const today = toISODate(new Date())
   const lang = i18n.language
 
-  // Habit bar/stat track today's Yes count vs the per-day goal; a bad habit
-  // counts slips against its limit instead (0 = full abstinence).
+  // Habit bar/stat track the Yes count over the current PERIOD window (day/
+  // week/month/year) vs the per-period goal; a bad habit counts slips against
+  // its limit instead (0 = full abstinence). A daily habit's window is today,
+  // so this matches the old per-day behavior for the common case.
   const isBadHabit = tracker.type === 'habit' && tracker.direction === 'bad'
-  const habitGoal = isBadHabit ? tracker.targetValue ?? 0 : perDayGoal(tracker)
+  const habitGoal = isBadHabit
+    ? tracker.targetValue ?? 0
+    : periodGoalOf(tracker)
   const habitN =
-    tracker.type === 'habit'
-      ? entries.filter((e) => e.date.slice(0, 10) === today && e.value > 0)
-          .length
-      : 0
+    tracker.type === 'habit' ? periodTotal(tracker, entries, today) : 0
   const badOver = isBadHabit && habitN > habitGoal
   const barPercent =
     tracker.type === 'habit'
@@ -106,7 +127,7 @@ export function TrackerCard({
     // Always slips/limit (e.g. "7/5") — over the limit only the color flips
     // to red, matching the Today ring.
     statValue = `${habitN}/${habitGoal}`
-    statLabel = t('list.today')
+    statLabel = t(HABIT_WINDOW_LABEL[periodUnitOf(tracker)])
   } else if (tracker.type === 'average') {
     if (tracker.progressBasis === 'today_total') {
       const total = entries
@@ -148,7 +169,8 @@ export function TrackerCard({
         <View className='flex-row items-center gap-s1'>
           <Icons.Flame size={14} color={PACE_COLOR.on_track} />
           <Typography className='text-sm text-ink-2'>{`${p.streak ?? 0} ${t(
-            'detail.days'
+            UNIT_NOUN_KEY[periodUnitOf(tracker)],
+            { count: p.streak ?? 0 }
           )}`}</Typography>
         </View>
         <Typography className='text-sm text-ink-3'>·</Typography>
@@ -200,11 +222,11 @@ export function TrackerCard({
             }`}
           >
             {isBadHabit ? (
-              // limit number always red — it's a cap, not a goal
+              // "/limit" always red (slash included) — it's a cap, not a goal
               <>
-                {`${habitN}/`}
+                {`${habitN}`}
                 <Typography className='text-[14px] font-extrabold text-pace-behind'>
-                  {`${habitGoal}`}
+                  {`/${habitGoal}`}
                 </Typography>
               </>
             ) : (

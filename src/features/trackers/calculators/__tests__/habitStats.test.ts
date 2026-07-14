@@ -11,7 +11,11 @@ import {
   habitStreakStatus,
   classifyTodayRow,
   todaySummary,
-  todayStripDays
+  todayStripDays,
+  periodWindow,
+  periodTotal,
+  periodGoalOf,
+  periodQuotaMet
 } from '../habitStats'
 import type { Tracker, Entry } from '@features/trackers/types'
 import type { TodayRowStatus } from '../habitStats'
@@ -194,6 +198,28 @@ describe('bestStreak', () => {
       log('2026-06-05') // Fri
     ]
     expect(bestStreak(mwf, entries, '2026-06-05')).toBe(3)
+  })
+
+  test('period (non-daily) habits count best run in whole buckets', () => {
+    // Monthly, 3/month, since April. Apr+May met, Jun missed, Jul (current) met.
+    const monthly = {
+      ...base,
+      period: 'monthly' as const,
+      targetValue: 3,
+      startDate: '2026-04-01'
+    }
+    const metMonth = (mm: string) => [
+      log(`2026-${mm}-05`),
+      log(`2026-${mm}-06`),
+      log(`2026-${mm}-07`)
+    ]
+    const entries = [
+      ...metMonth('04'),
+      ...metMonth('05'),
+      // June missed
+      ...metMonth('07')
+    ]
+    expect(bestStreak(monthly, entries, '2026-07-14')).toBe(2)
   })
 })
 
@@ -624,6 +650,94 @@ describe('periodSessions', () => {
   })
 })
 
+describe('habitStreakStatus — period (non-daily) good habits count by bucket', () => {
+  // Monthly habit, 3 sessions/month, running since April; "today" = mid-July.
+  const monthly: Tracker = {
+    ...base,
+    period: 'monthly',
+    targetValue: 3,
+    startDate: '2026-04-01'
+  }
+  const met = (mm: string): Entry[] => [
+    log(`2026-${mm}-05`),
+    log(`2026-${mm}-06`),
+    log(`2026-${mm}-07`)
+  ]
+
+  it('every month hit → streakOngoing counted in months', () => {
+    const e = [...met('04'), ...met('05'), ...met('06'), ...met('07')]
+    expect(habitStreakStatus(monthly, e, '2026-07-14')).toEqual({
+      kind: 'streakOngoing',
+      n: 4
+    })
+  })
+
+  it('only the current month hit so far → greatStart', () => {
+    expect(habitStreakStatus(monthly, met('07'), '2026-07-14')).toEqual({
+      kind: 'greatStart',
+      n: 0
+    })
+  })
+
+  it('prior months hit, current month still in progress → streakEnded (months)', () => {
+    const e = [...met('04'), ...met('05'), ...met('06')]
+    expect(habitStreakStatus(monthly, e, '2026-07-14')).toEqual({
+      kind: 'streakEnded',
+      n: 3
+    })
+  })
+
+  it('two+ whole months missed before the current one → missedDays (months)', () => {
+    // April hit, May + June missed, July (current) empty.
+    expect(habitStreakStatus(monthly, met('04'), '2026-07-14')).toEqual({
+      kind: 'missedDays',
+      n: 2
+    })
+  })
+
+  it('just the previous month missed → missedYesterday (last month)', () => {
+    const t = { ...monthly, startDate: '2026-06-01' }
+    expect(habitStreakStatus(t, [], '2026-07-14')).toEqual({
+      kind: 'missedYesterday',
+      n: 0
+    })
+  })
+
+  it('partial current month does not yet count toward the streak', () => {
+    // June met, July has 2 of 3 (not met) → last completed month is June.
+    const e = [...met('06'), log('2026-07-05'), log('2026-07-06')]
+    const t = { ...monthly, startDate: '2026-06-01' }
+    expect(habitStreakStatus(t, e, '2026-07-14')).toEqual({
+      kind: 'streakEnded',
+      n: 1
+    })
+  })
+
+  // Bad habit, limit 2 slips/week, since Mon 2026-06-29; today Tue 2026-07-14.
+  const badWeekly: Tracker = {
+    ...base,
+    direction: 'bad',
+    period: 'weekly',
+    targetValue: 2,
+    startDate: '2026-06-29'
+  }
+
+  it('bad period habit: all weeks clean → streakOngoing in weeks', () => {
+    expect(habitStreakStatus(badWeekly, [], '2026-07-14')).toEqual({
+      kind: 'streakOngoing',
+      n: 3
+    })
+  })
+
+  it('bad period habit: over this week ends the clean run', () => {
+    const e = [log('2026-07-13'), log('2026-07-14'), log('2026-07-14')] // 3 > 2
+    expect(habitStreakStatus(badWeekly, e, '2026-07-14')).toEqual({
+      kind: 'streakEnded',
+      n: 2 // the two prior clean weeks
+    })
+  })
+})
+
 describe('habitStreakStatus', () => {
   // A Mon/Tue/Sat habit for rest-day cases. 2026-06: 1st=Mon. weekdayOf: Sun=0..Sat=6.
   // repeatDays for Mon/Tue/Sat = [1, 2, 6].
@@ -950,5 +1064,122 @@ describe('todayStripDays', () => {
       isToday: false,
       isFuture: true
     })
+  })
+})
+
+describe('periodWindow', () => {
+  it('daily → the single day', () => {
+    const t = { ...base, period: 'daily' as const }
+    expect(periodWindow(t, '2026-07-14')).toEqual({
+      startISO: '2026-07-14',
+      endISO: '2026-07-14'
+    })
+  })
+
+  it('weekly → Monday..Sunday containing the date', () => {
+    const t = { ...base, period: 'weekly' as const }
+    // 2026-07-14 is a Tuesday
+    expect(periodWindow(t, '2026-07-14')).toEqual({
+      startISO: '2026-07-13',
+      endISO: '2026-07-19'
+    })
+    // a Monday maps to itself as the start
+    expect(periodWindow(t, '2026-07-13').startISO).toBe('2026-07-13')
+    // a Sunday is the end of its week, not the start of the next
+    expect(periodWindow(t, '2026-07-19')).toEqual({
+      startISO: '2026-07-13',
+      endISO: '2026-07-19'
+    })
+  })
+
+  it('monthly → first..last day of the calendar month', () => {
+    const t = { ...base, period: 'monthly' as const }
+    expect(periodWindow(t, '2026-07-14')).toEqual({
+      startISO: '2026-07-01',
+      endISO: '2026-07-31'
+    })
+    // February in a non-leap year ends on the 28th
+    expect(periodWindow(t, '2026-02-10').endISO).toBe('2026-02-28')
+  })
+
+  it('yearly → Jan 1..Dec 31 of the year', () => {
+    const t = { ...base, period: 'yearly' as const }
+    expect(periodWindow(t, '2026-07-14')).toEqual({
+      startISO: '2026-01-01',
+      endISO: '2026-12-31'
+    })
+  })
+
+  it('null period defaults to daily', () => {
+    const t = { ...base, period: null as unknown as Tracker['period'] }
+    expect(periodWindow(t, '2026-07-14')).toEqual({
+      startISO: '2026-07-14',
+      endISO: '2026-07-14'
+    })
+  })
+})
+
+describe('periodTotal', () => {
+  it('sums only entries inside the current period window', () => {
+    const t = { ...base, period: 'weekly' as const }
+    const entries = [
+      log('2026-07-12', 1), // Sunday of the PRIOR week — excluded
+      log('2026-07-13', 1), // Monday — included
+      log('2026-07-14', 2), // Tuesday — included
+      log('2026-07-20', 1) // next Monday — excluded
+    ]
+    expect(periodTotal(t, entries, '2026-07-14')).toBe(3)
+  })
+
+  it('daily window totals only the given day', () => {
+    const t = { ...base, period: 'daily' as const }
+    const entries = [log('2026-07-13', 1), log('2026-07-14', 1)]
+    expect(periodTotal(t, entries, '2026-07-14')).toBe(1)
+  })
+})
+
+describe('periodGoalOf', () => {
+  it('daily uses the per-day goal (targetValue or 1)', () => {
+    expect(periodGoalOf({ ...base, period: 'daily', targetValue: 5 })).toBe(5)
+    expect(periodGoalOf({ ...base, period: 'daily', targetValue: null })).toBe(
+      1
+    )
+  })
+
+  it('weekly/monthly use targetValue as the per-period goal', () => {
+    expect(periodGoalOf({ ...base, period: 'weekly', targetValue: 5 })).toBe(5)
+    expect(
+      periodGoalOf({ ...base, period: 'monthly', targetValue: 12 })
+    ).toBe(12)
+    // a missing target floors at 1
+    expect(
+      periodGoalOf({ ...base, period: 'weekly', targetValue: null })
+    ).toBe(1)
+  })
+})
+
+describe('periodQuotaMet', () => {
+  it('true once a period habit fills its quota for the window', () => {
+    const t = { ...base, period: 'monthly' as const, targetValue: 3 }
+    expect(periodQuotaMet(t, 3)).toBe(true)
+    expect(periodQuotaMet(t, 4)).toBe(true) // extra logs still "met"
+    expect(periodQuotaMet(t, 2)).toBe(false)
+  })
+
+  it('daily habits never count as quota-filled (they recur each day)', () => {
+    const t = { ...base, period: 'daily' as const, targetValue: 5 }
+    expect(periodQuotaMet(t, 5)).toBe(false)
+    expect(periodQuotaMet(t, 99)).toBe(false)
+  })
+
+  it('bad habits are limits, not quotas — never "met"', () => {
+    const t = {
+      ...base,
+      period: 'weekly' as const,
+      direction: 'bad' as const,
+      targetValue: 5
+    }
+    expect(periodQuotaMet(t, 5)).toBe(false)
+    expect(periodQuotaMet(t, 10)).toBe(false)
   })
 })
