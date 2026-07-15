@@ -27,24 +27,30 @@ function DayCell({
   cell,
   todayISO,
   onLogDay,
-  onLongPressDay
+  onLongPressDay,
+  onPreStartDay
 }: {
   cell: CalendarCell
   todayISO: string
   onLogDay?: (iso: string) => void
   onLongPressDay?: (iso: string) => void
+  onPreStartDay?: (iso: string) => void
 }) {
   const c = useThemeColors()
   const done = cell.status === 'done'
   const isRest = cell.status === 'rest'
   const isFuture = cell.status === 'future'
+  // A day before the tracker's start date: inert grey pill; tapping prompts to
+  // move the start date rather than logging (the habit didn't exist yet).
+  const isPre = cell.status === 'pre'
   const isPastOrToday = cell.iso <= todayISO
-  const due = !isRest && !isFuture && isPastOrToday
+  const due = !isRest && !isFuture && !isPre && isPastOrToday
   const frac = cell.goal > 0 ? Math.min(1, cell.value / cell.goal) : 0
   // tap logs +1 Yes on any past-or-today day (rest included), unless already done
-  const tappable = isPastOrToday && !isFuture && !done && !!onLogDay
+  const tappable = isPastOrToday && !isFuture && !isPre && !done && !!onLogDay
   // longpress opens the day menu for any past-or-today day (rest included)
-  const longPressable = isPastOrToday && !isFuture && !!onLongPressDay
+  const longPressable = isPastOrToday && !isFuture && !isPre && !!onLongPressDay
+  const preTappable = isPre && !!onPreStartDay
   // due day with progress → show the ring; logged only "No" → red pill.
   // Bad habits mark over-limit days with an explicit 'failed' status.
   const isFailed =
@@ -57,6 +63,8 @@ function DayCell({
     : isFailed
     ? 'text-on-accent'
     : isRest
+    ? 'text-ink-3'
+    : isPre
     ? 'text-ink-3'
     : isFuture
     ? 'text-ink-3 opacity-50'
@@ -78,6 +86,13 @@ function DayCell({
     </View>
   ) : isRest ? (
     // not scheduled → muted pill
+    <View className='h-[34px] w-[34px] items-center justify-center rounded-full bg-surface-2'>
+      <Typography className={`text-sm font-bold ${numberClass}`}>
+        {cell.day}
+      </Typography>
+    </View>
+  ) : isPre ? (
+    // before the tracker began → muted grey pill (inert)
     <View className='h-[34px] w-[34px] items-center justify-center rounded-full bg-surface-2'>
       <Typography className={`text-sm font-bold ${numberClass}`}>
         {cell.day}
@@ -132,14 +147,17 @@ function DayCell({
     </View>
   )
 
-  if (tappable || longPressable) {
+  if (tappable || longPressable || preTappable) {
     return (
       <View className='aspect-square flex-1 items-center justify-center'>
         <Pressable
-          // tap logs +1 Yes; but a done day taps into the menu (like longpress)
-          // so the user can view / delete instead of silently doing nothing
+          // A pre-start day prompts to move the start date (it can't be logged);
+          // otherwise tap logs +1 Yes, and a done day taps into the menu (like
+          // longpress) so the user can view / delete instead of doing nothing.
           onPress={() =>
-            tappable
+            preTappable
+              ? onPreStartDay?.(cell.iso)
+              : tappable
               ? onLogDay?.(cell.iso)
               : done && longPressable && onLongPressDay?.(cell.iso)
           }
@@ -169,12 +187,14 @@ export function HabitCalendar({
   month,
   todayISO,
   onLogDay,
-  onLongPressDay
+  onLongPressDay,
+  onPreStartDay
 }: {
   month: CalendarMonth
   todayISO: string
   onLogDay?: (iso: string) => void
   onLongPressDay?: (iso: string) => void
+  onPreStartDay?: (iso: string) => void
 }) {
   const { t } = useTranslation()
   const dow = t('detail.dow', { returnObjects: true }) as string[]
@@ -213,6 +233,7 @@ export function HabitCalendar({
                 todayISO={todayISO}
                 onLogDay={onLogDay}
                 onLongPressDay={onLongPressDay}
+                onPreStartDay={onPreStartDay}
               />
             ) : (
               <View key={`pad-${wi}-${di}`} className='aspect-square flex-1' />

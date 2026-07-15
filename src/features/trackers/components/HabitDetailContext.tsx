@@ -13,6 +13,8 @@ export type HabitDetailContextValue = {
   onAddLog?: () => void
   onEditEntry?: (entry: Entry) => void
   onLogForDate?: (iso: string) => void
+  /** Opens the tracker's edit screen (Charts tab uses it for pre-start days). */
+  onEditTracker?: () => void
 }
 
 const HabitDetailContext = createContext<HabitDetailContextValue | null>(null)

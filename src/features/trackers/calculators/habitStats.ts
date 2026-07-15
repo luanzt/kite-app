@@ -273,6 +273,7 @@ export type CalendarStatus =
   | 'today'
   | 'rest'
   | 'future'
+  | 'pre' // before the tracker's start date — inert (tap prompts to move start)
   | 'none'
 export type CalendarCell = {
   day: number
@@ -297,8 +298,11 @@ function pad2(n: number): string {
 
 /**
  * Build a month's calendar with each day's habit status. Status priority:
- * done > future > rest (unscheduled & unlogged) > today > none (a plain past
- * day). `future` beats `rest` so an unactionable future rest day isn't marked;
+ * future > pre (before the start date) > done > rest (unscheduled & unlogged) >
+ * today > none (a plain past day). `future` beats everything so an unactionable
+ * future day isn't marked; `pre` beats the rest — a day before the tracker
+ * began is inert (tapping it prompts to move the start date), so a stray
+ * pre-start log never paints done here (it still shows in the History list).
  * `rest` requires `!hasEntry` so a logged rest day renders like a normal day.
  */
 export function buildCalendarMonth(
@@ -315,6 +319,7 @@ export function buildCalendarMonth(
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
   const firstISO = `${year}-${pad2(month + 1)}-01`
   const firstWeekdayMon = (weekdayOf(firstISO) + 6) % 7
+  const startDay = tracker.startDate.slice(0, 10)
 
   // Bad habit: every settled day is either clean (done) or over the limit
   // (failed) — an unlogged day IS clean, so there is no "none"/"today" state.
@@ -326,14 +331,12 @@ export function buildCalendarMonth(
     const iso = `${year}-${pad2(month + 1)}-${pad2(d)}`
     const hasEntry = (counts.get(iso) ?? 0) > 0
     let status: CalendarStatus
-    if (isBad) {
-      if (iso > todayISO) status = 'future'
-      else if (iso < tracker.startDate.slice(0, 10) && !hasEntry)
-        status = 'none' // before the tracker existed — not "clean"
-      else if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
+    if (iso > todayISO) status = 'future'
+    else if (iso < startDay) status = 'pre' // before the tracker began — inert
+    else if (isBad) {
+      if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
       else status = (totals.get(iso) ?? 0) > limit ? 'failed' : 'done'
     } else if (done.has(iso)) status = 'done'
-    else if (iso > todayISO) status = 'future'
     else if (!isDueOn(tracker, iso) && !hasEntry) status = 'rest'
     else if (iso === todayISO) status = 'today'
     else status = 'none'
@@ -380,10 +383,15 @@ export type HistoryRowItem =
   | { kind: 'empty'; iso: string }
 
 /**
- * The History list: every *due* day from today back to the tracker's start
- * date, newest day first. A day with records emits one `record` row per entry
- * (newest record first within the day); a day with no record emits a single
- * `empty` row. Days that aren't scheduled (rest days) are skipped.
+ * The History list, newest day first. A day with records emits one `record`
+ * row per entry (newest record first within the day); a *due* day with no
+ * record emits a single back-fill `empty` row.
+ *
+ * The days rendered are the UNION of (a) every scheduled (due) day from the
+ * tracker's start date to today, and (b) every day that actually has a record
+ * — including off-schedule (rest) days and days before the start date that the
+ * user logged straight from the calendar. Unscheduled days are only skipped
+ * when they have no record; a real log is never hidden.
  */
 export function buildHistoryRows(
   tracker: Tracker,
@@ -404,11 +412,18 @@ export function buildHistoryRows(
     )
   }
 
+  // Scheduled scaffold (due days in [startDate, today]) unioned with every day
+  // that has a record, so an off-schedule / pre-start log still shows.
+  const days = new Set<string>()
   const span = daysBetween(tracker.startDate.slice(0, 10), todayISO)
-  const rows: HistoryRowItem[] = []
-  for (let i = span; i >= 0; i--) {
+  for (let i = 0; i <= span; i++) {
     const iso = isoAddDays(tracker.startDate, i)
-    if (!isDueOn(tracker, iso)) continue
+    if (isDueOn(tracker, iso)) days.add(iso)
+  }
+  for (const day of byDay.keys()) days.add(day)
+
+  const rows: HistoryRowItem[] = []
+  for (const iso of [...days].sort((a, b) => b.localeCompare(a))) {
     const dayEntries = byDay.get(iso)
     if (dayEntries && dayEntries.length > 0) {
       for (const entry of dayEntries) rows.push({ kind: 'record', entry })

@@ -100,11 +100,11 @@ describe('bad habit — calendar, streak status, sessions', () => {
     expect(bestStreak(fresh, entries, '2026-07-11')).toBe(0)
   })
 
-  it('buildCalendarMonth: days before startDate stay plain, not clean', () => {
+  it('buildCalendarMonth: days before startDate are "pre", not clean', () => {
     const late = { ...bad, startDate: '2026-07-08' }
     const m = buildCalendarMonth(late, [], 2026, 6, '2026-07-11')
     const st = (d: number) => m.cells[d - 1].status
-    expect(st(5)).toBe('none') // before the tracker existed
+    expect(st(5)).toBe('pre') // before the tracker existed — inert
     expect(st(8)).toBe('done') // from startDate on, unlogged = clean
     expect(st(11)).toBe('done')
   })
@@ -312,6 +312,32 @@ describe('buildCalendarMonth', () => {
     const cell = m.cells.find((c) => c.day === 6)!
     expect(cell.status).toBe('done')
   })
+
+  test('days before startDate are "pre" (inert), not tappable-to-log', () => {
+    // Started Jun 14; today Jun 14. Days 1..13 are before the tracker existed.
+    const late = { ...base, startDate: '2026-06-14' }
+    const m = buildCalendarMonth(late, [], 2026, 5, '2026-06-14')
+    const status = (day: number) => m.cells.find((c) => c.day === day)?.status
+    expect(status(1)).toBe('pre')
+    expect(status(9)).toBe('pre')
+    expect(status(13)).toBe('pre')
+    expect(status(14)).toBe('today') // the start day itself is actionable
+    expect(status(15)).toBe('future')
+  })
+
+  test('a stray log before startDate still renders as "pre" (log lives in History)', () => {
+    // The old bug let a log land on a pre-start day; it must not paint done here.
+    const late = { ...base, startDate: '2026-06-14' }
+    const m = buildCalendarMonth(
+      late,
+      [log('2026-06-09', 1)],
+      2026,
+      5,
+      '2026-06-14'
+    )
+    const cell = m.cells.find((c) => c.day === 9)!
+    expect(cell.status).toBe('pre')
+  })
 })
 
 describe('dayTotalsOf', () => {
@@ -511,6 +537,41 @@ describe('buildHistoryRows', () => {
       '2026-06-03',
       '2026-06-01'
     ])
+  })
+
+  test('shows a record logged on a non-due (rest) day', () => {
+    // Mon/Wed/Fri only; Jun 4 is a Thursday (rest) but the user logged it
+    // straight from the calendar. The record must still appear in History.
+    const mwf = { ...t, repeatDays: [1, 3, 5] }
+    const rows = buildHistoryRows(
+      mwf,
+      [logAt('2026-06-04', '08:00:00')],
+      '2026-06-05'
+    )
+    const rec = rows.find((r) => r.kind === 'record')
+    expect(rec).toBeDefined()
+    expect(rec?.kind === 'record' && rec.entry.date).toBe('2026-06-04')
+    // the empty rest days (Thu with no log elsewhere) are NOT scaffolded
+    const emptyThu = rows.filter(
+      (r) => r.kind === 'empty' && r.iso === '2026-06-04'
+    )
+    expect(emptyThu).toHaveLength(0)
+  })
+
+  test('shows a record logged before startDate', () => {
+    // Every-day habit started Jun 1; the user back-filled May 30 from the
+    // calendar (a day before the tracker existed). It must still show.
+    const rows = buildHistoryRows(
+      t,
+      [logAt('2026-05-30', '08:00:00')],
+      '2026-06-05'
+    )
+    const rec = rows.find(
+      (r) => r.kind === 'record' && r.entry.date === '2026-05-30'
+    )
+    expect(rec).toBeDefined()
+    // newest-first ordering: the pre-start record sorts to the bottom
+    expect(rows[rows.length - 1]).toEqual(rec)
   })
 })
 
@@ -1148,13 +1209,13 @@ describe('periodGoalOf', () => {
 
   it('weekly/monthly use targetValue as the per-period goal', () => {
     expect(periodGoalOf({ ...base, period: 'weekly', targetValue: 5 })).toBe(5)
-    expect(
-      periodGoalOf({ ...base, period: 'monthly', targetValue: 12 })
-    ).toBe(12)
+    expect(periodGoalOf({ ...base, period: 'monthly', targetValue: 12 })).toBe(
+      12
+    )
     // a missing target floors at 1
-    expect(
-      periodGoalOf({ ...base, period: 'weekly', targetValue: null })
-    ).toBe(1)
+    expect(periodGoalOf({ ...base, period: 'weekly', targetValue: null })).toBe(
+      1
+    )
   })
 })
 

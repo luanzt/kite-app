@@ -22,8 +22,14 @@ const styles = StyleSheet.create({
 
 /** Charts screen — reads shared data from context, renders the existing tab. */
 function ChartsScreen() {
-  const { tracker, entries } = useHabitDetail()
-  return <HabitChartsTab tracker={tracker} entries={entries} />
+  const { tracker, entries, onEditTracker } = useHabitDetail()
+  return (
+    <HabitChartsTab
+      tracker={tracker}
+      entries={entries}
+      onEditTracker={onEditTracker}
+    />
+  )
 }
 
 /** History screen — reads shared data + callbacks from context. */
@@ -63,17 +69,26 @@ export function HabitDetailView({
   entries,
   onAddLog,
   onEditEntry,
-  onLogForDate
+  onLogForDate,
+  onEditTracker
 }: {
   tracker: Tracker
   entries: Entry[]
   onAddLog?: () => void
   onEditEntry?: (entry: Entry) => void
   onLogForDate?: (iso: string) => void
+  onEditTracker?: () => void
 }) {
   return (
     <HabitDetailProvider
-      value={{ tracker, entries, onAddLog, onEditEntry, onLogForDate }}
+      value={{
+        tracker,
+        entries,
+        onAddLog,
+        onEditEntry,
+        onLogForDate,
+        onEditTracker
+      }}
     >
       <Tab.Navigator
         tabBar={HabitTabBar}
