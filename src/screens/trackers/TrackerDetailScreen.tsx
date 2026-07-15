@@ -76,16 +76,17 @@ export function TrackerDetailScreen({
     setLogModal({ open: true, entry: null, date: iso })
   const closeLog = () => setLogModal({ open: false, entry: null, date: null })
 
+  const openEditTracker = () =>
+    nav.navigate('TrackerForm', {
+      trackerId: tracker.id,
+      type: tracker.type
+    })
+
   const appbar = (
     <DetailAppbar
       tracker={tracker}
       onBack={() => nav.goBack()}
-      onEdit={() =>
-        nav.navigate('TrackerForm', {
-          trackerId: tracker.id,
-          type: tracker.type
-        })
-      }
+      onEdit={openEditTracker}
     />
   )
 
@@ -115,6 +116,7 @@ export function TrackerDetailScreen({
           onAddLog={openAddLog}
           onEditEntry={openEditLog}
           onLogForDate={openLogForDate}
+          onEditTracker={openEditTracker}
         />
         {logModalEl}
       </View>

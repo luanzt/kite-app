@@ -26,6 +26,7 @@ import { useLogEntry, useDeleteEntry } from '@features/trackers/queries'
 import { uuid } from '@features/trackers/factory'
 import { toISODate } from '@utils/date'
 import { useThemeColors } from '@hooks/useThemeColors'
+import { useAlert } from '@components/ui'
 import { AchievementHero } from './AchievementHero'
 import { HabitCalendar } from './HabitCalendar'
 import { WeeklyChart } from './WeeklyChart'
@@ -73,10 +74,13 @@ function barLabel(startISO: string, unit: PeriodUnit, lang: string): string {
  */
 export function HabitChartsTab({
   tracker,
-  entries
+  entries,
+  onEditTracker
 }: {
   tracker: Tracker
   entries: Entry[]
+  /** Opens the tracker's edit screen — offered when tapping a pre-start day. */
+  onEditTracker?: () => void
 }) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language
@@ -85,6 +89,7 @@ export function HabitChartsTab({
   const today = toISODate(new Date())
   const log = useLogEntry()
   const del = useDeleteEntry()
+  const alert = useAlert()
   const [menuDate, setMenuDate] = useState<string | null>(null)
   const { toast } = useToast()
 
@@ -144,6 +149,26 @@ export function HabitChartsTab({
     )
 
   const onLongPressDay = (iso: string) => setMenuDate(iso)
+
+  // A day before the tracker's start date can't be logged (the habit didn't
+  // exist yet) — offer to move the start date back instead, opening the editor.
+  const onPreStartDay = () => {
+    const startLabel = new Date(
+      `${tracker.startDate.slice(0, 10)}T00:00:00Z`
+    ).toLocaleDateString(lang, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'UTC'
+    })
+    alert({
+      title: t('detail.changeStartTitle'),
+      message: t('detail.changeStartMsg', { date: startLabel }),
+      cancelLabel: t('common.cancel'),
+      confirmLabel: t('detail.changeStartConfirm'),
+      onConfirm: () => onEditTracker?.()
+    })
+  }
 
   // format the menu title as e.g. "July 2, 2026" (UTC to avoid TZ drift)
   const menuTitle = menuDate
@@ -231,6 +256,7 @@ export function HabitChartsTab({
             // day menu so the user confirms what to record.
             onLogDay={tracker.direction === 'bad' ? onLongPressDay : onLogDay}
             onLongPressDay={onLongPressDay}
+            onPreStartDay={onPreStartDay}
           />
         </View>
 
