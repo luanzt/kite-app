@@ -27,6 +27,15 @@ import {
   StickyNote,
   Cloud,
   CloudOff,
+  Heart,
+  Dumbbell,
+  Sparkles,
+  ListChecks,
+  DollarSign,
+  BookOpen,
+  Palette,
+  Users,
+  Briefcase,
   type LucideIcon
 } from 'lucide-react-native'
 import type { FC } from 'react'
@@ -181,6 +190,23 @@ export const TYPE_COLOR: Record<TrackerType, string> = {
 }
 
 /**
+ * Template-category icon → lucide component (mirrors TYPE_ICON). Colors are
+ * carried on TemplateCategory.color, resolved via colorHex at render time.
+ */
+export const CATEGORY_ICON: Record<string, LucideIcon> = {
+  health: Heart,
+  fitness: Dumbbell,
+  wellness: Sparkles,
+  productivity: ListChecks,
+  money: DollarSign,
+  education: BookOpen,
+  hobbies: Palette,
+  relationships: Users,
+  chores: House,
+  business: Briefcase
+}
+
+/**
  * Map a tracker's `icon` keyword (e.g. "lotus", "drop", "book") to an emoji
  * glyph for the design's tinted emoji tiles.
  *
@@ -229,7 +255,15 @@ const ICON_EMOJI: Record<string, string> = {
   film: '🎬',
   home: '🏡',
   work: '💼',
-  grad: '🎓'
+  grad: '🎓',
+  // template-only keys (render, not in the form picker ICONSET)
+  veggie: '🥦',
+  apple: '🍎',
+  calorie: '⚡',
+  protein: '💪',
+  candy: '🍬',
+  fries: '🍟',
+  soda: '🥤'
 }
 
 /**
