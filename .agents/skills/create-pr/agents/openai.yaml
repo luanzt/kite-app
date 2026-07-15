@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create PR"
+  short_description: "Commit, push, and open a pull request"
+  default_prompt: "Use $create-pr to commit the current changes, push the branch, and open a pull request."
