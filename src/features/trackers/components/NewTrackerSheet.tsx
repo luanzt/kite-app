@@ -36,19 +36,19 @@ export function NewTrackerSheet({
           backgroundClassName='bg-bg rounded-t-[27px]'
         >
           <View
-            className='gap-s3 px-s5 pt-s4'
+            className='px-s5 pt-s1'
             style={{ paddingBottom: insets.bottom + 12 }} // safe-area, runtime
           >
             <Typography className='text-xl font-extrabold text-ink'>
               {t('template.sheetTitle')}
             </Typography>
-            <Typography className='text-sm text-ink-2'>
+            <Typography className='mt-s1 text-sm text-ink-2'>
               {t('template.sheetSubtitle')}
             </Typography>
 
             <Pressable
               onPress={onChooseCustom}
-              className='flex-row items-center gap-s3 rounded-lg-k border border-line bg-surface p-s4 active:opacity-90'
+              className='mt-s4 flex-row items-center gap-s3 rounded-lg-k border border-line bg-surface p-s4 active:opacity-90'
             >
               <View className='h-[52px] w-[52px] items-center justify-center rounded-md-k border border-line'>
                 <Target size={28} color={c.pace.on_track} strokeWidth={1.9} />
@@ -69,7 +69,7 @@ export function NewTrackerSheet({
 
             <Pressable
               onPress={onChooseTemplates}
-              className='flex-row items-center gap-s3 rounded-lg-k border border-line bg-surface p-s4 active:opacity-90'
+              className='mt-s3 flex-row items-center gap-s3 rounded-lg-k border border-line bg-surface p-s4 active:opacity-90'
             >
               <View className='h-[52px] w-[52px] items-center justify-center rounded-md-k border border-line'>
                 <LayoutTemplate size={26} color={c.brand} strokeWidth={1.9} />
