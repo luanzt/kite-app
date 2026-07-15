@@ -13,6 +13,7 @@ export type RootStackParamList = {
   TrackerDetail: { trackerId: string }
   TrackerForm: { trackerId?: string; type: TrackerType; templateKey?: string }
   TrackerTypePicker: undefined
+  TemplateCategory: { category: string }
   SyncBackup: undefined
 }
 
