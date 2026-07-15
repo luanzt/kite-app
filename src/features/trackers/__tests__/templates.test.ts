@@ -41,11 +41,12 @@ describe('template data layer', () => {
     ])
   })
 
-  it('Health ships 15 templates; other categories start empty', () => {
+  it('every category is populated (144 templates total)', () => {
     expect(categoryByKey('health')?.templates.length).toBe(15)
     for (const c of TEMPLATE_CATEGORIES) {
-      if (c.key !== 'health') expect(c.templates.length).toBe(0)
+      expect(c.templates.length).toBeGreaterThan(0)
     }
+    expect(templates.length).toBe(144)
   })
 
   it('every template icon renders a real emoji glyph', () => {
