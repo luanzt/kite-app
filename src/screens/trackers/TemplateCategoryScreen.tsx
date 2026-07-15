@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
-import { Pressable, ScrollView, TextInput, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Search, Target } from 'lucide-react-native'
+import { Target } from 'lucide-react-native'
 import type { RootStackProps } from '@navigation/types'
 import { categoryByKey, normalizeText } from '@features/trackers/templates'
 import { Icons, iconEmoji } from '@features/trackers/icons'
+import { SearchField } from '@components/ui'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 export function TemplateCategoryScreen({
@@ -50,16 +51,11 @@ export function TemplateCategoryScreen({
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
         <View className='p-s4 gap-s4'>
           {/* search */}
-          <View className='h-[48px] flex-row items-center gap-s2 rounded-md-k bg-surface-2 px-s3'>
-            <Search size={18} color={c.ink3} />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t('template.search')}
-              placeholderTextColor={c.ink3}
-              className='flex-1 text-base text-ink'
-            />
-          </View>
+          <SearchField
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('template.search')}
+          />
 
           {/* templates */}
           {list.length > 0 ? (

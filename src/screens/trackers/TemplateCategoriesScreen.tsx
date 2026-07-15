@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
-import { Pressable, ScrollView, TextInput, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Search } from 'lucide-react-native'
 import type { RootStackProps } from '@navigation/types'
 import {
   TEMPLATE_CATEGORIES,
@@ -17,6 +16,7 @@ import {
   colorHex,
   hexA
 } from '@features/trackers/icons'
+import { SearchField } from '@components/ui'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 export function TemplateCategoriesScreen({
@@ -46,7 +46,7 @@ export function TemplateCategoriesScreen({
           onPress={() => navigation.goBack()}
           className='h-10 w-10 items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
         >
-          <Icons.Close size={22} color={c.ink} />
+          <Icons.Back size={22} color={c.ink} />
         </Pressable>
         <Typography className='flex-1 text-lg font-bold text-ink'>
           {t('template.title')}
@@ -56,16 +56,11 @@ export function TemplateCategoriesScreen({
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
         <View className='p-s4 gap-s4'>
           {/* search */}
-          <View className='h-[48px] flex-row items-center gap-s2 rounded-md-k bg-surface-2 px-s3'>
-            <Search size={18} color={c.ink3} />
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder={t('template.search')}
-              placeholderTextColor={c.ink3}
-              className='flex-1 text-base text-ink'
-            />
-          </View>
+          <SearchField
+            value={query}
+            onChangeText={setQuery}
+            placeholder={t('template.search')}
+          />
 
           {nq ? (
             // search results: flat template list across all categories
