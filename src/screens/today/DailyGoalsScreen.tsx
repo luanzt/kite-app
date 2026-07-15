@@ -26,6 +26,7 @@ import { toISODate, weekdayOf } from '@utils/date'
 import { Icons, hexA, iconEmoji, colorHex } from '@features/trackers/icons'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
+import { NewTrackerSheet } from '@features/trackers/components/NewTrackerSheet'
 import type { RootStackParamList } from '@navigation/types'
 import type {
   Tracker,
@@ -641,6 +642,16 @@ export function DailyGoalsScreen() {
   const today = toISODate(new Date())
   const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US'
 
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const chooseCustom = () => {
+    setSheetOpen(false)
+    nav.navigate('TrackerTypePicker')
+  }
+  const chooseTemplates = () => {
+    setSheetOpen(false)
+    nav.navigate('TemplateCategories')
+  }
+
   // The date strip can rewind the whole screen to a past day: entries,
   // section classification, and logging all target `selectedISO`. It carries
   // 90 days of history; on mount it scrolls to the end so today is in view.
@@ -806,10 +817,16 @@ export function DailyGoalsScreen() {
           <View className='mt-s3'>
             <CreateButton
               label={t('list.create')}
-              onPress={() => nav.navigate('TrackerTypePicker')}
+              onPress={() => setSheetOpen(true)}
             />
           </View>
         </View>
+        <NewTrackerSheet
+          isOpen={sheetOpen}
+          onOpenChange={setSheetOpen}
+          onChooseCustom={chooseCustom}
+          onChooseTemplates={chooseTemplates}
+        />
       </View>
     )
   }
