@@ -87,6 +87,48 @@
     "tagAverage": "Trung bình động",
     "tagProject": "Cột mốc · tiến độ"
   },
+  "template": {
+    "title": "Thêm tracker",
+    "search": "Tìm mẫu",
+    "create": "Tạo tracker",
+    "createDesc": "Tạo mục tiêu hoặc thói quen riêng.",
+    "empty": "Không có mẫu phù hợp.",
+    "sheetTitle": "Tracker mới",
+    "sheetSubtitle": "Bạn muốn bắt đầu thế nào?",
+    "custom": "Mục tiêu tự tạo",
+    "customDesc": "Tự tạo từ đầu — một thói quen, một con số cần đạt, hoặc một dự án dài hạn.",
+    "templates": "Mẫu có sẵn",
+    "templatesDesc": "Thiết lập nhanh từ các mục tiêu phổ biến: Sức khỏe, Thể hình, Tiền bạc và hơn thế.",
+    "categories": {
+      "health": "Sức khỏe",
+      "fitness": "Thể hình",
+      "wellness": "Tinh thần",
+      "productivity": "Năng suất",
+      "money": "Tiền bạc",
+      "education": "Học tập",
+      "hobbies": "Sở thích",
+      "relationships": "Quan hệ",
+      "chores": "Việc nhà",
+      "business": "Kinh doanh"
+    },
+    "items": {
+      "weight": "Cân nặng",
+      "drinkWater": "Uống nước",
+      "sleep": "Giấc ngủ",
+      "brushFloss": "Đánh răng & chỉ nha khoa",
+      "healthyMeal": "Ăn lành mạnh",
+      "foodJournal": "Nhật ký ăn uống",
+      "eatVegetables": "Ăn rau",
+      "eatFruit": "Ăn trái cây",
+      "calories": "Calo",
+      "protein": "Protein",
+      "takeVitamins": "Uống vitamin",
+      "limitCaffeine": "Hạn chế caffeine",
+      "noSugar": "Không đường",
+      "noJunkFood": "Không đồ ăn vặt",
+      "noSoda": "Không nước ngọt"
+    }
+  },
   "form": {
     "name": "Tên", "unit": "Đơn vị", "targetValue": "Giá trị mục tiêu",
     "startValue": "Giá trị bắt đầu",

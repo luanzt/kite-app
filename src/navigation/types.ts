@@ -11,8 +11,10 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   MainTabs: undefined
   TrackerDetail: { trackerId: string }
-  TrackerForm: { trackerId?: string; type: TrackerType }
+  TrackerForm: { trackerId?: string; type: TrackerType; templateKey?: string }
   TrackerTypePicker: undefined
+  TemplateCategory: { category: string }
+  TemplateCategories: undefined
   SyncBackup: undefined
 }
 

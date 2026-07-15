@@ -87,6 +87,48 @@
     "tagAverage": "Rolling average",
     "tagProject": "Milestones · pace"
   },
+  "template": {
+    "title": "Add Tracker",
+    "search": "Search Templates",
+    "create": "Create Tracker",
+    "createDesc": "Add custom goal or habit.",
+    "empty": "No templates match.",
+    "sheetTitle": "New tracker",
+    "sheetSubtitle": "How would you like to start?",
+    "custom": "Custom Goal",
+    "customDesc": "Build your own from scratch — a habit, a number to hit, or a long-term project.",
+    "templates": "Templates",
+    "templatesDesc": "Quick setup from popular goals across Health, Fitness, Money & more.",
+    "categories": {
+      "health": "Health",
+      "fitness": "Fitness",
+      "wellness": "Wellness",
+      "productivity": "Productivity",
+      "money": "Money",
+      "education": "Education",
+      "hobbies": "Hobbies",
+      "relationships": "Relationships",
+      "chores": "Chores",
+      "business": "Business"
+    },
+    "items": {
+      "weight": "Weight",
+      "drinkWater": "Drink Water",
+      "sleep": "Sleep",
+      "brushFloss": "Brush & Floss",
+      "healthyMeal": "Healthy Meal",
+      "foodJournal": "Food Journal",
+      "eatVegetables": "Eat Vegetables",
+      "eatFruit": "Eat Fruit",
+      "calories": "Calories",
+      "protein": "Protein",
+      "takeVitamins": "Take Vitamins",
+      "limitCaffeine": "Limit Caffeine",
+      "noSugar": "No Sugar",
+      "noJunkFood": "No Junk Food",
+      "noSoda": "No Soda"
+    }
+  },
   "form": {
     "name": "Name", "unit": "Unit", "targetValue": "Target value",
     "startValue": "Start value",

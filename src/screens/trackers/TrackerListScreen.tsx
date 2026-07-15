@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { FlatList, Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
@@ -10,6 +11,7 @@ import { QUICK_STARTS, type QuickStart } from '@features/trackers/quickStarts'
 import { TrackerCard } from '@features/trackers/components/TrackerCard'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
+import { NewTrackerSheet } from '@features/trackers/components/NewTrackerSheet'
 import { buildTracker } from '@features/trackers/factory'
 import { Icons, iconEmoji } from '@features/trackers/icons'
 import { useThemeColors } from '@hooks/useThemeColors'
@@ -23,6 +25,17 @@ export function TrackerListScreen() {
   const insets = useSafeAreaInsets()
   const { data: trackers = [] } = useTrackers()
   const save = useSaveTracker()
+
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const openSheet = () => setSheetOpen(true)
+  const chooseCustom = () => {
+    setSheetOpen(false)
+    nav.navigate('TrackerTypePicker')
+  }
+  const chooseTemplates = () => {
+    setSheetOpen(false)
+    nav.navigate('TemplateCategories')
+  }
 
   const addQuickStart = (qs: QuickStart) => {
     save.mutate(
@@ -96,13 +109,15 @@ export function TrackerListScreen() {
           </View>
 
           <View className='px-s4 pt-5'>
-            <CreateButton
-              label={t('list.create')}
-              onPress={() => nav.navigate('TrackerTypePicker')}
-              block
-            />
+            <CreateButton label={t('list.create')} onPress={openSheet} block />
           </View>
         </ScrollView>
+        <NewTrackerSheet
+          isOpen={sheetOpen}
+          onOpenChange={setSheetOpen}
+          onChooseCustom={chooseCustom}
+          onChooseTemplates={chooseTemplates}
+        />
       </View>
     )
   }
@@ -128,11 +143,18 @@ export function TrackerListScreen() {
 
       {/* FAB */}
       <Pressable
-        onPress={() => nav.navigate('TrackerTypePicker')}
+        onPress={openSheet}
         className='absolute items-center justify-center bg-brand shadow-md active:opacity-90 right-[18px] bottom-[18px] h-[58px] w-[58px] rounded-[20px]'
       >
         <Icons.Plus size={28} color={c.onAccent} />
       </Pressable>
+
+      <NewTrackerSheet
+        isOpen={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onChooseCustom={chooseCustom}
+        onChooseTemplates={chooseTemplates}
+      />
     </View>
   )
 }
