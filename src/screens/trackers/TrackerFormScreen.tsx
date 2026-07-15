@@ -16,8 +16,10 @@ import {
   TYPE_COLOR,
   hexA,
   iconEmoji,
-  iconKey
+  iconKey,
+  colorHex
 } from '@features/trackers/icons'
+import { findTemplate } from '@features/trackers/templates'
 import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import { useThemeColors } from '@hooks/useThemeColors'
 import {
@@ -66,7 +68,7 @@ export function TrackerFormScreen({
   route,
   navigation
 }: RootStackProps<'TrackerForm'>) {
-  const { type, trackerId } = route.params
+  const { type, trackerId, templateKey } = route.params
   const { t } = useTranslation()
   const alert = useAlert()
   const c = useThemeColors()
@@ -75,6 +77,10 @@ export function TrackerFormScreen({
   const del = useDeleteTracker()
   const language = useAppStore((s) => s.language)
   const { data: editing } = useTracker(trackerId ?? '')
+
+  // Template pre-fill (create mode). Lookup is synchronous, so unlike `editing`
+  // it can seed the useState initialisers directly — no hydrate effect needed.
+  const template = templateKey ? findTemplate(templateKey) : undefined
 
   // The design's PERIOD_LABEL words. No dedicated i18n keys exist in the
   // handoff key list, so localise EN/VI inline from data.js PERIOD_LABEL.
@@ -89,26 +95,38 @@ export function TrackerFormScreen({
     : { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly' }
 
   // Controlled fields — initialised from the editing tracker when present.
-  const [name, setName] = useState(editing?.name ?? '')
+  const [name, setName] = useState(
+    editing?.name ?? (template ? t(`template.items.${template.key}`) : '')
+  )
   // Hold the icon as its ASCII keyword (e.g. "lotus"). Stored values are
   // keywords; legacy/raw-emoji values are normalised via iconKey(). Keywords
   // are what we persist — op-sqlite corrupts raw emoji on write.
   const [icon, setIcon] = useState(
-    editing?.icon ? iconKey(editing.icon) : defaultIcon(type)
+    editing?.icon ? iconKey(editing.icon) : template?.icon ?? defaultIcon(type)
   )
-  const [color, setColor] = useState(editing?.color ?? COLORS[0])
-  const [unit, setUnit] = useState(editing?.unit ?? '')
+  const [color, setColor] = useState(
+    editing?.color ?? (template ? colorHex(template.color) : COLORS[0])
+  )
+  const [unit, setUnit] = useState(editing?.unit ?? template?.unit ?? '')
   const [target, setTarget] = useState(
-    editing?.targetValue != null ? String(editing.targetValue) : ''
+    editing?.targetValue != null
+      ? String(editing.targetValue)
+      : template?.targetValue != null
+      ? String(template.targetValue)
+      : ''
   )
   const [startValue, setStartValue] = useState(
     editing?.startValue != null ? String(editing.startValue) : ''
   )
   const [accum, setAccum] = useState<Accumulation>(
-    editing?.accumulation ?? 'sum'
+    editing?.accumulation ?? template?.accumulation ?? 'sum'
   )
-  const [dir, setDir] = useState<HabitDirection>(editing?.direction ?? 'good')
-  const [period, setPeriod] = useState<Period>(editing?.period ?? 'daily')
+  const [dir, setDir] = useState<HabitDirection>(
+    editing?.direction ?? template?.direction ?? 'good'
+  )
+  const [period, setPeriod] = useState<Period>(
+    editing?.period ?? template?.period ?? 'daily'
+  )
   const [deadline, setDeadline] = useState(editing?.deadline ?? '')
   // Habit-specific fields (Strides-style schedule + reminders).
   const [startDate, setStartDate] = useState(
