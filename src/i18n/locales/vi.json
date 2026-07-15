@@ -90,7 +90,6 @@
   "template": {
     "title": "Thêm tracker",
     "search": "Tìm mẫu",
-    "section": "Mẫu có sẵn",
     "create": "Tạo tracker",
     "createDesc": "Tạo mục tiêu hoặc thói quen riêng.",
     "empty": "Không có mẫu phù hợp.",

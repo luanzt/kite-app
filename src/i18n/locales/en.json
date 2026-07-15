@@ -90,7 +90,6 @@
   "template": {
     "title": "Add Tracker",
     "search": "Search Templates",
-    "section": "Templates",
     "create": "Create Tracker",
     "createDesc": "Add custom goal or habit.",
     "empty": "No templates match.",

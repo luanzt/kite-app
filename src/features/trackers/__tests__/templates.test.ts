@@ -57,6 +57,12 @@ describe('template data layer', () => {
       expect(colorHex(t.color)).toMatch(/^#[0-9a-f]{6}$/i)
   })
 
+  it('every category color resolves to a hex', () => {
+    for (const cat of TEMPLATE_CATEGORIES) {
+      expect(colorHex(cat.color)).toMatch(/^#[0-9a-f]{6}$/i)
+    }
+  })
+
   it('template keys are globally unique', () => {
     const keys = templates.map((t) => t.key)
     expect(new Set(keys).size).toBe(keys.length)
