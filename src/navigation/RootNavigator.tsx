@@ -11,6 +11,7 @@ import { TrackerDetailScreen } from '@screens/trackers/TrackerDetailScreen'
 import { TrackerFormScreen } from '@screens/trackers/TrackerFormScreen'
 import { TrackerTypePickerScreen } from '@screens/trackers/TrackerTypePickerScreen'
 import { TemplateCategoryScreen } from '@screens/trackers/TemplateCategoryScreen'
+import { TemplateCategoriesScreen } from '@screens/trackers/TemplateCategoriesScreen'
 import { SyncBackupScreen } from '@screens/settings/SyncBackupScreen'
 import { useThemeColors } from '@hooks/useThemeColors'
 
@@ -45,6 +46,10 @@ export function RootNavigator() {
         <Stack.Screen
           name='TemplateCategory'
           component={TemplateCategoryScreen}
+        />
+        <Stack.Screen
+          name='TemplateCategories'
+          component={TemplateCategoriesScreen}
         />
         <Stack.Screen name='SyncBackup' component={SyncBackupScreen} />
       </Stack.Navigator>
