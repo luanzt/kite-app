@@ -92,7 +92,13 @@ These rules are mandatory:
   with `color`; do not introduce another icon library or use emoji as UI icons.
 - Use HeroUI `BottomSheet`, `Dialog`, or `Popover` for overlays, never React
   Native `Modal`. Inside a bottom sheet, use `BottomSheetScrollView` and
-  `BottomSheetTextInput` where appropriate.
+  `BottomSheetTextInput` where appropriate. For scrollable sheets with fixed
+  snap points, set `enableOverDrag={false}`, `enableDynamicSizing={false}`, and
+  `contentContainerClassName="h-full"` on `BottomSheet.Content`; otherwise the
+  sheet can steal the gesture and rubber-band instead of scrolling. Keep a
+  header outside the scrollable when following this pattern. For six-column
+  wrapped grids, use a literal width just under one sixth such as
+  `w-[16.66%]`; Yoga can round six `w-1/6` items above 100% and wrap the sixth.
 - Use the bundled `heroui-native` skill when creating or changing HeroUI UI.
 - Prefer primitives exported by `src/components/ui/`, including `FormInput`,
   `Segmented`, `SelectField`, `DateField`, `TimeField`, `WeekdayPicker`, `Toggle`,

@@ -254,7 +254,14 @@ These rules are non-negotiable for all UI code in this project:
      `BottomSheet.Content`. Scroll its content with `BottomSheetScrollView` (NOT
      react-native `ScrollView`, or the sheet steals the scroll gesture) and use
      `BottomSheetTextInput` + `keyboardBehavior="extend"` for inputs so the
-     keyboard doesn't cover them.
+     keyboard doesn't cover them. For scrollable sheets with fixed snap points,
+     set `enableOverDrag={false}`, `enableDynamicSizing={false}`, and
+     `contentContainerClassName="h-full"` on `BottomSheet.Content`; otherwise
+     the sheet can steal the gesture and rubber-band instead of scrolling. Keep
+     a header outside the scrollable when following this pattern. For a
+     six-column wrapped grid, use a literal width just under one sixth such as
+     `w-[16.66%]`: Yoga can round six `w-1/6` items above 100% and wrap the sixth
+     item onto the next row.
    - **`Dialog`** — a small centered popup / confirm.
    - **`Popover`** — anchored transient content.
    ```tsx
@@ -262,7 +269,12 @@ These rules are non-negotiable for all UI code in this project:
    <BottomSheet isOpen={open} onOpenChange={setOpen}>
      <BottomSheet.Portal>
        <BottomSheet.Overlay />
-       <BottomSheet.Content snapPoints={['92%']} enableDynamicSizing={false}>
+       <BottomSheet.Content
+         snapPoints={['92%']}
+         enableOverDrag={false}
+         enableDynamicSizing={false}
+         contentContainerClassName="h-full"
+       >
          …
        </BottomSheet.Content>
      </BottomSheet.Portal>
