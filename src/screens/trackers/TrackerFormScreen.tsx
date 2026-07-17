@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { Typography } from 'heroui-native'
+import { Ellipsis } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { RootStackProps } from '@navigation/types'
@@ -21,6 +22,7 @@ import {
 } from '@features/trackers/icons'
 import { findTemplate } from '@features/trackers/templates'
 import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
+import { IconPickerModal } from '@features/trackers/components/IconPickerModal'
 import { useThemeColors } from '@hooks/useThemeColors'
 import {
   DateField,
@@ -194,6 +196,17 @@ export function TrackerFormScreen({
   }, [editing])
 
   const icons = ICONSET[type] ?? ICONSET.target
+  // Icon picker: show ~2 rows inline (11 tiles + a "More" tile); the full set
+  // opens in a sheet. Keep the selected icon visible inline even when deep in
+  // the list.
+  const [iconModal, setIconModal] = useState(false)
+  const INLINE_ICONS = 11
+  const showMoreIcons = icons.length > INLINE_ICONS + 1
+  const inlineIcons = !showMoreIcons
+    ? icons
+    : icons.slice(0, INLINE_ICONS).includes(icon)
+    ? icons.slice(0, INLINE_ICONS)
+    : [icon, ...icons.slice(0, INLINE_ICONS - 1)]
 
   const onSave = () => {
     const isHabit = type === 'habit'
@@ -343,7 +356,7 @@ export function TrackerFormScreen({
         <View className='gap-s2'>
           <FieldLabel>{t('form.icon')}</FieldLabel>
           <View className='flex-row flex-wrap gap-s2'>
-            {icons.map((ic) => {
+            {inlineIcons.map((ic) => {
               const sel = ic === icon
               return (
                 <Pressable
@@ -361,6 +374,14 @@ export function TrackerFormScreen({
                 </Pressable>
               )
             })}
+            {showMoreIcons ? (
+              <Pressable
+                onPress={() => setIconModal(true)}
+                className='h-[46px] w-[46px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
+              >
+                <Ellipsis size={22} color={c.ink2} />
+              </Pressable>
+            ) : null}
           </View>
         </View>
 
@@ -836,6 +857,14 @@ export function TrackerFormScreen({
           </Typography>
         </Pressable>
       </View>
+
+      <IconPickerModal
+        isOpen={iconModal}
+        onOpenChange={setIconModal}
+        icons={icons}
+        selected={icon}
+        onSelect={setIcon}
+      />
     </View>
   )
 }

@@ -75,6 +75,10 @@ ios/build/
 .env.staging
 .env.production
 
+# Firebase per-project app configuration
+android/app/google-services.json
+ios/Kite/GoogleService-Info.plist
+
 # Yarn
 .yarn/*
 !.yarn/patches

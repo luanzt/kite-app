@@ -8,6 +8,7 @@ import {
 import { useAppStore } from '@store/useAppStore'
 import { countPending } from '@features/trackers/sync/snapshot'
 import type { Tracker, Entry, Milestone } from '@features/trackers/types'
+import { trackEntryLogged, trackTrackerSaved } from '@utils/telemetry'
 
 const keys = {
   trackers: ['trackers'] as const,
@@ -64,6 +65,7 @@ export function useSaveTracker() {
   const { t: tr } = useTranslation()
   return useMutation({
     mutationFn: async (t: Tracker) => {
+      const isNew = repo.getTracker(t.id) == null
       repo.insertTracker(t)
       // Only schedule when the user has notifications enabled; always safe to
       // cancel-then-(maybe)-reschedule via scheduleTrackerReminders.
@@ -79,10 +81,12 @@ export function useSaveTracker() {
       } else {
         await cancelTrackerReminders(t.id)
       }
+      return { isNew }
     },
-    onSuccess: (_d, t) => {
+    onSuccess: ({ isNew }, t) => {
       qc.invalidateQueries({ queryKey: keys.trackers })
       qc.invalidateQueries({ queryKey: keys.tracker(t.id) })
+      trackTrackerSaved(t.type, isNew)
     }
   })
 }
@@ -100,11 +104,13 @@ export function useLogEntry() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (e: Entry) => repo.insertEntry(e),
-    onSuccess: () => {
+    onSuccess: (_data, entry) => {
       // Invalidate the whole 'entries' subtree: per-tracker, per-date, and the
       // all-entries cache the Today screen uses for period-window scoring.
       qc.invalidateQueries({ queryKey: ['entries'] })
       qc.invalidateQueries({ queryKey: keys.trackers })
+      const tracker = repo.getTracker(entry.trackerId)
+      if (tracker) trackEntryLogged(tracker.type)
     }
   })
 }

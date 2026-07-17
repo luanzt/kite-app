@@ -47,6 +47,12 @@ Calculator functions are the core progress engine. Keep them pure and maintain
 support for all tracker types: `habit`, `target`, `average`, and `project`.
 Projects calculate from milestones, while other types calculate from entries.
 
+Firebase Analytics and Crashlytics are observability-only dependencies, not a
+backend or source of truth. Collection is enabled only in release builds. Never
+send tracker names, notes, values, dates, or local record IDs; custom analytics
+events may include only non-sensitive categories such as tracker type. Native
+Firebase app configuration files are intentionally gitignored.
+
 ## Build, Test, and Development Commands
 
 Use Yarn and Node 22.11 or newer.

@@ -1,6 +1,7 @@
 import { ICONSET, defaultIcon } from '../iconSets'
 import { iconEmoji, iconKey } from '../icons'
 import { QUICK_STARTS } from '../quickStarts'
+import { allTemplates } from '../templates'
 
 /** True if a string contains a UTF-16 surrogate (i.e. a non-BMP char/emoji). */
 function hasSurrogate(s: string): boolean {
@@ -70,5 +71,11 @@ describe('icon storage is ASCII-safe (no emoji persisted)', () => {
   it('iconKey() passes an already-keyword value through unchanged', () => {
     expect(iconKey('lotus')).toBe('lotus')
     expect(iconKey('pill')).toBe('pill')
+  })
+
+  it("every template icon is offered in its type's ICONSET picker", () => {
+    for (const tpl of allTemplates()) {
+      expect(ICONSET[tpl.type]).toContain(tpl.icon)
+    }
   })
 })

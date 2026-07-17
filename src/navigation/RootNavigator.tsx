@@ -2,8 +2,10 @@ import {
   NavigationContainer,
   DefaultTheme,
   DarkTheme,
+  useNavigationContainerRef,
   type Theme
 } from '@react-navigation/native'
+import { useRef } from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '@navigation/types'
 import { MainNavigator } from '@navigation/MainNavigator'
@@ -14,11 +16,14 @@ import { TemplateCategoryScreen } from '@screens/trackers/TemplateCategoryScreen
 import { TemplateCategoriesScreen } from '@screens/trackers/TemplateCategoriesScreen'
 import { SyncBackupScreen } from '@screens/settings/SyncBackupScreen'
 import { useThemeColors } from '@hooks/useThemeColors'
+import { trackScreen } from '@utils/telemetry'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 export function RootNavigator() {
   const c = useThemeColors()
+  const navigationRef = useNavigationContainerRef<RootStackParamList>()
+  const routeNameRef = useRef<string | undefined>(undefined)
   // React Navigation has its own theme (separate from Uniwind) that paints the
   // stack card / screen background — white by default, so it must be mapped to
   // Kite tokens or it flashes light during transitions in dark mode.
@@ -34,7 +39,22 @@ export function RootNavigator() {
     }
   }
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={navTheme}
+      onReady={() => {
+        const routeName = navigationRef.getCurrentRoute()?.name
+        routeNameRef.current = routeName
+        if (routeName) trackScreen(routeName)
+      }}
+      onStateChange={() => {
+        const routeName = navigationRef.getCurrentRoute()?.name
+        if (routeName && routeName !== routeNameRef.current) {
+          routeNameRef.current = routeName
+          trackScreen(routeName)
+        }
+      }}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name='MainTabs' component={MainNavigator} />
         <Stack.Screen name='TrackerDetail' component={TrackerDetailScreen} />
