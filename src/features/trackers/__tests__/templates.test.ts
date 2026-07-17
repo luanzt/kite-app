@@ -121,7 +121,7 @@ describe('template data layer', () => {
   it('matches the Strides reference screenshots (spot checks)', () => {
     expect(findTemplate('drinkWater')).toMatchObject({
       targetValue: 8,
-      reminderTimes: ['09:00']
+      reminderTimes: ['09:00', '12:00', '15:00', '18:00']
     })
     expect(findTemplate('protein')).toMatchObject({
       targetValue: 50,

@@ -64,7 +64,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'cyan',
         direction: 'good',
         targetValue: 8,
-        reminderTimes: ['09:00']
+        reminderTimes: ['09:00', '12:00', '15:00', '18:00']
       },
       {
         key: 'sleep',
