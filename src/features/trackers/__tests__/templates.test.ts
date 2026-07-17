@@ -41,12 +41,12 @@ describe('template data layer', () => {
     ])
   })
 
-  it('every category is populated (144 templates total)', () => {
-    expect(categoryByKey('health')?.templates.length).toBe(15)
+  it('every category is populated (149 templates total)', () => {
+    expect(categoryByKey('health')?.templates.length).toBe(20)
     for (const c of TEMPLATE_CATEGORIES) {
       expect(c.templates.length).toBeGreaterThan(0)
     }
-    expect(templates.length).toBe(144)
+    expect(templates.length).toBe(149)
   })
 
   it('every template icon renders a real emoji glyph', () => {
@@ -114,6 +114,7 @@ describe('template data layer', () => {
         expect(t.type).toBe('average')
       }
       if (t.rollingDays != null) expect(t.averageWindow).toBe('rolling')
+      if (t.goalDirection != null) expect(t.type).toBe('average')
     }
   })
 
@@ -137,9 +138,25 @@ describe('template data layer', () => {
     expect(findTemplate('volunteer')).toMatchObject({ repeatDays: [6] })
     expect(findTemplate('budget')).toMatchObject({
       targetValue: 1000,
+      goalDirection: 'at_most',
       period: 'monthly',
       averageWindow: 'rolling',
       rollingDays: 90
+    })
+    expect(findTemplate('expenses')).toMatchObject({
+      goalDirection: 'at_most'
+    })
+    expect(findTemplate('noAlcohol')).toMatchObject({
+      type: 'habit',
+      direction: 'bad',
+      reminderTimes: ['19:00']
+    })
+    expect(findTemplate('takeMedicine')).toMatchObject({
+      type: 'habit',
+      direction: 'good'
+    })
+    expect(findTemplate('walkDog')).toMatchObject({
+      reminderTimes: ['19:00']
     })
     expect(findTemplate('weight')).toMatchObject({
       accumulation: 'latest',

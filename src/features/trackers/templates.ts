@@ -23,6 +23,11 @@ export type Template = {
   deadlineMonths?: number // target only: goal date offset from today, in months
   averageWindow?: AverageWindow // average only; omit = since_start
   rollingDays?: number // average only: rolling window in calendar days
+  // average only: whether the goal is a floor ("N or More") or a ceiling
+  // ("N or Less", e.g. Budget/Expenses). Omit = at_least (the Strides default).
+  // NOTE: the average calculator has no lower-is-better mode yet, so this is
+  // data-only today — carried on the template for the upcoming feature.
+  goalDirection?: 'at_least' | 'at_most'
 }
 
 export type TemplateCategory = {
@@ -176,6 +181,46 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'blue',
         direction: 'bad',
         reminderTimes: ['10:00']
+      },
+      {
+        key: 'noAlcohol',
+        type: 'habit',
+        icon: 'beer',
+        color: 'orange',
+        direction: 'bad',
+        reminderTimes: ['19:00']
+      },
+      {
+        key: 'noSnacks',
+        type: 'habit',
+        icon: 'popcorn',
+        color: 'orange',
+        direction: 'bad',
+        reminderTimes: ['19:00']
+      },
+      {
+        key: 'dontSmoke',
+        type: 'habit',
+        icon: 'nosmoke',
+        color: 'gray',
+        direction: 'bad',
+        reminderTimes: ['19:00']
+      },
+      {
+        key: 'dontBiteNails',
+        type: 'habit',
+        icon: 'nails',
+        color: 'blue',
+        direction: 'bad',
+        reminderTimes: ['19:00']
+      },
+      {
+        key: 'takeMedicine',
+        type: 'habit',
+        icon: 'pill',
+        color: 'red',
+        direction: 'good',
+        reminderTimes: ['07:30']
       }
     ]
   },
@@ -570,6 +615,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         icon: 'piggy',
         color: 'green',
         targetValue: 1000,
+        goalDirection: 'at_most',
         period: 'monthly',
         averageWindow: 'rolling',
         rollingDays: 90,
@@ -1185,7 +1231,8 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         type: 'habit',
         icon: 'dog',
         color: 'green',
-        direction: 'good'
+        direction: 'good',
+        reminderTimes: ['19:00']
       },
       {
         key: 'cleanBathrooms',
@@ -1255,6 +1302,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         icon: 'flymoney',
         color: 'red',
         targetValue: 1000,
+        goalDirection: 'at_most',
         period: 'monthly',
         averageWindow: 'rolling',
         rollingDays: 365,
