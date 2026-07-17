@@ -9,6 +9,18 @@ export function daysBetween(fromISO: string, toISO: string): number {
   return Math.round(ms / 86_400_000)
 }
 
+/** Add calendar months to a `YYYY-MM-DD` date, clamping to the target
+ *  month's last day (31 Jan + 1 month = 28/29 Feb). */
+export function isoAddMonths(iso: string, months: number): string {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
+  const first = new Date(Date.UTC(y, (m || 1) - 1 + months, 1))
+  const lastDay = new Date(
+    Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)
+  ).getUTCDate()
+  first.setUTCDate(Math.min(d || 1, lastDay))
+  return toISODate(first)
+}
+
 export function isSameISODate(a: string, b: string): boolean {
   return a.slice(0, 10) === b.slice(0, 10)
 }

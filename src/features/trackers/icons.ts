@@ -264,6 +264,9 @@ const ICON_EMOJI: Record<string, string> = {
   candy: '🍬',
   fries: '🍟',
   soda: '🥤',
+  beer: '🍺',
+  popcorn: '🍿',
+  nails: '🤞',
   // fitness
   stretch: '🙆',
   raise: '🙌',

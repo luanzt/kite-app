@@ -41,12 +41,12 @@ describe('template data layer', () => {
     ])
   })
 
-  it('every category is populated (144 templates total)', () => {
-    expect(categoryByKey('health')?.templates.length).toBe(15)
+  it('every category is populated (149 templates total)', () => {
+    expect(categoryByKey('health')?.templates.length).toBe(20)
     for (const c of TEMPLATE_CATEGORIES) {
       expect(c.templates.length).toBeGreaterThan(0)
     }
-    expect(templates.length).toBe(144)
+    expect(templates.length).toBe(149)
   })
 
   it('every template icon renders a real emoji glyph', () => {
@@ -89,6 +89,110 @@ describe('template data layer', () => {
       expect(en.template.items[t.key]).toBeTruthy()
       expect(vi.template.items[t.key]).toBeTruthy()
     }
+  })
+
+  it('schedule/average fields are well-formed and type-appropriate', () => {
+    for (const t of templates) {
+      for (const hm of t.reminderTimes ?? []) {
+        expect(hm).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/)
+      }
+      if (t.repeatDays != null) {
+        // Due weekdays only make sense for the habit engine (isDueOn).
+        expect(t.type).toBe('habit')
+        expect(t.repeatDays.length).toBeGreaterThan(0)
+        expect(new Set(t.repeatDays).size).toBe(t.repeatDays.length)
+        for (const d of t.repeatDays) {
+          expect(d).toBeGreaterThanOrEqual(0)
+          expect(d).toBeLessThanOrEqual(6)
+        }
+      }
+      if (t.deadlineMonths != null) {
+        expect(t.type).toBe('target')
+        expect(t.deadlineMonths).toBeGreaterThan(0)
+      }
+      if (t.averageWindow != null || t.rollingDays != null) {
+        expect(t.type).toBe('average')
+      }
+      if (t.rollingDays != null) expect(t.averageWindow).toBe('rolling')
+      if (t.goalDirection != null) expect(t.type).toBe('average')
+    }
+  })
+
+  it('matches the Strides reference screenshots (spot checks)', () => {
+    expect(findTemplate('drinkWater')).toMatchObject({
+      targetValue: 8,
+      reminderTimes: ['09:00', '12:00', '15:00', '18:00']
+    })
+    expect(findTemplate('protein')).toMatchObject({
+      targetValue: 50,
+      reminderTimes: ['07:30', '12:00', '17:30']
+    })
+    expect(findTemplate('pomodoro')).toMatchObject({
+      reminderTimes: ['09:00', '13:00', '16:00']
+    })
+    expect(findTemplate('inBedBy10')).toMatchObject({
+      reminderTimes: ['21:30', '21:45']
+    })
+    expect(findTemplate('pushUps')).toMatchObject({ targetValue: 25 })
+    expect(findTemplate('reviewNotes')).toMatchObject({
+      period: 'weekly',
+      targetValue: 5,
+      repeatDays: [0, 1, 2, 3, 4]
+    })
+    expect(findTemplate('planTheWeek')).toMatchObject({
+      period: 'weekly',
+      repeatDays: [0],
+      reminderTimes: ['16:00']
+    })
+    expect(findTemplate('volunteer')).toMatchObject({ repeatDays: [6] })
+    expect(findTemplate('budget')).toMatchObject({
+      targetValue: 1000,
+      goalDirection: 'at_most',
+      period: 'monthly',
+      averageWindow: 'rolling',
+      rollingDays: 90
+    })
+    expect(findTemplate('expenses')).toMatchObject({
+      goalDirection: 'at_most'
+    })
+    expect(findTemplate('noAlcohol')).toMatchObject({
+      type: 'habit',
+      direction: 'bad',
+      reminderTimes: ['19:00']
+    })
+    expect(findTemplate('takeMedicine')).toMatchObject({
+      type: 'habit',
+      direction: 'good'
+    })
+    expect(findTemplate('walkDog')).toMatchObject({
+      reminderTimes: ['19:00']
+    })
+    expect(findTemplate('weight')).toMatchObject({
+      accumulation: 'latest',
+      deadlineMonths: 1,
+      reminderTimes: ['07:00']
+    })
+    // "Add to Total" is OFF in the reference → log the running total (latest).
+    expect(findTemplate('saveMoney')).toMatchObject({
+      accumulation: 'latest',
+      deadlineMonths: 3
+    })
+    expect(findTemplate('revenue')).toMatchObject({
+      accumulation: 'latest',
+      deadlineMonths: 12
+    })
+    expect(findTemplate('retirementFund')).toMatchObject({
+      deadlineMonths: 240
+    })
+    expect(findTemplate('limitTv')).toMatchObject({
+      direction: 'bad',
+      targetValue: 1
+    })
+    expect(findTemplate('mopFloors')).toMatchObject({
+      period: 'monthly',
+      targetValue: 2,
+      repeatDays: [0, 6]
+    })
   })
 
   it('findTemplate / categoryByKey behave', () => {
