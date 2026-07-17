@@ -1,4 +1,4 @@
-package com.kite.app
+package com.kite.habitapp
 
 import android.app.Application
 import com.facebook.react.PackageList

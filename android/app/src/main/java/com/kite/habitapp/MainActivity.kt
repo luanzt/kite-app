@@ -1,4 +1,4 @@
-package com.kite.app
+package com.kite.habitapp
 
 import android.os.Bundle
 import com.facebook.react.ReactActivity
