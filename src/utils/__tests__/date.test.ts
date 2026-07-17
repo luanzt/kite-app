@@ -1,4 +1,10 @@
-import { toISODate, daysBetween, isSameISODate, weekdayOf } from '@utils/date'
+import {
+  toISODate,
+  daysBetween,
+  isSameISODate,
+  weekdayOf,
+  isoAddMonths
+} from '@utils/date'
 
 describe('date utils', () => {
   test('toISODate strips time', () => {
@@ -32,5 +38,22 @@ describe('date utils', () => {
 
   test('weekdayOf returns 6 for a Saturday', () => {
     expect(weekdayOf('2026-06-13')).toBe(6)
+  })
+
+  test('isoAddMonths adds whole months', () => {
+    expect(isoAddMonths('2026-07-17', 1)).toBe('2026-08-17')
+    expect(isoAddMonths('2026-07-17', 3)).toBe('2026-10-17')
+    expect(isoAddMonths('2026-07-17', 12)).toBe('2027-07-17')
+    expect(isoAddMonths('2026-07-17', 240)).toBe('2046-07-17')
+  })
+
+  test('isoAddMonths clamps to the target month end', () => {
+    expect(isoAddMonths('2026-01-31', 1)).toBe('2026-02-28')
+    expect(isoAddMonths('2028-01-31', 1)).toBe('2028-02-29') // leap year
+    expect(isoAddMonths('2026-08-31', 1)).toBe('2026-09-30')
+  })
+
+  test('isoAddMonths crosses year boundaries', () => {
+    expect(isoAddMonths('2026-11-15', 3)).toBe('2027-02-15')
   })
 })

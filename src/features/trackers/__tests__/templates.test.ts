@@ -91,6 +91,84 @@ describe('template data layer', () => {
     }
   })
 
+  it('schedule/average fields are well-formed and type-appropriate', () => {
+    for (const t of templates) {
+      for (const hm of t.reminderTimes ?? []) {
+        expect(hm).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/)
+      }
+      if (t.repeatDays != null) {
+        // Due weekdays only make sense for the habit engine (isDueOn).
+        expect(t.type).toBe('habit')
+        expect(t.repeatDays.length).toBeGreaterThan(0)
+        expect(new Set(t.repeatDays).size).toBe(t.repeatDays.length)
+        for (const d of t.repeatDays) {
+          expect(d).toBeGreaterThanOrEqual(0)
+          expect(d).toBeLessThanOrEqual(6)
+        }
+      }
+      if (t.deadlineMonths != null) {
+        expect(t.type).toBe('target')
+        expect(t.deadlineMonths).toBeGreaterThan(0)
+      }
+      if (t.averageWindow != null || t.rollingDays != null) {
+        expect(t.type).toBe('average')
+      }
+      if (t.rollingDays != null) expect(t.averageWindow).toBe('rolling')
+    }
+  })
+
+  it('matches the Strides reference screenshots (spot checks)', () => {
+    expect(findTemplate('drinkWater')).toMatchObject({
+      targetValue: 8,
+      reminderTimes: ['09:00']
+    })
+    expect(findTemplate('protein')).toMatchObject({ targetValue: 50 })
+    expect(findTemplate('pushUps')).toMatchObject({ targetValue: 25 })
+    expect(findTemplate('reviewNotes')).toMatchObject({
+      period: 'weekly',
+      targetValue: 5,
+      repeatDays: [0, 1, 2, 3, 4]
+    })
+    expect(findTemplate('planTheWeek')).toMatchObject({
+      period: 'weekly',
+      repeatDays: [0],
+      reminderTimes: ['16:00']
+    })
+    expect(findTemplate('volunteer')).toMatchObject({ repeatDays: [6] })
+    expect(findTemplate('budget')).toMatchObject({
+      targetValue: 1000,
+      period: 'monthly',
+      averageWindow: 'rolling',
+      rollingDays: 90
+    })
+    expect(findTemplate('weight')).toMatchObject({
+      accumulation: 'latest',
+      deadlineMonths: 1,
+      reminderTimes: ['07:00']
+    })
+    // "Add to Total" is OFF in the reference → log the running total (latest).
+    expect(findTemplate('saveMoney')).toMatchObject({
+      accumulation: 'latest',
+      deadlineMonths: 3
+    })
+    expect(findTemplate('revenue')).toMatchObject({
+      accumulation: 'latest',
+      deadlineMonths: 12
+    })
+    expect(findTemplate('retirementFund')).toMatchObject({
+      deadlineMonths: 240
+    })
+    expect(findTemplate('limitTv')).toMatchObject({
+      direction: 'bad',
+      targetValue: 1
+    })
+    expect(findTemplate('mopFloors')).toMatchObject({
+      period: 'monthly',
+      targetValue: 2,
+      repeatDays: [0, 6]
+    })
+  })
+
   it('findTemplate / categoryByKey behave', () => {
     expect(findTemplate('weight')?.type).toBe('target')
     expect(findTemplate('nope')).toBeUndefined()

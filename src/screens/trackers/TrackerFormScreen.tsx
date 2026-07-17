@@ -39,7 +39,7 @@ import {
 } from '@components/ui'
 import { DEFAULT_REMINDER } from '@features/trackers/reminders'
 import { useAppStore } from '@store/useAppStore'
-import { toISODate } from '@utils/date'
+import { toISODate, isoAddMonths } from '@utils/date'
 import type {
   Accumulation,
   AverageWindow,
@@ -130,13 +130,18 @@ export function TrackerFormScreen({
   const [period, setPeriod] = useState<Period>(
     editing?.period ?? template?.period ?? 'daily'
   )
-  const [deadline, setDeadline] = useState(editing?.deadline ?? '')
+  const [deadline, setDeadline] = useState(
+    editing?.deadline ??
+      (template?.deadlineMonths != null
+        ? isoAddMonths(toISODate(new Date()), template.deadlineMonths)
+        : '')
+  )
   // Habit-specific fields (Strides-style schedule + reminders).
   const [startDate, setStartDate] = useState(
     editing?.startDate ?? toISODate(new Date())
   )
   const [repeatDays, setRepeatDays] = useState<number[]>(
-    editing?.repeatDays ?? [0, 1, 2, 3, 4, 5, 6]
+    editing?.repeatDays ?? template?.repeatDays ?? [0, 1, 2, 3, 4, 5, 6]
   )
   const [routine, setRoutine] = useState<Routine>(editing?.routine ?? 'any')
   // Create defaults to one active 18:00 reminder; edit hydrates from the row.
@@ -146,14 +151,20 @@ export function TrackerFormScreen({
   const [reminderTimes, setReminderTimes] = useState<string[]>(
     editing && editing.reminderTimes.length > 0
       ? editing.reminderTimes
+      : template?.reminderTimes?.length
+      ? template.reminderTimes
       : [DEFAULT_REMINDER]
   )
   // Average-only Strides options.
   const [averageWindow, setAverageWindow] = useState<AverageWindow>(
-    editing?.averageWindow ?? 'since_start'
+    editing?.averageWindow ?? template?.averageWindow ?? 'since_start'
   )
   const [rollingDaysStr, setRollingDaysStr] = useState(
-    editing?.rollingDays != null ? String(editing.rollingDays) : '7'
+    editing?.rollingDays != null
+      ? String(editing.rollingDays)
+      : template?.rollingDays != null
+      ? String(template.rollingDays)
+      : '7'
   )
   const [doneRule, setDoneRule] = useState<DoneRule>(
     editing?.doneRule ?? 'when_logged'
