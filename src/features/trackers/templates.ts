@@ -176,14 +176,14 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
       {
         key: 'intervalTraining',
         type: 'habit',
-        icon: 'bolt',
+        icon: 'calorie',
         color: 'red',
         direction: 'good'
       },
       {
         key: 'weightLifting',
         type: 'habit',
-        icon: 'muscle',
+        icon: 'protein',
         color: 'red',
         direction: 'good'
       },

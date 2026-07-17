@@ -21,6 +21,7 @@ import {
 import { useAppStore } from '@store/useAppStore'
 import { initI18n } from '@i18n/index'
 import BootSplash from 'react-native-bootsplash'
+import { initializeTelemetry, recordAppError } from '@utils/telemetry'
 
 initI18n()
 
@@ -33,6 +34,7 @@ const styles = StyleSheet.create({ root: { flex: 1 } })
 export default function App() {
   useEffect(() => {
     const ready = async () => {
+      await initializeTelemetry()
       await getDb() // open + migrate on launch — hold splash until DB is ready
       await initNotifications() // create the Android channel
       // First launch only: ask once, and let the preference follow the result.
@@ -45,9 +47,11 @@ export default function App() {
       }
     }
     setTimeout(() => {
-      ready().finally(() => {
-        BootSplash.hide({ fade: true })
-      })
+      ready()
+        .catch((error) => recordAppError(error, 'app_startup'))
+        .finally(() => {
+          BootSplash.hide({ fade: true })
+        })
     }, 2000)
   }, [])
 

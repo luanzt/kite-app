@@ -266,8 +266,6 @@ const ICON_EMOJI: Record<string, string> = {
   soda: '🥤',
   // fitness
   stretch: '🙆',
-  bolt: '⚡',
-  muscle: '💪',
   raise: '🙌',
   sneaker: '👟',
   sport: '⛹️',

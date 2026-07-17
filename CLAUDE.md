@@ -6,6 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Kite is an **offline-first goal & progress tracker** (inspired by Strides), built on React Native CLI with the HeroUI Native UI library. Users create long-term goals across four tracker types and track progress over time. The signature feature is the **pace line** — a green/red indicator showing whether a time-based goal is on track or behind. There is **no backend and no login**; all data lives on-device in SQLite.
 
+Firebase Analytics and Crashlytics provide release-only observability; they are
+not a backend or source of truth. `src/utils/telemetry.ts` owns collection and
+the privacy boundary: custom events may include screen/action names and tracker
+type, but never tracker names, notes, values, dates, or local record IDs.
+Development builds disable collection so they do not pollute production MAU or
+retention. Per-app Firebase files are gitignored; setup is documented in
+`docs/firebase-setup.md`.
+
 ## AI Tooling — HeroUI Native Agent Skill
 
 This project bundles HeroUI's official `heroui-native` Agent Skill so AI
