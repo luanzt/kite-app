@@ -123,7 +123,16 @@ describe('template data layer', () => {
       targetValue: 8,
       reminderTimes: ['09:00']
     })
-    expect(findTemplate('protein')).toMatchObject({ targetValue: 50 })
+    expect(findTemplate('protein')).toMatchObject({
+      targetValue: 50,
+      reminderTimes: ['07:30', '12:00', '17:30']
+    })
+    expect(findTemplate('pomodoro')).toMatchObject({
+      reminderTimes: ['09:00', '13:00', '16:00']
+    })
+    expect(findTemplate('inBedBy10')).toMatchObject({
+      reminderTimes: ['21:30', '21:45']
+    })
     expect(findTemplate('pushUps')).toMatchObject({ targetValue: 25 })
     expect(findTemplate('reviewNotes')).toMatchObject({
       period: 'weekly',

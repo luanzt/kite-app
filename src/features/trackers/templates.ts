@@ -83,7 +83,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'blue',
         direction: 'good',
         targetValue: 2,
-        reminderTimes: ['07:00']
+        reminderTimes: ['07:00', '21:00']
       },
       {
         key: 'healthyMeal',
@@ -92,7 +92,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'green',
         direction: 'good',
         targetValue: 3,
-        reminderTimes: ['07:30']
+        reminderTimes: ['07:30', '12:00', '17:30']
       },
       {
         key: 'foodJournal',
@@ -101,7 +101,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'orange',
         direction: 'good',
         targetValue: 3,
-        reminderTimes: ['07:30']
+        reminderTimes: ['07:30', '12:00', '17:30']
       },
       {
         key: 'eatVegetables',
@@ -110,7 +110,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'green',
         direction: 'good',
         targetValue: 3,
-        reminderTimes: ['07:30']
+        reminderTimes: ['07:30', '12:00', '17:30']
       },
       {
         key: 'eatFruit',
@@ -119,7 +119,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'red',
         direction: 'good',
         targetValue: 3,
-        reminderTimes: ['07:30']
+        reminderTimes: ['07:30', '12:00', '17:30']
       },
       {
         key: 'calories',
@@ -129,7 +129,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         targetValue: 2000,
         averageWindow: 'rolling',
         rollingDays: 7,
-        reminderTimes: ['07:30']
+        reminderTimes: ['07:30', '12:00', '17:30']
       },
       {
         key: 'protein',
@@ -139,7 +139,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         targetValue: 50,
         averageWindow: 'rolling',
         rollingDays: 7,
-        reminderTimes: ['07:30']
+        reminderTimes: ['07:30', '12:00', '17:30']
       },
       {
         key: 'takeVitamins',
@@ -172,7 +172,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         icon: 'fries',
         color: 'red',
         direction: 'bad',
-        reminderTimes: ['07:30']
+        reminderTimes: ['07:30', '12:00', '17:30']
       },
       {
         key: 'noSoda',
@@ -515,7 +515,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         icon: 'clock',
         color: 'indigo',
         direction: 'good',
-        reminderTimes: ['21:30']
+        reminderTimes: ['21:30', '21:45']
       },
       {
         key: 'noSocialMedia',
@@ -523,7 +523,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         icon: 'laptop',
         color: 'red',
         direction: 'bad',
-        reminderTimes: ['07:00']
+        reminderTimes: ['07:00', '19:00']
       },
       {
         key: 'noPhoneInBed',
@@ -531,7 +531,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         icon: 'phone',
         color: 'red',
         direction: 'bad',
-        reminderTimes: ['07:00']
+        reminderTimes: ['07:00', '21:00']
       },
       {
         key: 'limitTv',
@@ -574,7 +574,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'red',
         direction: 'good',
         targetValue: 3,
-        reminderTimes: ['09:00']
+        reminderTimes: ['09:00', '13:00', '16:00']
       },
       {
         key: 'takeABreak',
@@ -583,7 +583,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'green',
         direction: 'good',
         targetValue: 2,
-        reminderTimes: ['10:00']
+        reminderTimes: ['10:00', '14:30']
       },
       {
         key: 'workSideProject',
@@ -1166,7 +1166,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'teal',
         direction: 'good',
         targetValue: 2,
-        reminderTimes: ['07:00']
+        reminderTimes: ['07:00', '19:00']
       },
       {
         key: 'sweepFloors',
@@ -1224,7 +1224,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
         color: 'orange',
         direction: 'good',
         targetValue: 2,
-        reminderTimes: ['07:00']
+        reminderTimes: ['07:00', '19:00']
       },
       {
         key: 'walkDog',
