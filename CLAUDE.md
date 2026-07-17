@@ -416,4 +416,4 @@ budget/coalescing strategy — with default-on reminders, ~10 active trackers ca
 exceed iOS's 64-pending-local-notification limit, and overflow triggers
 silently never fire.
 
-The iOS/Android project has been renamed from `RnHeroUITemplate` to **Kite**: RN/AppRegistry name is `Kite`, the iOS target/scheme/folder is `Kite` (`ios/Kite/`, `Kite.xcodeproj`, `Kite.xcworkspace`), the Android Java package is `com.kite.app`, and the bundle id / `applicationId` is **`com.kite.app`** on both platforms.
+The iOS/Android project has been renamed from `RnHeroUITemplate` to **Kite**: RN/AppRegistry name is `Kite`, the iOS target/scheme/folder is `Kite` (`ios/Kite/`, `Kite.xcodeproj`, `Kite.xcworkspace`), the Android Java/namespace package + `applicationId` is **`com.kite.habitapp`**, and the iOS bundle id is **`com.kite.app`** (the two platforms intentionally differ).
