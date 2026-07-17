@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "310727624535",
+    "project_id": "kite-d6bea",
+    "storage_bucket": "kite-d6bea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:310727624535:android:a80ced3f196ae987cda012",
+        "android_client_info": {
+          "package_name": "com.kite.habitapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgX9x4kkNvjQunGCPwDCRBX2KAd0ac0_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -10,9 +10,6 @@ Firebase Analytics and Crashlytics provide release-only observability; they are
 not a backend or source of truth. `src/utils/telemetry.ts` owns collection and
 the privacy boundary: custom events may include screen/action names and tracker
 type, but never tracker names, notes, values, dates, or local record IDs.
-Development builds disable collection so they do not pollute production MAU or
-retention. Per-app Firebase files are gitignored; setup is documented in
-`docs/firebase-setup.md`.
 
 ## AI Tooling — HeroUI Native Agent Skill
 
@@ -87,7 +84,7 @@ Almost all domain code lives under **`src/features/trackers/`**:
   `syncService.ts`: `runSync(qc)` = read cloud → merge → `replaceAllData`
   (transaction) → write cloud → set `lastSyncedAt` (MMKV) → invalidate all
   queries. Every save stamps `updatedAt`; deletes write a tombstone row.
-  Requires the iCloud Documents capability (`iCloud.com.kite.app`) in Xcode.
+  Requires the iCloud Documents capability (`iCloud.com.kite.habitapp`) in Xcode.
 - `detailFormat.ts` — number/value formatters: `fmtNum`, `fmtVal` (`$` prefix / unit suffix), `fmtCompact` (1K/30K/3M/1.5M), `fmtValCompact`, plus timeline helpers `pacePercent`/`daysLeft`.
 - `habitLabels.ts` — `cadenceLabel(tracker, t)` → human cadence string ("Every day", "5 times a week", …) via i18n.
 - `components/` — the shared `TrackerCard` (+ `progressFor()` dispatcher), `PaceBar`/`PaceChip`, `HistoryChart`, `MilestoneList`, `Stat`, plus the **tracker-detail subsystem** — see below.
