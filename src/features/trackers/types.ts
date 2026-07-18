@@ -3,8 +3,6 @@ export type HabitDirection = 'good' | 'bad'
 export type Period = 'daily' | 'weekly' | 'monthly' | 'yearly'
 export type Accumulation = 'sum' | 'latest'
 export type PaceStatus = 'on_track' | 'behind' | 'ahead' | 'none'
-/** Time-of-day grouping for a habit (Strides-style "Routine"). */
-export type Routine = 'any' | 'morning' | 'afternoon' | 'evening'
 /** Average only: which entries feed the mean (Strides "Average"). */
 export type AverageWindow = 'since_start' | 'rolling'
 /** Average only: when the Today row counts as done (Strides "Move to Done"). */
@@ -27,7 +25,6 @@ export type Tracker = {
   deadline: string | null // ISO date
   period: Period | null
   repeatDays: number[] | null // 0=Sun..6=Sat
-  routine: Routine | null // time-of-day grouping (habit)
   reminderTimes: string[] // "HH:MM" 24h, insertion order; [] = reminders off
   goalNote: string | null // free-text motivation note pinned to the goal (habit Notes tab)
   averageWindow: AverageWindow | null // average only; null = since_start

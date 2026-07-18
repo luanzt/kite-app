@@ -3,7 +3,6 @@ import type {
   TrackerType,
   Accumulation,
   Period,
-  Routine,
   AverageWindow,
   DoneRule,
   ProgressBasis
@@ -32,7 +31,6 @@ export type BuildTrackerInput = {
   period?: Period | null
   startDate?: string
   repeatDays?: number[] | null
-  routine?: Routine | null
   reminderTimes?: string[]
   averageWindow?: AverageWindow | null
   rollingDays?: number | null
@@ -67,7 +65,6 @@ export function buildTracker(input: BuildTrackerInput): Tracker {
     repeatDays:
       input.repeatDays ??
       (isHabit || type === 'target' ? [0, 1, 2, 3, 4, 5, 6] : null),
-    routine: isHabit ? input.routine ?? 'any' : null,
     reminderTimes:
       input.reminderTimes ??
       (isHabit || type === 'target' || isAverage ? [DEFAULT_REMINDER] : []),
