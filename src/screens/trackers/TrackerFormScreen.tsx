@@ -29,6 +29,7 @@ import {
   FieldLabel,
   FieldLabelRow,
   FormInput,
+  GoalDirectionField,
   InfoTooltip,
   ReminderField,
   Segmented,
@@ -536,18 +537,29 @@ export function TrackerFormScreen({
         {/* average-specific */}
         {type === 'average' ? (
           <>
-            {/* goal + time period */}
+            {/* goal (+ direction) + time period */}
             <View className='flex-row gap-s3'>
               <View className='flex-1 gap-s2'>
-                <FieldLabel>{t('form.avgGoal')}</FieldLabel>
-                <FormInput
+                <FieldLabelRow
+                  trailing={
+                    <InfoTooltip
+                      title={t('form.helpTitle')}
+                      description={t('form.avgDirectionHelp')}
+                    />
+                  }
+                >
+                  {t('form.avgGoal')}
+                </FieldLabelRow>
+                <GoalDirectionField
                   value={target}
-                  onChangeText={setTarget}
-                  placeholder={t('form.avgGoalPh')}
-                  keyboardType='decimal-pad'
+                  direction={dir}
+                  onChange={(v, d) => {
+                    setTarget(v)
+                    setDir(d)
+                  }}
                 />
               </View>
-              <View className='flex-[2] gap-s2'>
+              <View className='flex-1 gap-s2'>
                 <FieldLabel>{t('form.timePeriod')}</FieldLabel>
                 <SelectField<Period>
                   label={t('form.timePeriod')}
@@ -560,28 +572,6 @@ export function TrackerFormScreen({
                   ]}
                 />
               </View>
-            </View>
-
-            {/* goal direction — Strides' "5 or More" / "or Less" */}
-            <View className='gap-s2'>
-              <FieldLabelRow
-                trailing={
-                  <InfoTooltip
-                    title={t('form.helpTitle')}
-                    description={t('form.avgDirectionHelp')}
-                  />
-                }
-              >
-                {t('form.direction')}
-              </FieldLabelRow>
-              <Segmented<HabitDirection>
-                value={dir}
-                onChange={setDir}
-                options={[
-                  { value: 'good', label: t('form.orMore') },
-                  { value: 'bad', label: t('form.orLess') }
-                ]}
-              />
             </View>
 
             {/* start date */}
@@ -726,14 +716,12 @@ export function TrackerFormScreen({
         {type === 'habit' ? (
           <>
             {/* bad habit toggle — targetValue becomes a LIMIT (0 = never) */}
-            <View className='flex-row items-center justify-between'>
-              <View className='flex-row items-center gap-s2'>
-                <FieldLabel>{t('form.badHabit')}</FieldLabel>
-                <InfoTooltip
-                  title={t('form.helpTitle')}
-                  description={t('form.badHabitHelp')}
-                />
-              </View>
+            <View className='flex-row items-center gap-s3'>
+              <FieldLabel>{t('form.badHabit')}</FieldLabel>
+              <InfoTooltip
+                title={t('form.helpTitle')}
+                description={t('form.badHabitHelp')}
+              />
               <Toggle
                 value={dir === 'bad'}
                 onChange={(v) => setDir(v ? 'bad' : 'good')}
@@ -755,7 +743,7 @@ export function TrackerFormScreen({
                   keyboardType='decimal-pad'
                 />
               </View>
-              <View className='flex-[2] gap-s2'>
+              <View className='flex-1 gap-s2'>
                 <FieldLabel>{t('form.timePeriod')}</FieldLabel>
                 <SelectField<Period>
                   label={t('form.timePeriod')}

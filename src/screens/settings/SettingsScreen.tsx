@@ -26,6 +26,7 @@ import {
   cancelAllReminders,
   rescheduleAllReminders
 } from '@features/trackers/notifications'
+import { makeReminderBodyFor } from '@features/trackers/reminderBodyFor'
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -69,13 +70,8 @@ export function SettingsScreen() {
     }
   }, [])
 
-  // Body used when (re)scheduling all reminders, translated per tracker type.
-  const reminderBodyFor = (tr: { type: string }) =>
-    tr.type === 'target'
-      ? t('notification.targetBody')
-      : tr.type === 'average'
-      ? t('notification.averageBody')
-      : t('notification.habitBody')
+  // Body used when (re)scheduling all reminders: live per-tracker stats.
+  const reminderBodyFor = makeReminderBodyFor(t, language ?? 'en')
 
   const conflict = notifyEnabled && !osGranted
 

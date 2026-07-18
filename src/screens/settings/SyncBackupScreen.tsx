@@ -16,6 +16,7 @@ import {
   cancelAllScheduledReminders,
   rescheduleAllReminders
 } from '@features/trackers/notifications'
+import { makeReminderBodyFor } from '@features/trackers/reminderBodyFor'
 import { useAppStore } from '@store/useAppStore'
 import { useAlert } from '@components/ui'
 import { useThemeColors } from '@hooks/useThemeColors'
@@ -41,16 +42,12 @@ export function SyncBackupScreen() {
   const setEnabled = useAppStore((s) => s.setIcloudSyncEnabled)
   const lastSyncedAt = useAppStore((s) => s.lastSyncedAt)
   const notifyEnabled = useAppStore((s) => s.notifyEnabled)
+  const language = useAppStore((s) => s.language)
   const { data: stats } = useSyncStats(lastSyncedAt)
   const [syncing, setSyncing] = useState(false)
 
-  // Body used when rescheduling reminders after sync, translated per type.
-  const reminderBodyFor = (tr: { type: string }) =>
-    tr.type === 'target'
-      ? t('notification.targetBody')
-      : tr.type === 'average'
-      ? t('notification.averageBody')
-      : t('notification.habitBody')
+  // Body used when rescheduling reminders after sync: live per-tracker stats.
+  const reminderBodyFor = makeReminderBodyFor(t, language ?? 'en')
 
   const onSyncNow = async () => {
     setSyncing(true)

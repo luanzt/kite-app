@@ -16,10 +16,12 @@ import { RootNavigator } from '@navigation/RootNavigator'
 import { getDb } from '@features/trackers/db/schema'
 import {
   initNotifications,
-  requestNotificationPermission
+  requestNotificationPermission,
+  rescheduleAllReminders
 } from '@features/trackers/notifications'
+import { makeReminderBodyFor } from '@features/trackers/reminderBodyFor'
 import { useAppStore } from '@store/useAppStore'
-import { initI18n } from '@i18n/index'
+import i18n, { initI18n } from '@i18n/index'
 import BootSplash from 'react-native-bootsplash'
 import { initializeTelemetry, recordAppError } from '@utils/telemetry'
 
@@ -44,6 +46,14 @@ export default function App() {
         const granted = await requestNotificationPermission()
         setNotifyEnabled(granted)
         markPermissionAsked()
+      }
+      // Re-bake every reminder from today's data so the stats baked into each
+      // scheduled notification (streak, progress, average) are current — a
+      // notifee trigger freezes its text at schedule time and would otherwise
+      // drift day to day.
+      if (useAppStore.getState().notifyEnabled) {
+        const lang = useAppStore.getState().language ?? 'en'
+        await rescheduleAllReminders(makeReminderBodyFor(i18n.t, lang))
       }
     }
     setTimeout(() => {
