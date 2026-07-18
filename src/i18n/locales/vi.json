@@ -289,6 +289,7 @@
     "mode": "Chế độ", "sum": "Tích lũy", "latest": "Giá trị mới nhất",
     "direction": "Hướng", "higher": "Càng cao càng tốt", "lower": "Càng thấp càng tốt",
     "orMore": "Trở lên", "orLess": "Trở xuống",
+    "goalOrMore": "{{value}} trở lên", "goalOrLess": "{{value}} trở xuống",
     "avgDirectionHelp": "Trở lên: đạt mục tiêu hoặc cao hơn là tốt (vd. 8 ly nước). Trở xuống: giữ ở mức mục tiêu hoặc thấp hơn (vd. tối đa 2 ly cà phê).",
     "goal": "Số lần", "goalPh": "5 lần", "timePeriod": "Chu kỳ", "startDate": "Ngày bắt đầu", "due": "Lặp lại",
     "badHabit": "Thói quen xấu", "limit": "Giới hạn", "limitPh": "tối đa 2 · 0 = không lần nào",
@@ -390,5 +391,5 @@
   },
   "toast": { "saved": "Đã lưu mục tiêu", "logged": "Đã ghi", "logSuccess": "Đã ghi nhận thành công", "deleted": "Đã xóa mục tiêu" },
   "settings": { "theme": "Giao diện", "language": "Ngôn ngữ", "export": "Xuất dữ liệu", "clear": "Xóa toàn bộ dữ liệu", "english": "English", "vietnamese": "Tiếng Việt" },
-  "notification": { "habitBody": "Đến giờ giữ vững chuỗi ngày rồi", "targetBody": "Ghi lại tiến độ hướng tới mục tiêu", "averageBody": "Đến giờ ghi lại số liệu hôm nay" }
+  "notification": { "habitBody": "Đã làm: {{done}}/{{goal}} {{window}} · Chuỗi: {{count}} {{unit}}", "habitCleanBody": "Chuỗi sạch: {{count}} {{unit}}", "targetBody": "Mục tiêu: {{goal}} trước {{date}} · Hiện tại: {{current}} · Tiến độ: {{progress}}", "targetBodyNoDate": "Mục tiêu: {{goal}} · Hiện tại: {{current}} · Tiến độ: {{progress}}", "averageBody": "Mục tiêu: {{goal}} {{per}} · Trung bình: {{avg}}", "perDay": "mỗi ngày", "perWeek": "mỗi tuần", "perMonth": "mỗi tháng", "perYear": "mỗi năm" }
 }

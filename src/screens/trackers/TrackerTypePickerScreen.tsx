@@ -83,10 +83,7 @@ export function TrackerTypePickerScreen({
                   <Typography className='text-lg font-extrabold text-ink'>
                     {t(`type.${ty.k}`)}
                   </Typography>
-                  <Typography
-                    className='mt-s1 text-sm leading-[20px] text-ink-2'
-                    numberOfLines={2}
-                  >
+                  <Typography className='mt-s1 text-sm leading-[20px] text-ink-2'>
                     {t(`type.${ty.k}Desc`)}
                   </Typography>
                   <View className='mt-s2 flex-row items-center gap-s1'>

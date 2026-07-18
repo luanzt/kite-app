@@ -289,6 +289,7 @@
     "mode": "Mode", "sum": "Accumulate", "latest": "Latest value",
     "direction": "Direction", "higher": "Higher is better", "lower": "Lower is better",
     "orMore": "Or more", "orLess": "Or less",
+    "goalOrMore": "{{value}} or more", "goalOrLess": "{{value}} or less",
     "avgDirectionHelp": "Or more: you aim to reach the goal or above (e.g. 8 glasses of water). Or less: you aim to stay at the goal or below (e.g. 2 coffees max).",
     "goal": "Goal", "goalPh": "5 times", "timePeriod": "Time Period", "startDate": "Start Date", "due": "Due",
     "badHabit": "Bad habit", "limit": "Limit", "limitPh": "2 max · 0 = never",
@@ -390,5 +391,5 @@
   },
   "toast": { "saved": "Tracker saved", "logged": "Logged", "logSuccess": "Logged successfully", "deleted": "Tracker deleted" },
   "settings": { "theme": "Theme", "language": "Language", "export": "Export data", "clear": "Clear all data", "english": "English", "vietnamese": "Tiếng Việt" },
-  "notification": { "habitBody": "Time to keep your streak going", "targetBody": "Log your progress toward the goal", "averageBody": "Time to log today's number" }
+  "notification": { "habitBody": "Done: {{done}}/{{goal}} {{window}} · Streak: {{count}} {{unit}}", "habitCleanBody": "Streak: {{count}} {{unit}} clean", "targetBody": "Goal: {{goal}} by {{date}} · Current: {{current}} · Progress: {{progress}}", "targetBodyNoDate": "Goal: {{goal}} · Current: {{current}} · Progress: {{progress}}", "averageBody": "Goal: {{goal}} {{per}} · Average: {{avg}}", "perDay": "per day", "perWeek": "per week", "perMonth": "per month", "perYear": "per year" }
 }

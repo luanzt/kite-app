@@ -116,6 +116,7 @@ function CalendarSheet({
       onChange={({ date }) => select(date)}
       minDate={minDate}
       maxDate={maxDate}
+      firstDayOfWeek={1}
       styles={{
         ...defaultStyles,
         today: { borderColor: c.brand, borderWidth: 1 },

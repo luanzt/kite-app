@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import * as repo from '@features/trackers/db/repository'
 import {
   cancelTrackerReminders,
   scheduleTrackerReminders
 } from '@features/trackers/notifications'
+import { makeReminderBodyFor } from '@features/trackers/reminderBodyFor'
 import { useAppStore } from '@store/useAppStore'
 import { countPending } from '@features/trackers/sync/snapshot'
 import type { Tracker, Entry, Milestone } from '@features/trackers/types'
@@ -71,13 +73,8 @@ export function useSaveTracker() {
       // cancel-then-(maybe)-reschedule via scheduleTrackerReminders.
       const enabled = useAppStore.getState().notifyEnabled
       if (enabled) {
-        const body =
-          t.type === 'target'
-            ? tr('notification.targetBody')
-            : t.type === 'average'
-            ? tr('notification.averageBody')
-            : tr('notification.habitBody')
-        await scheduleTrackerReminders(t, body)
+        const lang = useAppStore.getState().language ?? 'en'
+        await scheduleTrackerReminders(t, makeReminderBodyFor(tr, lang)(t))
       } else {
         await cancelTrackerReminders(t.id)
       }
@@ -102,29 +99,52 @@ export function useDeleteTracker() {
 }
 export function useLogEntry() {
   const qc = useQueryClient()
+  const { t: tr } = useTranslation()
   return useMutation({
     mutationFn: async (e: Entry) => repo.insertEntry(e),
-    onSuccess: (_data, entry) => {
+    onSuccess: async (_data, entry) => {
       // Invalidate the whole 'entries' subtree: per-tracker, per-date, and the
       // all-entries cache the Today screen uses for period-window scoring.
       qc.invalidateQueries({ queryKey: ['entries'] })
       qc.invalidateQueries({ queryKey: keys.trackers })
       const tracker = repo.getTracker(entry.trackerId)
       if (tracker) trackEntryLogged(tracker.type)
+      // Re-bake this tracker's reminders so the stats in the body (streak,
+      // progress, average) reflect the log we just made — notifee freezes a
+      // scheduled notification's text at schedule time.
+      await rescheduleTrackerReminders(entry.trackerId, tr)
     }
   })
 }
 export function useDeleteEntry() {
   const qc = useQueryClient()
+  const { t: tr } = useTranslation()
   return useMutation({
     // trackerId is passed alongside id only so onSuccess can invalidate its cache.
     mutationFn: async ({ id }: { id: string; trackerId: string }) =>
       repo.deleteEntry(id),
-    onSuccess: () => {
+    onSuccess: async (_data, { trackerId }) => {
       qc.invalidateQueries({ queryKey: ['entries'] })
       qc.invalidateQueries({ queryKey: keys.trackers })
+      await rescheduleTrackerReminders(trackerId, tr)
     }
   })
+}
+
+/** Re-bake a single tracker's reminders from its current data (best-effort:
+ *  only when reminders are enabled and the tracker still exists). */
+async function rescheduleTrackerReminders(
+  trackerId: string,
+  tr: TFunction
+): Promise<void> {
+  if (!useAppStore.getState().notifyEnabled) return
+  const tracker = repo.getTracker(trackerId)
+  if (!tracker) return
+  const lang = useAppStore.getState().language ?? 'en'
+  await scheduleTrackerReminders(
+    tracker,
+    makeReminderBodyFor(tr, lang)(tracker)
+  )
 }
 export function useSaveMilestone() {
   const qc = useQueryClient()
