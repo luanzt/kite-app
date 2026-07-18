@@ -18,7 +18,6 @@ function baseTracker(overrides: Partial<Tracker> = {}): Tracker {
     deadline: '2026-08-01',
     period: 'daily',
     repeatDays: [],
-    routine: 'any',
     reminderTimes: [],
     goalNote: null,
     averageWindow: null,

@@ -48,7 +48,6 @@ import type {
   HabitDirection,
   Period,
   ProgressBasis,
-  Routine,
   Tracker
 } from '@features/trackers/types'
 
@@ -144,7 +143,6 @@ export function TrackerFormScreen({
   const [repeatDays, setRepeatDays] = useState<number[]>(
     editing?.repeatDays ?? template?.repeatDays ?? [0, 1, 2, 3, 4, 5, 6]
   )
-  const [routine, setRoutine] = useState<Routine>(editing?.routine ?? 'any')
   // Create defaults to one active 18:00 reminder; edit hydrates from the row.
   const [reminderOn, setReminderOn] = useState(
     editing ? editing.reminderTimes.length > 0 : true
@@ -192,7 +190,6 @@ export function TrackerFormScreen({
     setDeadline(editing.deadline ?? '')
     setStartDate(editing.startDate)
     setRepeatDays(editing.repeatDays ?? [0, 1, 2, 3, 4, 5, 6])
-    setRoutine(editing.routine ?? 'any')
     setReminderOn(editing.reminderTimes.length > 0)
     setReminderTimes(
       editing.reminderTimes.length > 0
@@ -272,7 +269,6 @@ export function TrackerFormScreen({
           ? startDate.trim() || undefined
           : undefined,
       repeatDays: isHabit || isTarget || isAverage ? repeatDays : undefined,
-      routine: isHabit ? routine : undefined,
       reminderTimes:
         (isHabit || isTarget || isAverage) && reminderOn ? reminderTimes : [],
       averageWindow: isAverage ? averageWindow : undefined,
@@ -780,22 +776,6 @@ export function TrackerFormScreen({
                   sat: t('form.wd.sat'),
                   sun: t('form.wd.sun')
                 }}
-              />
-            </View>
-
-            {/* routine */}
-            <View className='gap-s2'>
-              <FieldLabel>{t('form.routine')}</FieldLabel>
-              <SelectField<Routine>
-                label={t('form.routine')}
-                value={routine}
-                onChange={setRoutine}
-                options={[
-                  { value: 'any', label: t('form.routineAny') },
-                  { value: 'morning', label: t('form.routineMorning') },
-                  { value: 'afternoon', label: t('form.routineAfternoon') },
-                  { value: 'evening', label: t('form.routineEvening') }
-                ]}
               />
             </View>
 

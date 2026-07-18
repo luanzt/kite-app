@@ -16,7 +16,6 @@ const proj: Tracker = {
   deadline: '2026-12-31',
   period: null,
   repeatDays: null,
-  routine: null,
   reminderTimes: [],
   goalNote: null,
   averageWindow: null,

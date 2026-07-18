@@ -49,7 +49,6 @@ describe('buildTracker — target startValue / schedule / reminders', () => {
     expect(habit.reminderTimes).toEqual(['18:00'])
     expect(target.reminderTimes).toEqual(['18:00'])
     expect(avg.reminderTimes).toEqual(['18:00'])
-    expect(target.routine).toBeNull()
   })
 
   it('gives a project no reminders by default', () => {

@@ -27,7 +27,6 @@ const baseTracker: Tracker = {
   deadline: null,
   period: 'daily',
   repeatDays: null,
-  routine: null,
   reminderTimes: [],
   goalNote: null,
   averageWindow: null,

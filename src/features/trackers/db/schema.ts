@@ -51,7 +51,6 @@ export const TRACKER_COLUMNS: ColumnSpec[] = [
   { name: 'deadline', decl: 'deadline TEXT' },
   { name: 'period', decl: 'period TEXT' },
   { name: 'repeat_days', decl: 'repeat_days TEXT' },
-  { name: 'routine', decl: 'routine TEXT' },
   { name: 'reminder_times', decl: 'reminder_times TEXT' },
   { name: 'goal_note', decl: 'goal_note TEXT' },
   { name: 'created_at', decl: "created_at TEXT NOT NULL DEFAULT ''" },
@@ -128,7 +127,7 @@ export function missingColumns(
  * missing. `CREATE TABLE IF NOT EXISTS` never alters an existing table, so the
  * ADD COLUMN pass is what lets a DB created by an older app version pick up
  * later-added columns (without it, e.g. inserting a habit fails with
- * "table trackers has no column named routine").
+ * "table trackers has no column named reminder_times").
  */
 function migrateTable(database: DB, table: TableSpec): void {
   const cols = table.columns.map((c) => c.decl).join(', ')

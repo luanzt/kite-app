@@ -9,7 +9,7 @@ import {
 
 describe('missingColumns', () => {
   it('returns spec columns absent from the live trackers table', () => {
-    // An "old" table created before routine/reminder_time existed.
+    // An "old" table created before reminder_times existed.
     const existing = [
       'id',
       'name',
@@ -29,7 +29,6 @@ describe('missingColumns', () => {
       'archived'
     ]
     expect(missingColumns(TRACKER_COLUMNS, existing)).toEqual([
-      { name: 'routine', decl: 'routine TEXT' },
       { name: 'reminder_times', decl: 'reminder_times TEXT' },
       { name: 'goal_note', decl: 'goal_note TEXT' },
       { name: 'average_window', decl: 'average_window TEXT' },

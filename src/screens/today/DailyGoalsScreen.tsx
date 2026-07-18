@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
-import { Typography } from 'heroui-native'
+import { Typography, useToast } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
@@ -10,7 +10,7 @@ import {
   ChevronDown,
   Sunrise,
   Sun,
-  Moon,
+  MoonStar,
   Hourglass,
   CircleCheck
 } from 'lucide-react-native'
@@ -54,6 +54,7 @@ import { calculateTarget } from '@features/trackers/calculators/target'
 import { calculateAverage } from '@features/trackers/calculators/average'
 import { fmtCompact, fmtValCompact } from '@features/trackers/detailFormat'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
+import { showLogSuccess } from '@features/trackers/components/LogSuccessToast'
 import { CalendarDayMenu } from '@features/trackers/components/CalendarDayMenu'
 import { useThemeColors } from '@hooks/useThemeColors'
 
@@ -135,6 +136,9 @@ const isMissedKind = (k: StreakStatus['kind']): boolean =>
 
 // Amber warning tone shared by the limit icon and warn states on this screen.
 const AMBER = '#e8923a'
+// Night indigo for the evening greeting (moon) — reads as "after dark" instead
+// of the warm amber used for the sunrise/sun icons.
+const NIGHT = '#6366f1'
 
 // Minimal i18n `t` shape (dynamic key + count/interpolation) — the streak line
 // builds keys per cadence, so a Record-typed t would be awkward here.
@@ -232,6 +236,17 @@ const SECTION_HEAD_TEXT: Record<SectionKey, string> = {
 }
 
 /** Deadline as "29 Nov 2026" in the active locale. */
+// Day + short month, day-first ("17 Jul" / "17 thg 7") — used in the header
+// when a day other than today is selected.
+function fmtDayMonth(iso: string, lang: string): string {
+  const d = new Date(`${iso}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return iso
+  const month = d.toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'en-US', {
+    month: 'short'
+  })
+  return `${d.getDate()} ${month}`
+}
+
 function fmtDeadline(iso: string, lang: string): string {
   const d = new Date(`${iso}T00:00:00`)
   if (Number.isNaN(d.getTime())) return iso
@@ -361,12 +376,14 @@ function LogRow({
   date,
   onOpen,
   onQuickLog,
+  onQuickAdd,
   onOpenMenu
 }: {
   row: Row
   date: string
   onOpen: (id: string) => void
   onQuickLog: (tracker: Tracker) => void
+  onQuickAdd: (tracker: Tracker) => void
   onOpenMenu: (tracker: Tracker) => void
 }) {
   const { t, i18n } = useTranslation()
@@ -476,12 +493,12 @@ function LogRow({
       const goal = periodGoalOf(tracker)
       const isDone = goal > 0 && n >= goal
       if (period === 'daily' && goal === 1) {
-        // Once-a-day habit → check circle instead of a ring. Like the bad-habit
-        // ring: tapping when not done opens the log sheet to confirm; tapping
-        // when done (or long-pressing) opens the day action menu to undo it.
+        // Once-a-day habit → check circle instead of a ring. Tapping when not
+        // done logs it directly (a fast one-tap +1, no sheet); tapping when done
+        // (or long-pressing) opens the day action menu to undo it.
         return withCaption(
           <Pressable
-            onPress={() => (done ? onOpenMenu(tracker) : onQuickLog(tracker))}
+            onPress={() => (done ? onOpenMenu(tracker) : onQuickAdd(tracker))}
             onLongPress={() => onOpenMenu(tracker)}
             className='h-[54px] w-[54px] items-center justify-center'
           >
@@ -496,11 +513,12 @@ function LogRow({
         )
       }
       // progress = good → green arc throughout (brand blue carried no meaning).
-      // Mirrors the bad-habit ring: tap logs via the sheet until the goal is
-      // met, then tap opens the action menu; long-press always opens the menu.
+      // Until the goal is met, a tap is a fast one-tap +1 (logs directly, no
+      // sheet); once met, a tap opens the day action menu; long-press always
+      // opens the menu.
       return withCaption(
         <Pressable
-          onPress={() => (isDone ? onOpenMenu(tracker) : onQuickLog(tracker))}
+          onPress={() => (isDone ? onOpenMenu(tracker) : onQuickAdd(tracker))}
           onLongPress={() => onOpenMenu(tracker)}
           className='h-[54px] w-[54px] items-center justify-center'
         >
@@ -637,6 +655,8 @@ function LogRow({
 
 export function DailyGoalsScreen() {
   const { t, i18n } = useTranslation()
+  const { toast } = useToast()
+  const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const nav = useNavigation<Nav>()
   const today = toISODate(new Date())
@@ -739,7 +759,9 @@ export function DailyGoalsScreen() {
       : hours < 18
       ? 'today.greetAfternoon'
       : 'today.greetEvening'
-  const GreetIcon = hours < 12 ? Sunrise : hours < 18 ? Sun : Moon
+  const isEvening = hours >= 18
+  const GreetIcon = hours < 12 ? Sunrise : hours < 18 ? Sun : MoonStar
+  const greetColor = isEvening ? NIGHT : AMBER
 
   // Quick-log sheet. Mirrors TrackerDetailScreen: the LogEntryModal is ALWAYS
   // mounted (never gated on the tracker) so its BottomSheet sees a clean
@@ -752,6 +774,23 @@ export function DailyGoalsScreen() {
     setLogOpen(true)
   }
   const closeQuickLog = () => setLogOpen(false)
+
+  // Silent one-tap +1 for a good habit that hasn't reached its goal yet — no
+  // sheet, just an increment + success toast. Once the goal is met the ring's
+  // onPress switches to the day action menu instead (see renderControl).
+  const onQuickAdd = (tracker: Tracker) => {
+    log.mutate(
+      {
+        id: uuid(),
+        trackerId: tracker.id,
+        date: selectedISO,
+        value: 1,
+        note: null,
+        createdAt: new Date().toISOString()
+      },
+      { onSuccess: () => showLogSuccess(toast, t('toast.logSuccess')) }
+    )
+  }
 
   // Day action menu (log yes / no / delete last) — opened by long-pressing a
   // bad-habit limit ring (or tapping it at/over the limit), and by tapping a
@@ -798,7 +837,7 @@ export function DailyGoalsScreen() {
             {t('today.header')}
           </Typography>
           <View className='flex-row items-center gap-s2 mt-s1'>
-            <GreetIcon size={14} color={AMBER} />
+            <GreetIcon size={14} color={greetColor} />
             <Typography className='text-sm font-semibold text-ink-2'>
               {t(greetKey)}
             </Typography>
@@ -840,17 +879,28 @@ export function DailyGoalsScreen() {
         style={{ paddingTop: insets.top }}
       >
         <Typography className='text-display-k font-extrabold text-ink'>
-          {t('today.header')}
+          {selectedISO === today
+            ? t('today.header')
+            : t('today.headerDay', {
+                date: fmtDayMonth(selectedISO, i18n.language)
+              })}
         </Typography>
         <View className='flex-row items-center gap-s2 mt-s1'>
+          <CircleCheck size={14} color={c.brand} strokeWidth={2.5} />
           <Typography className='text-sm font-extrabold text-brand-ink'>
             {t('today.summary', { done: doneCount, total })}
           </Typography>
-          <Typography className='text-sm text-ink-3'>·</Typography>
-          <GreetIcon size={14} color={AMBER} />
-          <Typography className='text-sm font-semibold text-ink-2'>
-            {t(greetKey)}
-          </Typography>
+          {/* Greeting reflects the real current time, so it's only meaningful
+              while viewing today — hide it (and its separator) on other days. */}
+          {selectedISO === today ? (
+            <>
+              <Typography className='text-sm text-ink-3'>·</Typography>
+              <GreetIcon size={14} color={greetColor} />
+              <Typography className='text-sm font-semibold text-ink-2'>
+                {t(greetKey)}
+              </Typography>
+            </>
+          ) : null}
         </View>
       </View>
 
@@ -919,6 +969,7 @@ export function DailyGoalsScreen() {
                       date={selectedISO}
                       onOpen={onOpen}
                       onQuickLog={openQuickLog}
+                      onQuickAdd={onQuickAdd}
                       onOpenMenu={setMenuTracker}
                     />
                   ))}
