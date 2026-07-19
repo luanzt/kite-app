@@ -19,6 +19,7 @@ import { useTheme } from '@hooks/useTheme'
 import { useThemeColors } from '@hooks/useThemeColors'
 import type { ThemeMode } from '@hooks/resolveTheme'
 import { decideToggleAction } from '@features/trackers/notificationToggle'
+import { useClearAllData } from '@features/trackers/queries'
 import {
   getPermissionStatus,
   requestNotificationPermission,
@@ -54,6 +55,8 @@ export function SettingsScreen() {
   const language = useAppStore((s) => s.language)
   const notifyEnabled = useAppStore((s) => s.notifyEnabled)
   const setNotifyEnabled = useAppStore((s) => s.setNotifyEnabled)
+  const icloudSyncEnabled = useAppStore((s) => s.icloudSyncEnabled)
+  const clearAll = useClearAllData()
   const [osGranted, setOsGranted] = useState(true)
 
   useEffect(() => {
@@ -102,6 +105,27 @@ export function SettingsScreen() {
         cancelLabel: t('common.close')
       })
     }
+  }
+
+  const onClearAll = () => {
+    alert({
+      title: t('set.clearConfirmTitle'),
+      message: icloudSyncEnabled
+        ? t('set.clearConfirmMsgSync')
+        : t('set.clearConfirmMsg'),
+      variant: 'danger',
+      confirmLabel: t('set.clearConfirmBtn'),
+      cancelLabel: t('common.cancel'),
+      onConfirm: async () => {
+        const { cloudPushFailed } = await clearAll.mutateAsync()
+        alert({
+          title: t('set.clearedTitle'),
+          message: cloudPushFailed
+            ? t('set.clearedCloudFailedMsg')
+            : t('set.clearedMsg')
+        })
+      }
+    })
   }
 
   const showLang = shouldShowLanguageSetting()
@@ -271,7 +295,10 @@ export function SettingsScreen() {
               </View>
               <Icons.Chevron size={18} color={c.ink3} />
             </Pressable>
-            <Pressable className='flex-row items-center gap-s3 p-s4 active:opacity-80'>
+            <Pressable
+              onPress={onClearAll}
+              className='flex-row items-center gap-s3 p-s4 active:opacity-80'
+            >
               <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-pace-behind-weak'>
                 <Icons.Trash size={18} color={c.pace.behind} />
               </View>
