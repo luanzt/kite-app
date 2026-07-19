@@ -28,6 +28,13 @@ import {
   rescheduleAllReminders
 } from '@features/trackers/notifications'
 import { makeReminderBodyFor } from '@features/trackers/reminderBodyFor'
+import Share from 'react-native-share'
+import { Base64 } from 'js-base64'
+import {
+  listAllTrackers,
+  listAllEntries
+} from '@features/trackers/db/repository'
+import { entriesToCsv, exportFilename } from '@features/trackers/export/csv'
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -126,6 +133,31 @@ export function SettingsScreen() {
         })
       }
     })
+  }
+
+  const onExport = async () => {
+    const trackers = listAllTrackers()
+    const entries = listAllEntries()
+    if (entries.length === 0) {
+      alert({
+        title: t('set.exportEmptyTitle'),
+        message: t('set.exportEmptyMsg')
+      })
+      return
+    }
+    try {
+      const csv = entriesToCsv(trackers, entries)
+      const b64 = Base64.encode(csv)
+      await Share.open({
+        url: `data:text/csv;base64,${b64}`,
+        filename: exportFilename(),
+        type: 'text/csv',
+        failOnCancel: false,
+        useInternalStorage: true // Android API 30+ base64 sharing
+      })
+    } catch {
+      // Swallow user-cancel and native errors — export must never crash Settings.
+    }
   }
 
   const showLang = shouldShowLanguageSetting()
@@ -281,7 +313,10 @@ export function SettingsScreen() {
                 <Icons.Chevron size={18} color={c.ink3} />
               </Pressable>
             ) : null}
-            <Pressable className='flex-row items-center gap-s3 border-b border-line p-s4 active:opacity-80'>
+            <Pressable
+              onPress={onExport}
+              className='flex-row items-center gap-s3 border-b border-line p-s4 active:opacity-80'
+            >
               <View className='h-[34px] w-[34px] items-center justify-center rounded-sm-k bg-surface-2'>
                 <Icons.Download size={18} color={c.ink} />
               </View>

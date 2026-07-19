@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Keyboard, Pressable, View } from 'react-native'
-import {
-  BottomSheetFooter,
-  BottomSheetTextInput
-} from '@gorhom/bottom-sheet'
+import { BottomSheetFooter, BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import type { BottomSheetFooterProps } from '@gorhom/bottom-sheet'
 import { BottomSheet, Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'

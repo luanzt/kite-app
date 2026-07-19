@@ -265,7 +265,12 @@ describe('calculateHabit — period (non-daily) good habits score by bucket', ()
     }
     const p = calculateHabit(
       weekly,
-      [done('2026-06-30'), done('2026-07-01'), done('2026-07-07'), done('2026-07-08')],
+      [
+        done('2026-06-30'),
+        done('2026-07-01'),
+        done('2026-07-07'),
+        done('2026-07-08')
+      ],
       '2026-07-14'
     )
     expect(p.streak).toBe(2)

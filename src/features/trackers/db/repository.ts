@@ -314,8 +314,8 @@ export function replaceAllData(s: {
  */
 export function clearAllData(): void {
   const db = getDb()
-  const ids = (db.executeSync(`SELECT id FROM trackers`).rows ?? []).map(
-    (r) => String(r.id)
+  const ids = (db.executeSync(`SELECT id FROM trackers`).rows ?? []).map((r) =>
+    String(r.id)
   )
   const now = new Date().toISOString()
   db.executeSync('BEGIN')

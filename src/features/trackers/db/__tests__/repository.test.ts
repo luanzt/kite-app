@@ -148,7 +148,10 @@ describe('tracker row mapping', () => {
   })
 
   test('trackerToRow tolerates a legacy tracker missing reminderTimes (old v1 snapshot)', () => {
-    const legacy = { ...tracker, reminderTimes: undefined } as unknown as Tracker
+    const legacy = {
+      ...tracker,
+      reminderTimes: undefined
+    } as unknown as Tracker
     expect(trackerToRow(legacy).reminder_times).toBeNull()
   })
 })

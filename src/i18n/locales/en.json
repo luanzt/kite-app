@@ -358,7 +358,8 @@
   },
   "set": {
     "appearance": "Appearance", "theme": "Theme", "themeLight": "Light", "themeDark": "Dark", "themeSystem": "System", "language": "Language",
-    "data": "Data", "export": "Export data", "exportSub": "Save a JSON backup",
+    "data": "Data", "export": "Export data", "exportSub": "Export entries as CSV",
+    "exportEmptyTitle": "Nothing to export", "exportEmptyMsg": "You haven't logged anything yet.",
     "clear": "Clear all data", "clearSub": "Delete every tracker & entry",
     "clearConfirmTitle": "Clear all data?",
     "clearConfirmMsg": "This permanently deletes every tracker, entry and note on this device. This can't be undone.",
