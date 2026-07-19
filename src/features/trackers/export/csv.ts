@@ -36,7 +36,7 @@ export function entriesToCsv(trackers: Tracker[], entries: Entry[]): string {
       e.createdAt
     ])
   })
-  return BOM + [line(HEADER), ...rows].join('\n')
+  return BOM + [line(HEADER), ...rows].join('\r\n')
 }
 
 function pad(n: number): string {

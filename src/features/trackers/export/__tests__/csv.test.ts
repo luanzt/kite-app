@@ -51,7 +51,7 @@ describe('entriesToCsv', () => {
 
   it('joins tracker info and lays out columns in order', () => {
     const csv = entriesToCsv([tracker({})], [entry({})])
-    const lines = csv.replace(BOM, '').split('\n')
+    const lines = csv.replace(BOM, '').split('\r\n')
     expect(lines[0]).toBe(HEADER)
     expect(lines[1]).toBe(
       '2026-07-01,Water,target,500,ml,,2026-07-01T08:00:00.000Z'
@@ -60,7 +60,7 @@ describe('entriesToCsv', () => {
 
   it('leaves Unit blank when the tracker unit is null', () => {
     const csv = entriesToCsv([tracker({ unit: null })], [entry({ value: 1 })])
-    const row = csv.replace(BOM, '').split('\n')[1]
+    const row = csv.replace(BOM, '').split('\r\n')[1]
     expect(row).toBe('2026-07-01,Water,target,1,,,2026-07-01T08:00:00.000Z')
   })
 
@@ -90,7 +90,7 @@ describe('entriesToCsv', () => {
     )
     const vals = csv
       .replace(BOM, '')
-      .split('\n')
+      .split('\r\n')
       .slice(1)
       .map((l) => l.split(',')[3])
     expect(vals).toEqual(['3', '1', '2'])
@@ -101,9 +101,8 @@ describe('entriesToCsv', () => {
       [tracker({ name: 'A, Inc "x"' })],
       [entry({ note: 'line1\nline2' })]
     )
-    const row = csv.replace(BOM, '').split('\n').slice(1).join('\n')
-    expect(row).toContain('"A, Inc ""x"""')
-    expect(row).toContain('"line1\nline2"')
+    expect(csv).toContain('"A, Inc ""x"""')
+    expect(csv).toContain('"line1\nline2"')
   })
 
   it('preserves UTF-8 note content', () => {
@@ -113,7 +112,7 @@ describe('entriesToCsv', () => {
 
   it('emits a blank tracker cell when the tracker is missing', () => {
     const csv = entriesToCsv([], [entry({ trackerId: 'gone' })])
-    const row = csv.replace(BOM, '').split('\n')[1]
+    const row = csv.replace(BOM, '').split('\r\n')[1]
     expect(row).toBe('2026-07-01,,,500,,,2026-07-01T08:00:00.000Z')
   })
 })
