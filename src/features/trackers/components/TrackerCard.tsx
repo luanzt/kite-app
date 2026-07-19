@@ -17,6 +17,7 @@ import {
   periodGoalOf,
   periodTotal,
   periodUnitOf,
+  habitBarStatus,
   type PeriodUnit
 } from '@features/trackers/calculators/habitStats'
 import { useEntries, useMilestones } from '@features/trackers/queries'
@@ -111,13 +112,7 @@ export function TrackerCard({
       : p.percent
   const barStatus: typeof p.paceStatus =
     tracker.type === 'habit'
-      ? isBadHabit
-        ? badOver
-          ? 'behind'
-          : 'on_track'
-        : habitN >= habitGoal && habitGoal > 0
-        ? 'on_track'
-        : 'behind'
+      ? habitBarStatus(habitN, habitGoal, isBadHabit)
       : p.paceStatus
 
   // Strides-style right rail: big stat + a small context label under it.

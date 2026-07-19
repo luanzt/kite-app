@@ -1,4 +1,4 @@
-import type { Tracker, Entry } from '@features/trackers/types'
+import type { Tracker, Entry, PaceStatus } from '@features/trackers/types'
 import { daysBetween, toISODate, weekdayOf } from '@utils/date'
 
 /**
@@ -40,6 +40,23 @@ export function periodGoalOf(tracker: Tracker): number {
     return perDayGoal(tracker)
   }
   return Math.max(1, tracker.targetValue ?? 1)
+}
+
+/**
+ * Progress-color status for a habit's current-period fill (list card bar +
+ * Today ring), the single source of truth so both surfaces agree:
+ *   good habit → 'on_track' (green) once the quota is met/exceeded, otherwise
+ *     'none' (a neutral "in progress" fill, rendered brand-blue via progressFill)
+ *   bad habit  → 'behind' (red) once over the limit, otherwise 'on_track'
+ *     (green while still clean)
+ */
+export function habitBarStatus(
+  n: number,
+  goal: number,
+  isBad: boolean
+): PaceStatus {
+  if (isBad) return n > goal ? 'behind' : 'on_track'
+  return goal > 0 && n >= goal ? 'on_track' : 'none'
 }
 
 /**

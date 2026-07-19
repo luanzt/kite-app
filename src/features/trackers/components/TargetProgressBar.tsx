@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next'
 import type { Tracker, Entry } from '@features/trackers/types'
 import { calculateTarget } from '@features/trackers/calculators/target'
 import { fmtValCompact, pacePercent } from '@features/trackers/detailFormat'
-import { PACE_COLOR } from '@features/trackers/icons'
+import { progressFill } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 import { toISODate } from '@utils/date'
 
 const AXIS_TICKS = 5
@@ -23,12 +24,13 @@ export function TargetProgressBar({
   entries: Entry[]
 }) {
   const { t } = useTranslation()
+  const c = useThemeColors()
   const today = toISODate(new Date())
   const p = calculateTarget(tracker, entries, today)
   const start = tracker.startValue ?? 0
   const fillFrac = Math.max(0, Math.min(1, p.percent))
   const markerPct = pacePercent(tracker) // 0..100 | null
-  const fillColor = PACE_COLOR[p.paceStatus]
+  const fillColor = progressFill(p.paceStatus, c.pace, c.brand)
 
   // axis: 5 evenly-spaced values from start → goal
   const axis = Array.from({ length: AXIS_TICKS }, (_, i) =>

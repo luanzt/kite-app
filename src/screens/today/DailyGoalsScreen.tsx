@@ -23,7 +23,13 @@ import {
   useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
-import { Icons, hexA, iconEmoji, colorHex } from '@features/trackers/icons'
+import {
+  Icons,
+  hexA,
+  iconEmoji,
+  colorHex,
+  progressFill
+} from '@features/trackers/icons'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import { NewTrackerSheet } from '@features/trackers/components/NewTrackerSheet'
@@ -37,6 +43,7 @@ import type {
 } from '@features/trackers/types'
 import {
   classifyTodayRow,
+  habitBarStatus,
   habitStreakStatus,
   periodGoalOf,
   periodQuotaMet,
@@ -512,10 +519,11 @@ function LogRow({
           </Pressable>
         )
       }
-      // progress = good → green arc throughout (brand blue carried no meaning).
-      // Until the goal is met, a tap is a fast one-tap +1 (logs directly, no
-      // sheet); once met, a tap opens the day action menu; long-press always
-      // opens the menu.
+      // Unified progress color: a brand-blue arc while in progress, flipping to
+      // green once the goal is met (see habitBarStatus) — matching the Trackers
+      // list card. Until the goal is met, a tap is a fast one-tap +1 (logs
+      // directly, no sheet); once met, a tap opens the day action menu;
+      // long-press always opens the menu.
       return withCaption(
         <Pressable
           onPress={() => (isDone ? onOpenMenu(tracker) : onQuickAdd(tracker))}
@@ -524,7 +532,11 @@ function LogRow({
         >
           <Ring
             fraction={goal ? n / goal : 0}
-            color={c.pace.on_track}
+            color={progressFill(
+              habitBarStatus(n, goal, false),
+              c.pace,
+              c.brand
+            )}
             size={48}
             strokeWidth={4}
           />

@@ -20,10 +20,12 @@ const LIGHT = {
   gridFaint: '#eef1f5',
   surface: '#ffffff',
   onAccent: '#ffffff',
-  // Two-tone brand gradient for the hero header cards (AchievementHero /
-  // TargetHero) — a distinct lighter→darker brand blend, not the flat brand.
-  heroGradientFrom: '#3d7dd8',
-  heroGradientTo: '#2f63b3'
+  // Very pale blue two-tone for the hero header cards (AchievementHero /
+  // TargetHero / AverageStatsRow) — a barely-there blue tint on a light card so
+  // the ring + numbers carry the pace palette (ink text, pace-colored ring)
+  // instead of white-on-brand.
+  heroGradientFrom: '#e4edfc',
+  heroGradientTo: '#d2e2fa'
 }
 
 const DARK: typeof LIGHT = {
@@ -38,9 +40,10 @@ const DARK: typeof LIGHT = {
   gridFaint: '#24272d',
   surface: '#1c1f24',
   onAccent: '#ffffff',
-  // Deepened so the hero card doesn't glare against the dark app background.
-  heroGradientFrom: '#2f63b3',
-  heroGradientTo: '#1b3a6b'
+  // Subtle navy tint just above the dark surface — the dark-mode counterpart of
+  // the pale-blue light hero (ink text + pace-colored ring, not white-on-brand).
+  heroGradientFrom: '#212c40',
+  heroGradientTo: '#1a2334'
 }
 
 export function useThemeColors() {

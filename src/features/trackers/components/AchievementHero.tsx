@@ -3,6 +3,8 @@ import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { useThemeColors } from '@hooks/useThemeColors'
+import { progressFill } from '@features/trackers/icons'
+import { habitBarStatus } from '@features/trackers/calculators/habitStats'
 
 const RING_SIZE = 128
 const RING_STROKE = 12
@@ -37,9 +39,14 @@ export function AchievementHero({
   const { t } = useTranslation()
   const c = useThemeColors()
   const frac = Math.max(0, Math.min(1, percent / 100))
+  const ringColor = progressFill(
+    habitBarStatus(percent, 100, false),
+    c.pace,
+    c.brand
+  )
 
   return (
-    <View className='m-s5 overflow-hidden rounded-xl-k'>
+    <View className='m-s5 overflow-hidden rounded-xl-k border border-line'>
       <Svg style={styles.gradient} width='100%' height='100%'>
         <Defs>
           <LinearGradient id='kite-hero-grad' x1='0' y1='0' x2='1' y2='1'>
@@ -63,7 +70,7 @@ export function AchievementHero({
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               r={RING_R}
-              stroke='rgba(255,255,255,0.22)'
+              stroke={c.line}
               strokeWidth={RING_STROKE}
               fill='none'
             />
@@ -71,7 +78,7 @@ export function AchievementHero({
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               r={RING_R}
-              stroke={c.onAccent}
+              stroke={ringColor}
               strokeWidth={RING_STROKE}
               strokeLinecap='round'
               fill='none'
@@ -83,10 +90,10 @@ export function AchievementHero({
             />
           </Svg>
           <View className='absolute inset-0 items-center justify-center'>
-            <Typography className='text-display-k font-bold text-on-accent'>
+            <Typography className='text-display-k font-bold text-ink'>
               {`${Math.round(percent)}%`}
             </Typography>
-            <Typography className='text-xs font-bold uppercase text-on-accent opacity-80'>
+            <Typography className='text-xs font-bold uppercase text-ink-3'>
               {t('detail.goalMet')}
             </Typography>
           </View>
@@ -98,7 +105,7 @@ export function AchievementHero({
             unit={t(unitKey, { count: currentStreak })}
             caption={t('detail.currentStreak')}
           />
-          <View className='h-px bg-on-accent opacity-20' />
+          <View className='h-px bg-line' />
           <StreakStat
             value={bestStreak}
             unit={t(unitKey, { count: bestStreak })}
@@ -122,14 +129,14 @@ function StreakStat({
   return (
     <View>
       <View className='flex-row items-end gap-s2'>
-        <Typography className='text-title-k font-bold text-on-accent'>
+        <Typography className='text-title-k font-bold text-ink'>
           {value}
         </Typography>
-        <Typography className='mb-[3px] text-sm font-bold text-on-accent opacity-80'>
+        <Typography className='mb-[3px] text-sm font-bold text-ink-2'>
           {unit}
         </Typography>
       </View>
-      <Typography className='mt-[2px] text-xs font-bold uppercase text-on-accent opacity-70'>
+      <Typography className='mt-[2px] text-xs font-bold uppercase text-ink-3'>
         {caption}
       </Typography>
     </View>

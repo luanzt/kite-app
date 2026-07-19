@@ -43,5 +43,9 @@ export function calculateTarget(
     }
   }
 
+  // Reaching the goal is a success regardless of timeline — a fully-filled bar
+  // should read "ahead" (green), never a dead "none" gray, even with no deadline.
+  if (percent >= 1) paceStatus = 'ahead'
+
   return { current, goal, percent, paceStatus, expected }
 }
