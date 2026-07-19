@@ -1,7 +1,8 @@
 import { View } from 'react-native'
 import { Typography } from 'heroui-native'
 import type { PaceStatus } from '@features/trackers/types'
-import { PACE_COLOR, PACE_DOT_CLASS } from '@features/trackers/icons'
+import { PACE_DOT_CLASS, progressFill } from '@features/trackers/icons'
+import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
  * Normalize a progress value to a 0..1 fraction.
@@ -49,8 +50,9 @@ export function PaceBar({
   height?: number
   label?: string
 }) {
+  const c = useThemeColors()
   const fillFrac = toFraction(percent)
-  const fillColor = PACE_COLOR[paceStatus]
+  const fillColor = progressFill(paceStatus, c.pace, c.brand)
   const markerFrac =
     paceMarkerPercent == null ? null : toFraction(paceMarkerPercent)
 

@@ -281,9 +281,10 @@ export function HabitChartsTab({
         <Pressable
           onPress={onLogToday}
           disabled={log.isPending}
-          className={`h-[52px] flex-row items-center justify-center gap-s2 rounded-md-k bg-brand active:opacity-90 ${
-            log.isPending ? 'opacity-60' : 'opacity-100'
-          }`}
+          // While a log is in flight the button is disabled (no double-tap) but
+          // NOT dimmed — the opacity fade read as "unavailable", we only want to
+          // block the tap.
+          className='h-[52px] flex-row items-center justify-center gap-s2 rounded-md-k bg-brand active:opacity-90'
         >
           <Icons.Plus size={20} color={c.onAccent} />
           <Typography className='text-base font-bold text-on-accent'>

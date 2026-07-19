@@ -53,17 +53,21 @@ import SettingInactive from '@assets/images/ic_setting_inactive.svg'
  * Pace-status visual language (classic palette from theme.css).
  * Solid colors + their weak tints — the "soul" of the app.
  */
+// Unified progress palette: "good" (on-track AND ahead/exceeded) is a single
+// green; `ahead` intentionally mirrors `on_track` so exceeding a goal never
+// reads as brand blue. Brand blue is reserved for neutral "in progress" fills
+// (see `progressFill`).
 export const PACE_COLOR: Record<PaceStatus, string> = {
   on_track: '#1f9d57',
   behind: '#e0564e',
-  ahead: '#2456b5',
+  ahead: '#1f9d57',
   none: '#a3a8a0'
 }
 
 export const PACE_WEAK: Record<PaceStatus, string> = {
   on_track: '#e3f3ea',
   behind: '#fbe7e5',
-  ahead: '#e6eefb',
+  ahead: '#e3f3ea',
   none: '#eceee8'
 }
 
@@ -71,14 +75,14 @@ export const PACE_WEAK: Record<PaceStatus, string> = {
 export const PACE_COLOR_DARK: Record<PaceStatus, string> = {
   on_track: '#3ec27a',
   behind: '#f0736b',
-  ahead: '#5b8def',
+  ahead: '#3ec27a',
   none: '#6f757e'
 }
 
 export const PACE_WEAK_DARK: Record<PaceStatus, string> = {
   on_track: '#13291d',
   behind: '#331917',
-  ahead: '#1b2b47',
+  ahead: '#13291d',
   none: '#24272d'
 }
 
@@ -87,6 +91,21 @@ export function paceColorsFor(theme: 'light' | 'dark') {
   return theme === 'dark'
     ? { color: PACE_COLOR_DARK, weak: PACE_WEAK_DARK }
     : { color: PACE_COLOR, weak: PACE_WEAK }
+}
+
+/**
+ * Resolve the solid fill color for a progress bar/track. A `none` status means
+ * "in progress, but no on-track/behind baseline" (e.g. a target with no
+ * deadline) — that fills with brand blue (neutral "progress"), never the muted
+ * gray, which is reserved for empty/no-data chrome. All real pace statuses pass
+ * straight through the palette.
+ */
+export function progressFill(
+  status: PaceStatus,
+  palette: Record<PaceStatus, string>,
+  brand: string
+): string {
+  return status === 'none' ? brand : palette[status]
 }
 
 /**

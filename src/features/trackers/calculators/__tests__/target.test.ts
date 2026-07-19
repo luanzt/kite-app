@@ -123,4 +123,30 @@ describe('calculateTarget', () => {
     const p = calculateTarget(t, [entry('2026-01-02', 100)], '2026-01-03')
     expect(p.expected).toBeNull()
   })
+
+  test('goal reached with no deadline is ahead (not none)', () => {
+    const t = { ...base, deadline: null, targetValue: 1000 }
+    const p = calculateTarget(t, [entry('2026-01-02', 5000)], '2026-01-03')
+    expect(p.percent).toBe(1)
+    expect(p.paceStatus).toBe('ahead')
+  })
+
+  test('decreasing goal reached with no deadline is ahead', () => {
+    const t = {
+      ...base,
+      deadline: null,
+      accumulation: 'latest' as const,
+      startValue: 80,
+      targetValue: 65
+    }
+    const p = calculateTarget(t, [entry('2026-01-02', 60)], '2026-01-03')
+    expect(p.percent).toBe(1)
+    expect(p.paceStatus).toBe('ahead')
+  })
+
+  test('not-yet-reached with no deadline stays none', () => {
+    const t = { ...base, deadline: null, targetValue: 1000 }
+    const p = calculateTarget(t, [entry('2026-01-02', 500)], '2026-01-03')
+    expect(p.paceStatus).toBe('none')
+  })
 })

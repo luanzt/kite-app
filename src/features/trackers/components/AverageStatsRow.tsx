@@ -6,6 +6,7 @@ import type { Tracker } from '@features/trackers/types'
 import type { AverageBucketStats } from '@features/trackers/calculators/averageStats'
 import { fmtNum } from '@features/trackers/detailFormat'
 import { useThemeColors } from '@hooks/useThemeColors'
+import { progressFill } from '@features/trackers/icons'
 
 const RING_SIZE = 104
 const RING_STROKE = 8
@@ -18,8 +19,16 @@ const styles = StyleSheet.create({
   gradient: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
 })
 
-/** Thin progress ring (-90° start), white-on-gradient like AchievementHero's. */
-function Ring({ fraction, color }: { fraction: number; color: string }) {
+/** Thin progress ring (-90° start): pace-colored arc on a neutral track. */
+function Ring({
+  fraction,
+  color,
+  trackColor
+}: {
+  fraction: number
+  color: string
+  trackColor: string
+}) {
   const r = (RING_SIZE - RING_STROKE) / 2
   const circumference = 2 * Math.PI * r
   const clamped = Math.max(0, Math.min(1, fraction))
@@ -36,7 +45,7 @@ function Ring({ fraction, color }: { fraction: number; color: string }) {
         cy={RING_SIZE / 2}
         r={r}
         fill='none'
-        stroke='rgba(255,255,255,0.22)'
+        stroke={trackColor}
         strokeWidth={RING_STROKE}
       />
       <Circle
@@ -90,9 +99,14 @@ export function AverageStatsRow({
   const pct = stats.loggedBuckets
     ? Math.round((stats.metBuckets / stats.loggedBuckets) * 100)
     : 0
+  const ringColor = progressFill(
+    ringFraction >= 1 ? 'on_track' : 'none',
+    c.pace,
+    c.brand
+  )
 
   return (
-    <View className='m-s5 overflow-hidden rounded-xl-k'>
+    <View className='m-s5 overflow-hidden rounded-xl-k border border-line'>
       <Svg style={styles.gradient} width='100%' height='100%'>
         <Defs>
           <LinearGradient id='kite-avg-hero-grad' x1='0' y1='0' x2='1' y2='1'>
@@ -112,29 +126,29 @@ export function AverageStatsRow({
       <View className='flex-row items-center p-s5'>
         {/* current streak */}
         <View className='flex-1 items-center gap-s1'>
-          <Typography className='text-center text-xs font-bold uppercase text-on-accent opacity-70'>
+          <Typography className='text-center text-xs font-bold uppercase text-ink-3'>
             {t('detail.currentStreak')}
           </Typography>
-          <Typography className='text-3xl font-bold text-on-accent'>
+          <Typography className='text-3xl font-bold text-ink'>
             {stats.streak}
           </Typography>
-          <Typography className='text-xs font-bold text-on-accent opacity-80'>
+          <Typography className='text-xs font-bold text-ink-2'>
             {unitLabel}
           </Typography>
         </View>
 
         {/* average ring */}
         <View className='items-center justify-center'>
-          <Ring fraction={ringFraction} color={c.onAccent} />
+          <Ring fraction={ringFraction} color={ringColor} trackColor={c.line} />
           <View className='absolute items-center'>
-            <Typography className='text-xs font-bold uppercase text-on-accent opacity-70'>
+            <Typography className='text-xs font-bold uppercase text-ink-3'>
               {t('detail.avgChartTitle')}
             </Typography>
-            <Typography className='text-2xl font-bold text-on-accent'>
+            <Typography className='text-2xl font-bold text-ink'>
               {fmtNum(average)}
             </Typography>
             {goal > 0 ? (
-              <Typography className='text-xs font-bold text-on-accent opacity-80'>
+              <Typography className='text-xs font-bold text-ink-2'>
                 {diff > 0
                   ? t('detail.avgUnder', { n: fmtNum(diff) })
                   : t('detail.avgOver', { n: fmtNum(-diff) })}
@@ -145,13 +159,13 @@ export function AverageStatsRow({
 
         {/* success rate */}
         <View className='flex-1 items-center gap-s1'>
-          <Typography className='text-center text-xs font-bold uppercase text-on-accent opacity-70'>
+          <Typography className='text-center text-xs font-bold uppercase text-ink-3'>
             {t('detail.successRate')}
           </Typography>
-          <Typography className='text-3xl font-bold text-on-accent'>
+          <Typography className='text-3xl font-bold text-ink'>
             {`${pct}%`}
           </Typography>
-          <Typography className='text-xs font-bold text-on-accent opacity-80'>
+          <Typography className='text-xs font-bold text-ink-2'>
             {`${stats.metBuckets}/${stats.loggedBuckets} ${unitLabel}`}
           </Typography>
         </View>

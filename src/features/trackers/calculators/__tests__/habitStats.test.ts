@@ -15,7 +15,8 @@ import {
   periodWindow,
   periodTotal,
   periodGoalOf,
-  periodQuotaMet
+  periodQuotaMet,
+  habitBarStatus
 } from '../habitStats'
 import type { Tracker, Entry } from '@features/trackers/types'
 import type { TodayRowStatus } from '../habitStats'
@@ -1241,5 +1242,32 @@ describe('periodQuotaMet', () => {
     }
     expect(periodQuotaMet(t, 5)).toBe(false)
     expect(periodQuotaMet(t, 10)).toBe(false)
+  })
+})
+
+describe('habitBarStatus (unified progress color)', () => {
+  it('good habit in progress is none → blue in-progress fill', () => {
+    expect(habitBarStatus(3, 4, false)).toBe('none')
+    expect(habitBarStatus(0, 4, false)).toBe('none')
+  })
+
+  it('good habit met (or exceeded) is on_track → green', () => {
+    expect(habitBarStatus(4, 4, false)).toBe('on_track')
+    expect(habitBarStatus(5, 4, false)).toBe('on_track')
+  })
+
+  it('good habit with no goal is none', () => {
+    expect(habitBarStatus(2, 0, false)).toBe('none')
+  })
+
+  it('bad habit within limit is on_track → green (clean)', () => {
+    expect(habitBarStatus(3, 5, true)).toBe('on_track')
+    expect(habitBarStatus(5, 5, true)).toBe('on_track')
+    expect(habitBarStatus(0, 0, true)).toBe('on_track')
+  })
+
+  it('bad habit over the limit is behind → red', () => {
+    expect(habitBarStatus(6, 5, true)).toBe('behind')
+    expect(habitBarStatus(1, 0, true)).toBe('behind')
   })
 })

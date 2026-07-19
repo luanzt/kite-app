@@ -41,8 +41,9 @@
       --color-pace-on-weak: #e3f3ea;
       --color-pace-behind: #e0564e;
       --color-pace-behind-weak: #fbe7e5;
-      --color-pace-ahead: #2456b5;
-      --color-pace-ahead-weak: #e6eefb;
+      /* ahead mirrors on-track green: "good" is one color (see icons.ts) */
+      --color-pace-ahead: #1f9d57;
+      --color-pace-ahead-weak: #e3f3ea;
       --color-pace-none: #a3a8a0;
       --color-pace-none-weak: #eceee8;
     }
@@ -71,8 +72,9 @@
       --color-pace-on-weak: #13291d;
       --color-pace-behind: #f0736b;
       --color-pace-behind-weak: #331917;
-      --color-pace-ahead: #5b8def;
-      --color-pace-ahead-weak: #1b2b47;
+      /* ahead mirrors on-track green: "good" is one color (see icons.ts) */
+      --color-pace-ahead: #3ec27a;
+      --color-pace-ahead-weak: #13291d;
       --color-pace-none: #6f757e;
       --color-pace-none-weak: #24272d;
     }
