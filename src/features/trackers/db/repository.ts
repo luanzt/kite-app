@@ -304,3 +304,30 @@ export function replaceAllData(s: {
     throw err
   }
 }
+
+/**
+ * "Clear all data" (Settings → Data): wipe every tracker, entry and milestone
+ * locally, then write ONE tombstone per tracker so the deletion propagates to
+ * iCloud on the next sync (LWW — deletes win) instead of the cloud copy
+ * resurrecting everything. One transaction, so a failure rolls back whole.
+ * Ids are read (incl. archived) before the DELETEs so the tombstones are exact.
+ */
+export function clearAllData(): void {
+  const db = getDb()
+  const ids = (db.executeSync(`SELECT id FROM trackers`).rows ?? []).map(
+    (r) => String(r.id)
+  )
+  const now = new Date().toISOString()
+  db.executeSync('BEGIN')
+  try {
+    db.executeSync('DELETE FROM entries')
+    db.executeSync('DELETE FROM milestones')
+    db.executeSync('DELETE FROM trackers')
+    for (const id of ids)
+      insertTombstone({ id, tableName: 'trackers', deletedAt: now })
+    db.executeSync('COMMIT')
+  } catch (err) {
+    db.executeSync('ROLLBACK')
+    throw err
+  }
+}

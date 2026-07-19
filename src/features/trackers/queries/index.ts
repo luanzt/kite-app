@@ -4,9 +4,11 @@ import type { TFunction } from 'i18next'
 import * as repo from '@features/trackers/db/repository'
 import {
   cancelTrackerReminders,
+  cancelAllReminders,
   scheduleTrackerReminders
 } from '@features/trackers/notifications'
 import { makeReminderBodyFor } from '@features/trackers/reminderBodyFor'
+import { runSync } from '@features/trackers/sync/syncService'
 import { useAppStore } from '@store/useAppStore'
 import { countPending } from '@features/trackers/sync/snapshot'
 import type { Tracker, Entry, Milestone } from '@features/trackers/types'
@@ -152,6 +154,34 @@ export function useSaveMilestone() {
     mutationFn: async (m: Milestone) => repo.upsertMilestone(m),
     onSuccess: (_d, m) =>
       qc.invalidateQueries({ queryKey: keys.milestones(m.trackerId) })
+  })
+}
+
+/**
+ * "Clear all data" (Settings → Data): wipe every tracker/entry/milestone,
+ * cancel all scheduled reminders, then — if iCloud sync is on — push the
+ * deletion to the cloud so the backup doesn't resurrect it. The cloud push is
+ * best-effort: clearAllData already wrote tombstones, so a failed push still
+ * gets cleaned up on the next successful sync — we just report it back so the
+ * caller can warn. `onSettled` refreshes every query whether or not it threw.
+ */
+export function useClearAllData() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (): Promise<{ cloudPushFailed: boolean }> => {
+      repo.clearAllData()
+      await cancelAllReminders()
+      let cloudPushFailed = false
+      if (useAppStore.getState().icloudSyncEnabled) {
+        try {
+          await runSync(qc)
+        } catch {
+          cloudPushFailed = true
+        }
+      }
+      return { cloudPushFailed }
+    },
+    onSettled: () => qc.invalidateQueries()
   })
 }
 
