@@ -3,7 +3,8 @@ import {
   allTemplates,
   findTemplate,
   categoryByKey,
-  normalizeText
+  normalizeText,
+  templateDirection
 } from '../templates'
 import { iconEmoji, colorHex, CATEGORY_ICON } from '../icons'
 import enJson from '@i18n/locales/en.json'
@@ -206,5 +207,24 @@ describe('template data layer', () => {
 
   it('normalizeText lowercases and trims', () => {
     expect(normalizeText('  Drink WATER ')).toBe('drink water')
+  })
+
+  describe('templateDirection', () => {
+    it("maps an average 'at_most' goal to the 'bad' (goal-or-less) direction", () => {
+      // Budget/Expenses track a ceiling — must score lower-is-better.
+      expect(templateDirection(findTemplate('budget'))).toBe('bad')
+      expect(templateDirection(findTemplate('expenses'))).toBe('bad')
+    })
+
+    it("uses the habit's own direction", () => {
+      expect(templateDirection(findTemplate('noAlcohol'))).toBe('bad')
+      expect(templateDirection(findTemplate('takeMedicine'))).toBe('good')
+    })
+
+    it("defaults to 'good' for at_least averages and missing templates", () => {
+      expect(templateDirection(findTemplate('sleep'))).toBe('good')
+      expect(templateDirection(findTemplate('protein'))).toBe('good')
+      expect(templateDirection(undefined)).toBe('good')
+    })
   })
 })

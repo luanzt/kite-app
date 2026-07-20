@@ -25,8 +25,8 @@ export type Template = {
   rollingDays?: number // average only: rolling window in calendar days
   // average only: whether the goal is a floor ("N or More") or a ceiling
   // ("N or Less", e.g. Budget/Expenses). Omit = at_least (the Strides default).
-  // NOTE: the average calculator has no lower-is-better mode yet, so this is
-  // data-only today — carried on the template for the upcoming feature.
+  // Applied via templateDirection() → the tracker's `direction` ('at_most' =
+  // 'bad'), which calculateAverage reads for its lower-is-better mode.
   goalDirection?: 'at_least' | 'at_most'
 }
 
@@ -1441,6 +1441,16 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     ]
   }
 ]
+
+/** The tracker `direction` a template should pre-fill. Habits carry their own
+ *  `direction`; an average with an 'at_most' goal (Budget/Expenses — a ceiling)
+ *  maps to 'bad' so calculateAverage scores it lower-is-better. Everything else
+ *  (at_least averages, targets, missing template) defaults to 'good'. */
+export function templateDirection(template?: Template): HabitDirection {
+  if (!template) return 'good'
+  if (template.goalDirection === 'at_most') return 'bad'
+  return template.direction ?? 'good'
+}
 
 export function allTemplates(): Template[] {
   return TEMPLATE_CATEGORIES.flatMap((c) => c.templates)
