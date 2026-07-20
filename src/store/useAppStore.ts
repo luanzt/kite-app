@@ -9,12 +9,14 @@ type AppState = {
   language: Language | null
   notifyEnabled: boolean
   permissionAsked: boolean
+  hasSeenWelcome: boolean
   icloudSyncEnabled: boolean
   lastSyncedAt: string | null
   setThemeMode: (mode: ThemeMode) => void
   setLanguage: (lang: Language) => void
   setNotifyEnabled: (v: boolean) => void
   markPermissionAsked: () => void
+  markWelcomeSeen: () => void
   setIcloudSyncEnabled: (v: boolean) => void
   setLastSyncedAt: (iso: string | null) => void
 }
@@ -30,6 +32,8 @@ export const useAppStore = create<AppState>()(
       permissionAsked: false,
       setNotifyEnabled: (v: boolean) => set({ notifyEnabled: v }),
       markPermissionAsked: () => set({ permissionAsked: true }),
+      hasSeenWelcome: false,
+      markWelcomeSeen: () => set({ hasSeenWelcome: true }),
       icloudSyncEnabled: false,
       lastSyncedAt: null,
       setIcloudSyncEnabled: (v: boolean) => set({ icloudSyncEnabled: v }),
