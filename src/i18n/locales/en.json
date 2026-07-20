@@ -1,4 +1,30 @@
 {
+  "welcome": {
+    "brand": "Kite",
+    "title": {
+      "lead": "Track anything, your ",
+      "accent": "three ways",
+      "end": "."
+    },
+    "subtitle": "Pick the tracking style that fits each goal — all in one calm home.",
+    "habit": {
+      "stat": "🔥 41-day streak",
+      "title": "Repeat it daily",
+      "desc": "Check off routines & build streaks."
+    },
+    "target": {
+      "stat": "▲ 78% · ahead",
+      "title": "Reach a number",
+      "desc": "Save 200K by Aug 1 — pace tracked."
+    },
+    "average": {
+      "stat": "7.2h · 7-day avg",
+      "title": "Hold a level",
+      "desc": "Keep sleep near your goal each day."
+    },
+    "cta": "Get started",
+    "restore": "Already using Kite?"
+  },
   "tabs": { "today": "Today", "trackers": "Trackers", "settings": "Settings" },
   "today": {
     "title": "Today",

@@ -1,4 +1,30 @@
 {
+  "welcome": {
+    "brand": "Kite",
+    "title": {
+      "lead": "",
+      "accent": "Ba cách",
+      "end": " theo dõi, cho mọi mục tiêu."
+    },
+    "subtitle": "Chọn cách phù hợp với từng mục tiêu — tất cả ở cùng một nơi.",
+    "habit": {
+      "stat": "🔥 41 ngày liên tiếp",
+      "title": "Duy trì mỗi ngày",
+      "desc": "Đánh dấu mỗi ngày và duy trì chuỗi thói quen."
+    },
+    "target": {
+      "stat": "▲ Đã hoàn thành 78%",
+      "title": "Chinh phục mục tiêu",
+      "desc": "Tiết kiệm 200.000₫ trước ngày 1/8 và theo dõi tiến độ."
+    },
+    "average": {
+      "stat": "7,2 giờ · 7 ngày qua",
+      "title": "Duy trì ổn định",
+      "desc": "Duy trì thời lượng ngủ gần mục tiêu mỗi ngày."
+    },
+    "cta": "Bắt đầu",
+    "restore": "Đã từng sử dụng Kite trước đây"
+  },
   "tabs": { "today": "Hôm nay", "trackers": "Mục tiêu", "settings": "Cài đặt" },
   "today": {
     "title": "Hôm nay",
