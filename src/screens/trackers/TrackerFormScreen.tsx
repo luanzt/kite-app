@@ -20,7 +20,7 @@ import {
   iconKey,
   colorHex
 } from '@features/trackers/icons'
-import { findTemplate } from '@features/trackers/templates'
+import { findTemplate, templateDirection } from '@features/trackers/templates'
 import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import { IconPickerModal } from '@features/trackers/components/IconPickerModal'
 import { useThemeColors } from '@hooks/useThemeColors'
@@ -125,7 +125,7 @@ export function TrackerFormScreen({
     editing?.accumulation ?? template?.accumulation ?? 'sum'
   )
   const [dir, setDir] = useState<HabitDirection>(
-    editing?.direction ?? template?.direction ?? 'good'
+    editing?.direction ?? templateDirection(template)
   )
   const [period, setPeriod] = useState<Period>(
     editing?.period ?? template?.period ?? 'daily'
