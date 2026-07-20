@@ -956,7 +956,9 @@ export function DailyGoalsScreen() {
               {t('today.allClear')}
             </Typography>
             <Typography className='text-base text-ink-2 text-center max-w-[250px]'>
-              {t('today.allClearBody')}
+              {selectedISO === today
+                ? t('today.allClearBody')
+                : t('today.allClearBodyDay')}
             </Typography>
           </View>
         ) : null}
