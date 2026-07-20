@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import Svg, { Circle } from 'react-native-svg'
 import {
   ChevronDown,
   Sunrise,
@@ -63,6 +62,7 @@ import { fmtCompact, fmtValCompact } from '@features/trackers/detailFormat'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
 import { showLogSuccess } from '@features/trackers/components/LogSuccessToast'
 import { CalendarDayMenu } from '@features/trackers/components/CalendarDayMenu'
+import { Ring } from '@features/trackers/components/Ring'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -89,53 +89,6 @@ function isDueOnDate(t: Tracker, iso: string): boolean {
     return t.repeatDays.includes(weekdayOf(iso))
   }
   return true
-}
-
-/** Small circular progress ring (-90deg start). */
-function Ring({
-  fraction,
-  color,
-  size,
-  strokeWidth
-}: {
-  fraction: number
-  color: string
-  size: number
-  strokeWidth: number
-}) {
-  const theme = useThemeColors()
-  const r = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * r
-  const clamped = Math.max(0, Math.min(1, fraction))
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      // runtime: SVG transform, no className equivalent
-      style={{ transform: [{ rotate: '-90deg' }] }}
-    >
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke={theme.line}
-        strokeWidth={strokeWidth}
-      />
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap='round'
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference * (1 - clamped)}
-      />
-    </Svg>
-  )
 }
 
 const isMissedKind = (k: StreakStatus['kind']): boolean =>
