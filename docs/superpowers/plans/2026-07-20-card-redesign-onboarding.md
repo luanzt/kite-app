@@ -356,6 +356,9 @@ if (tracker.type === 'habit') {
   // target / project → the goal line, reusing the right-rail statLabel
   subLine = isDecreasingTarget ? `↓ ${statLabel}` : statLabel
 }
+// Average sparkline series — compute ONCE here, reuse in the rail below.
+const avgSessions =
+  tracker.type === 'average' ? periodSessions(tracker, entries, today) : null
 ```
 
 - [ ] **Step 3: Replace the `return (...)` JSX**
@@ -454,12 +457,10 @@ Replace lines 178-240 with:
                 </Typography>
               </View>
             </View>
-          ) : tracker.type === 'average' ? (
+          ) : tracker.type === 'average' && avgSessions ? (
             <MiniBars
-              values={periodSessions(tracker, entries, today).bars.map(
-                (b) => b.count
-              )}
-              scaleMax={periodSessions(tracker, entries, today).scaleMax}
+              values={avgSessions.bars.map((b) => b.count)}
+              scaleMax={avgSessions.scaleMax}
               color={colorHex(tracker.color)}
             />
           ) : null}
