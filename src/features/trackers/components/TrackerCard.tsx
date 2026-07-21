@@ -114,6 +114,9 @@ export function TrackerCard({
     : periodGoalOf(tracker)
   const habitN =
     tracker.type === 'habit' ? periodTotal(tracker, entries, today) : 0
+  // A bad habit's ring stays green while within the limit (n <= goal) and only
+  // turns red once the limit is exceeded (n > goal). The "/goal" cap is always
+  // red regardless — it marks the limit itself.
   const badOver = isBadHabit && habitN > habitGoal
   const barPercent =
     tracker.type === 'habit'
@@ -271,7 +274,9 @@ export function TrackerCard({
                 fraction={barPercent}
                 color={
                   isBadHabit
-                    ? c.pace.behind
+                    ? badOver
+                      ? c.pace.behind
+                      : c.pace.on_track
                     : progressFill(barStatus, c.pace, c.brand)
                 }
                 size={46}

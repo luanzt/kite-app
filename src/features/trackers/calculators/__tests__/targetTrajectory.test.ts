@@ -89,13 +89,13 @@ describe('buildTargetTrajectory', () => {
     expect(r.idealLine).toBeNull()
   })
 
-  it('projected: extrapolates current rate to the goal date', () => {
+  it('projected: forecasts the value reached BY the deadline at current pace', () => {
     // 20 days elapsed (06-01..06-21), current 100000 → rate 5000/day.
-    // remaining 100000 → 20 more days → 2026-07-11.
+    // Over the full 61-day span → 5000 * 61 = 305000, dated at the deadline.
     const t = baseTracker()
     const entries = [entry('2026-06-21', 100000)]
     const r = buildTargetTrajectory(t, entries, '2026-06-21')
-    expect(r.projected).toEqual({ value: 200000, date: '2026-07-11' })
+    expect(r.projected).toEqual({ value: 305000, date: '2026-08-01' })
   })
 
   it('projected is null with no deadline', () => {
@@ -108,20 +108,22 @@ describe('buildTargetTrajectory', () => {
     expect(r.projected).toBeNull()
   })
 
-  it('projected is null when no progress yet (rate 0)', () => {
+  it('projected with no progress yet is a flat forecast at the start value', () => {
+    // rate 0 → stays at startValue (0) all the way to the deadline.
     const t = baseTracker()
     const r = buildTargetTrajectory(t, [], '2026-06-21')
-    expect(r.projected).toBeNull()
+    expect(r.projected).toEqual({ value: 0, date: '2026-08-01' })
   })
 
-  it('projected is null when already at/over goal', () => {
+  it('projected overshoots the goal when ahead of pace', () => {
+    // 20 days elapsed, current 200000 → rate 10000/day → 10000 * 61 = 610000.
     const t = baseTracker()
     const r = buildTargetTrajectory(
       t,
       [entry('2026-06-21', 200000)],
       '2026-06-21'
     )
-    expect(r.projected).toBeNull()
+    expect(r.projected).toEqual({ value: 610000, date: '2026-08-01' })
   })
 
   it('dailyGoal = remaining / daysLeft', () => {
@@ -171,9 +173,9 @@ describe('buildTargetTrajectory', () => {
     expect(r.series).toEqual([])
   })
 
-  it('decreasing goal (weight loss) still projects toward the lower goal', () => {
-    // start 90, goal 80, over 100 days. Lost 5 in 20 days → rate 0.25/day.
-    // remaining 5 → 20 more days.
+  it('decreasing goal (weight loss): forecasts the weight at the deadline', () => {
+    // start 90, goal 80, 100-day span. Lost 5 in 20 days → rate −0.25/day.
+    // Over 100 days → −25 → 90 − 25 = 65 by the deadline.
     const t = baseTracker({
       accumulation: 'latest',
       startValue: 90,
@@ -183,7 +185,7 @@ describe('buildTargetTrajectory', () => {
       deadline: '2026-09-09'
     })
     const r = buildTargetTrajectory(t, [entry('2026-06-21', 85)], '2026-06-21')
-    expect(r.projected?.date).toBe('2026-07-11')
-    expect(r.projected?.value).toBe(80)
+    expect(r.projected?.date).toBe('2026-09-09')
+    expect(r.projected?.value).toBe(65)
   })
 })

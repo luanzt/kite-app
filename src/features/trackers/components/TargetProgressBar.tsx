@@ -1,6 +1,7 @@
 import { View } from 'react-native'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
+import Svg, { Line, Polygon } from 'react-native-svg'
 import type { Tracker, Entry } from '@features/trackers/types'
 import { calculateTarget } from '@features/trackers/calculators/target'
 import { fmtValCompact, pacePercent } from '@features/trackers/detailFormat'
@@ -9,6 +10,13 @@ import { useThemeColors } from '@hooks/useThemeColors'
 import { toISODate } from '@utils/date'
 
 const AXIS_TICKS = 5
+// Pace-marker geometry: a dashed vertical line across the track's height with a
+// small triangle pointing up to it, just below the bar. Drawn in one SVG so the
+// dash + triangle stay pixel-aligned at the live marker position.
+const TRACK_H = 34
+const MARKER_W = 14
+const TRI_H = 7
+const MARKER_H = TRACK_H + TRI_H
 
 /**
  * TargetProgressBar — a beefed-up pace bar: current/goal header, a tall filled
@@ -51,27 +59,41 @@ export function TargetProgressBar({
         </Typography>
       </View>
 
-      {/* track */}
-      <View className='h-[34px] overflow-hidden rounded-md-k bg-surface-2'>
-        <View
-          className='h-full rounded-md-k'
-          // runtime: fill is a live % of progress; color is the pace enum hex
-          style={{ width: `${fillFrac * 100}%`, backgroundColor: fillColor }}
-        />
-      </View>
-
-      {/* pace marker */}
-      {markerPct != null ? (
-        <View className='relative mt-s1 h-[8px]'>
+      {/* track + pace marker (dashed line across the bar + triangle below) */}
+      <View className='relative mb-[9px]'>
+        <View className='h-[34px] overflow-hidden bg-surface-2'>
           <View
-            className='absolute top-0 h-[6px] w-[2px] bg-ink'
-            // runtime: marker sits at the live time-elapsed %
-            style={{ left: `${markerPct}%` }}
+            className='h-full'
+            // runtime: fill is a live % of progress; color is the pace enum hex
+            style={{ width: `${fillFrac * 100}%`, backgroundColor: fillColor }}
           />
         </View>
-      ) : (
-        <View className='mt-s1 h-[8px]' />
-      )}
+        {markerPct != null ? (
+          <View
+            className='absolute top-0'
+            // runtime: marker sits at the live time-elapsed %, centered on it
+            style={{ left: `${markerPct}%`, marginLeft: -MARKER_W / 2 }}
+          >
+            <Svg width={MARKER_W} height={MARKER_H}>
+              <Line
+                x1={MARKER_W / 2}
+                y1={0}
+                x2={MARKER_W / 2}
+                y2={TRACK_H}
+                stroke={c.ink}
+                strokeWidth={2}
+                strokeDasharray='4,3'
+              />
+              <Polygon
+                points={`${MARKER_W / 2 - 5},${MARKER_H} ${
+                  MARKER_W / 2 + 5
+                },${MARKER_H} ${MARKER_W / 2},${TRACK_H}`}
+                fill={c.ink}
+              />
+            </Svg>
+          </View>
+        ) : null}
+      </View>
 
       {/* axis */}
       <View className='flex-row justify-between'>

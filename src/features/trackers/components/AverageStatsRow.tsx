@@ -59,7 +59,7 @@ export function AverageStatsRow({
   const ringColor = progressFill(
     ringFraction >= 1 ? 'on_track' : 'none',
     c.pace,
-    c.brand
+    c.onAccent
   )
 
   return (
@@ -83,13 +83,13 @@ export function AverageStatsRow({
       <View className='flex-row items-center p-s5'>
         {/* current streak */}
         <View className='flex-1 items-center gap-s1'>
-          <Typography className='text-center text-xs font-bold uppercase text-ink-3'>
+          <Typography className='text-center text-xs font-bold text-on-accent opacity-80'>
             {t('detail.currentStreak')}
           </Typography>
-          <Typography className='text-3xl font-bold text-ink'>
+          <Typography className='text-3xl font-bold text-on-accent'>
             {stats.streak}
           </Typography>
-          <Typography className='text-xs font-bold text-ink-2'>
+          <Typography className='text-xs font-bold text-on-accent opacity-90'>
             {unitLabel}
           </Typography>
         </View>
@@ -99,19 +99,19 @@ export function AverageStatsRow({
           <Ring
             fraction={ringFraction}
             color={ringColor}
-            trackColor={c.line}
+            trackColor={c.heroRingTrack}
             size={RING_SIZE}
             strokeWidth={RING_STROKE}
           />
           <View className='absolute items-center'>
-            <Typography className='text-xs font-bold uppercase text-ink-3'>
+            <Typography className='text-xs font-bold text-on-accent opacity-80'>
               {t('detail.avgChartTitle')}
             </Typography>
-            <Typography className='text-2xl font-bold text-ink'>
+            <Typography className='text-2xl font-bold text-on-accent'>
               {fmtNum(average)}
             </Typography>
             {goal > 0 ? (
-              <Typography className='text-xs font-bold text-ink-2'>
+              <Typography className='text-xs font-bold text-on-accent opacity-90'>
                 {diff > 0
                   ? t('detail.avgUnder', { n: fmtNum(diff) })
                   : t('detail.avgOver', { n: fmtNum(-diff) })}
@@ -122,13 +122,13 @@ export function AverageStatsRow({
 
         {/* success rate */}
         <View className='flex-1 items-center gap-s1'>
-          <Typography className='text-center text-xs font-bold uppercase text-ink-3'>
+          <Typography className='text-center text-xs font-bold text-on-accent opacity-80'>
             {t('detail.successRate')}
           </Typography>
-          <Typography className='text-3xl font-bold text-ink'>
+          <Typography className='text-3xl font-bold text-on-accent'>
             {`${pct}%`}
           </Typography>
-          <Typography className='text-xs font-bold text-ink-2'>
+          <Typography className='text-xs font-bold text-on-accent opacity-90'>
             {`${stats.metBuckets}/${stats.loggedBuckets} ${unitLabel}`}
           </Typography>
         </View>

@@ -361,6 +361,7 @@
     "weekLogged": "{{logged}}/{{goal}} lần",
     "dailyGoal": "Mục tiêu mỗi ngày",
     "projected": "Dự kiến",
+    "projectedOn": "Dự kiến vào {{date}}",
     "toGo": "còn lại",
     "paceMarker": "Mốc tiến độ",
     "left": "còn lại",
