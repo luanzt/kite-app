@@ -30,6 +30,7 @@ export const QUICK_STARTS: QuickStart[] = [
     type: 'habit',
     icon: 'dumbbell',
     color: 'orange',
+    targetValue: 1,
     period: 'daily'
   },
   {
@@ -64,6 +65,7 @@ export const QUICK_STARTS: QuickStart[] = [
     type: 'habit',
     icon: 'lotus',
     color: 'blue',
+    targetValue: 1,
     period: 'daily'
   },
   {
