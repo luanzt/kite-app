@@ -410,8 +410,8 @@ function LogRow({
       : isDecreasingTarget
       ? `↓ ${subText}`
       : subText
-  // Progress bar (target/project) shown below the row, mirroring the Trackers card.
-  const showBar = tracker.type === 'target' || tracker.type === 'project'
+  // Progress bar (target) shown below the row, mirroring the Trackers card.
+  const showBar = tracker.type === 'target'
   const barPercent = progress?.percent ?? 0
   const barStatus: PaceStatus = progress?.paceStatus ?? 'none'
 
