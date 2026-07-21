@@ -439,8 +439,12 @@ function LogRow({
         // long-press anytime) it opens the day action menu so the last log
         // can be deleted.
         const limit = tracker.targetValue ?? 0
+        // Ring is green while within the limit (n <= limit) and turns red only
+        // once exceeded (n > limit); the "/limit" cap is always red. The arc is
+        // a draining quota: full while clean, emptying with each slip, then full
+        // red once over — matching the Trackers card.
         const over = n > limit
-        const ringFraction = over ? 1 : limit > 0 ? n / limit : n > 0 ? 1 : 0
+        const ringFraction = over ? 1 : limit > 0 ? (limit - n) / limit : 1
         return withCaption(
           <Pressable
             onPress={() =>
@@ -451,7 +455,7 @@ function LogRow({
           >
             <Ring
               fraction={ringFraction}
-              color={c.pace.behind}
+              color={over ? c.pace.behind : c.pace.on_track}
               size={48}
               strokeWidth={4}
             />
@@ -462,7 +466,7 @@ function LogRow({
                 }`}
               >
                 {`${n}`}
-                {/* "/limit" always red (slash included) — it's a cap */}
+                {/* "/limit" (slash included) always red — it's the cap */}
                 <Typography className='text-xs font-extrabold text-pace-behind'>
                   {`/${limit}`}
                 </Typography>

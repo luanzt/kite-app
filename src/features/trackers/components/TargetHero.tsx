@@ -5,7 +5,11 @@ import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg'
 import type { Tracker, Entry } from '@features/trackers/types'
 import { calculateTarget } from '@features/trackers/calculators/target'
 import { buildTargetTrajectory } from '@features/trackers/calculators'
-import { fmtValCompact, daysLeft } from '@features/trackers/detailFormat'
+import {
+  fmtValCompact,
+  fmtCompact,
+  daysLeft
+} from '@features/trackers/detailFormat'
 import { toISODate } from '@utils/date'
 import { useThemeColors } from '@hooks/useThemeColors'
 import { progressFill } from '@features/trackers/icons'
@@ -21,11 +25,12 @@ const styles = StyleSheet.create({
   gradient: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
 })
 
-/** Localized short date "11 Jul" for the projected caption. */
-function shortDate(iso: string, lang: string): string {
+/** Localized date with year "Aug 2, 2026" for the projected caption. */
+function projDate(iso: string, lang: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString(lang, {
     day: 'numeric',
     month: 'short',
+    year: 'numeric',
     timeZone: 'UTC'
   })
 }
@@ -48,12 +53,15 @@ export function TargetHero({
   const today = toISODate(new Date())
   const p = calculateTarget(tracker, entries, today)
   const traj = buildTargetTrajectory(tracker, entries, today)
+  // Strides-style projection: forecast value AT the deadline (date = deadline).
+  // Null only for deadline-less targets, which render "—".
+  const projPoint = traj.projected
   const frac = Math.max(0, Math.min(1, p.percent))
   const remain = daysLeft(tracker)
   const toGo = Math.abs(p.goal - p.current)
 
   const hasPace = p.paceStatus !== 'none'
-  const ringColor = progressFill(p.paceStatus, c.pace, c.brand)
+  const ringColor = progressFill(p.paceStatus, c.pace, c.onAccent)
   const aheadAmount =
     p.expected != null ? Math.abs(p.current - p.expected) : null
   const paceDirKey =
@@ -105,7 +113,7 @@ export function TargetHero({
                 cx={RING_SIZE / 2}
                 cy={RING_SIZE / 2}
                 r={RING_R}
-                stroke={c.line}
+                stroke={c.heroRingTrack}
                 strokeWidth={RING_STROKE}
                 fill='none'
               />
@@ -125,48 +133,47 @@ export function TargetHero({
               />
             </Svg>
             <View className='absolute inset-0 items-center justify-center'>
-              <Typography className='text-title-k font-bold text-ink'>
-                {fmtValCompact(tracker, p.current)}
+              {/* unit dropped inside the ring — the goal line above the card
+                  already states the unit, so the ring stays uncluttered */}
+              <Typography className='text-title-k font-bold text-on-accent'>
+                {fmtCompact(p.current)}
               </Typography>
-              <Typography className='mt-s1 text-xs font-bold text-ink-3'>
-                {`${fmtValCompact(tracker, toGo)} ${t('detail.toGo')}`}
+              <Typography className='mt-s1 text-xs font-bold text-on-accent opacity-80'>
+                {`${fmtCompact(toGo)} ${t('detail.toGo')}`}
               </Typography>
             </View>
           </View>
 
-          {/* stat stack */}
+          {/* stat stack — caption on top, value below */}
           <View className='flex-1 gap-s3'>
             <View>
-              <View className='flex-row items-end gap-s2'>
-                <Typography className='text-h2-k font-bold text-ink'>
-                  {fmtValCompact(tracker, traj.dailyGoal)}
-                </Typography>
-                <Typography className='mb-[3px] text-sm font-bold text-ink-2'>
-                  {t('detail.perDay')}
-                </Typography>
-              </View>
-              <Typography className='mt-s1 text-xs font-bold uppercase text-ink-3'>
+              <Typography className='text-xs font-bold text-on-accent opacity-80'>
                 {`${t('detail.dailyGoal')} · ${remain ?? 0} ${t(
                   'detail.left'
                 )}`}
               </Typography>
+              <View className='mt-s1 flex-row items-end gap-s2'>
+                <Typography className='text-h2-k font-bold text-on-accent'>
+                  {fmtValCompact(tracker, traj.dailyGoal)}
+                </Typography>
+                <Typography className='mb-[3px] text-sm font-bold text-on-accent opacity-90'>
+                  {t('detail.perDay')}
+                </Typography>
+              </View>
             </View>
 
-            <View className='h-px bg-line' />
+            <View className='h-px bg-on-accent opacity-20' />
 
             <View>
-              <Typography className='text-h2-k font-bold text-ink'>
-                {traj.projected
-                  ? fmtValCompact(tracker, traj.projected.value)
-                  : '—'}
-              </Typography>
-              <Typography className='mt-s1 text-xs font-bold uppercase text-ink-3'>
-                {traj.projected
-                  ? `${t('detail.projected')} · ${shortDate(
-                      traj.projected.date,
-                      lang
-                    )}`
+              <Typography className='text-xs font-bold text-on-accent opacity-80'>
+                {projPoint
+                  ? t('detail.projectedOn', {
+                      date: projDate(projPoint.date, lang)
+                    })
                   : t('detail.projected')}
+              </Typography>
+              <Typography className='mt-s1 text-h2-k font-bold text-on-accent'>
+                {projPoint ? fmtValCompact(tracker, projPoint.value) : '—'}
               </Typography>
             </View>
           </View>

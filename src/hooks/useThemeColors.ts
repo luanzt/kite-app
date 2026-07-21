@@ -24,8 +24,11 @@ const LIGHT = {
   // TargetHero / AverageStatsRow) — a barely-there blue tint on a light card so
   // the ring + numbers carry the pace palette (ink text, pace-colored ring)
   // instead of white-on-brand.
-  heroGradientFrom: '#e4edfc',
-  heroGradientTo: '#d2e2fa'
+  heroGradientFrom: '#5480d9',
+  heroGradientTo: '#3765c3',
+  // Ring track on the brand hero cards — a translucent white reads better than
+  // the neutral line color against the saturated blue.
+  heroRingTrack: 'rgba(255,255,255,0.35)'
 }
 
 const DARK: typeof LIGHT = {
@@ -43,7 +46,8 @@ const DARK: typeof LIGHT = {
   // Subtle navy tint just above the dark surface — the dark-mode counterpart of
   // the pale-blue light hero (ink text + pace-colored ring, not white-on-brand).
   heroGradientFrom: '#212c40',
-  heroGradientTo: '#1a2334'
+  heroGradientTo: '#1a2334',
+  heroRingTrack: 'rgba(255,255,255,0.18)'
 }
 
 export function useThemeColors() {

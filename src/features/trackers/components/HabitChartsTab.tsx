@@ -218,6 +218,8 @@ export function HabitChartsTab({
       >
         <AchievementHero
           percent={(progress.successRate ?? 0) * 100}
+          daysDone={progress.current}
+          daysTotal={progress.goal}
           currentStreak={progress.streak ?? 0}
           bestStreak={best}
           unitKey={UNIT_NOUN_KEY[periodUnitOf(tracker)]}
@@ -252,6 +254,7 @@ export function HabitChartsTab({
           <HabitCalendar
             month={calendar}
             todayISO={today}
+            isBad={tracker.direction === 'bad'}
             // Bad habit: never log a slip on a bare tap — always open the
             // day menu so the user confirms what to record.
             onLogDay={tracker.direction === 'bad' ? onLongPressDay : onLogDay}

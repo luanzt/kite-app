@@ -361,6 +361,7 @@
     "weekLogged": "{{logged}}/{{goal}} logged",
     "dailyGoal": "Daily goal",
     "projected": "Projected",
+    "projectedOn": "Projected on {{date}}",
     "toGo": "to go",
     "paceMarker": "Pace marker",
     "left": "left",

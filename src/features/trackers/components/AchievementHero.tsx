@@ -27,11 +27,15 @@ const styles = StyleSheet.create({
  */
 export function AchievementHero({
   percent,
+  daysDone,
+  daysTotal,
   currentStreak,
   bestStreak,
   unitKey
 }: {
   percent: number // 0..100
+  daysDone: number // due days met from start → today
+  daysTotal: number // due days from start → today (denominator of percent)
   currentStreak: number // in the cadence unit
   bestStreak: number // in the cadence unit
   unitKey: string // i18n key of the pluralizable unit noun ("unit.month" …)
@@ -42,7 +46,7 @@ export function AchievementHero({
   const ringColor = progressFill(
     habitBarStatus(percent, 100, false),
     c.pace,
-    c.brand
+    c.onAccent
   )
 
   return (
@@ -70,7 +74,7 @@ export function AchievementHero({
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               r={RING_R}
-              stroke={c.line}
+              stroke={c.heroRingTrack}
               strokeWidth={RING_STROKE}
               fill='none'
             />
@@ -90,11 +94,16 @@ export function AchievementHero({
             />
           </Svg>
           <View className='absolute inset-0 items-center justify-center'>
-            <Typography className='text-display-k font-bold text-ink'>
+            <Typography className='text-xs font-bold text-on-accent opacity-80'>
+              {t('detail.goalMet')}
+            </Typography>
+            <Typography className='text-display-k font-bold text-on-accent'>
               {`${Math.round(percent)}%`}
             </Typography>
-            <Typography className='text-xs font-bold uppercase text-ink-3'>
-              {t('detail.goalMet')}
+            {/* days met / due days from start → today (numerator/denominator of
+                the percent above) */}
+            <Typography className='mt-[1px] text-xs font-bold text-on-accent opacity-80'>
+              {`${daysDone}/${daysTotal} ${t(unitKey, { count: daysTotal })}`}
             </Typography>
           </View>
         </View>
@@ -105,7 +114,7 @@ export function AchievementHero({
             unit={t(unitKey, { count: currentStreak })}
             caption={t('detail.currentStreak')}
           />
-          <View className='h-px bg-line' />
+          <View className='h-px bg-on-accent opacity-20' />
           <StreakStat
             value={bestStreak}
             unit={t(unitKey, { count: bestStreak })}
@@ -128,17 +137,17 @@ function StreakStat({
 }) {
   return (
     <View>
-      <View className='flex-row items-end gap-s2'>
-        <Typography className='text-title-k font-bold text-ink'>
+      <Typography className='text-xs font-bold text-on-accent opacity-80'>
+        {caption}
+      </Typography>
+      <View className='mt-s1 flex-row items-end gap-s2'>
+        <Typography className='text-title-k font-bold text-on-accent'>
           {value}
         </Typography>
-        <Typography className='mb-[3px] text-sm font-bold text-ink-2'>
+        <Typography className='mb-[3px] text-sm font-bold text-on-accent opacity-90'>
           {unit}
         </Typography>
       </View>
-      <Typography className='mt-[2px] text-xs font-bold uppercase text-ink-3'>
-        {caption}
-      </Typography>
     </View>
   )
 }

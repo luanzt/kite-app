@@ -186,12 +186,15 @@ function DayCell({
 export function HabitCalendar({
   month,
   todayISO,
+  isBad = false,
   onLogDay,
   onLongPressDay,
   onPreStartDay
 }: {
   month: CalendarMonth
   todayISO: string
+  /** Bad habits have no partial/"in progress" day — hide that legend item. */
+  isBad?: boolean
   onLogDay?: (iso: string) => void
   onLongPressDay?: (iso: string) => void
   onPreStartDay?: (iso: string) => void
@@ -244,10 +247,12 @@ export function HabitCalendar({
 
       <View className='mt-s4 flex-row flex-wrap gap-s4 border-t border-line pt-s4'>
         <LegendItem dotClass='bg-pace-on' label={t('detail.completed')} />
-        <LegendItem
-          dotClass='border-2 border-brand'
-          label={t('detail.inProgress')}
-        />
+        {!isBad && (
+          <LegendItem
+            dotClass='border-2 border-brand'
+            label={t('detail.inProgress')}
+          />
+        )}
         <LegendItem dotClass='bg-pace-behind' label={t('detail.missed')} />
         <LegendItem
           dotClass='bg-surface-2 border border-line-strong'

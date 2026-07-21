@@ -8,16 +8,14 @@ export type TargetTrajectory = {
   series: TrajectoryPoint[]
   /** startValue@startDate → targetValue@deadline; null when no deadline. */
   idealLine: { start: TrajectoryPoint; end: TrajectoryPoint } | null
-  /** Linear extrapolation of the current rate to the goal; null when N/A. */
+  /**
+   * Strides-style forecast: the value you'll reach BY the deadline at the
+   * current pace (`date` is always the deadline, `value` is extrapolated, not
+   * the goal). Null only when the tracker has no deadline.
+   */
   projected: TrajectoryPoint | null
   /** (goal − current) / daysLeft; 0 when no deadline / done / past deadline. */
   dailyGoal: number
-}
-
-/** ISO date `days` after `fromISO` (UTC-safe, matches daysBetween's epoch math). */
-function isoAddDays(fromISO: string, days: number): string {
-  const base = Date.parse(`${fromISO.slice(0, 10)}T00:00:00Z`)
-  return new Date(base + days * 86_400_000).toISOString().slice(0, 10)
 }
 
 /**
@@ -57,23 +55,18 @@ export function buildTargetTrajectory(
       }
     : null
 
-  // projected — extrapolate current rate to the goal.
+  // projected (Strides model) — extend the actual-progress line to the DEADLINE
+  // and report the value reached there at the current pace. Date is always the
+  // deadline; value is the forecast (may fall short of or overshoot the goal).
+  // With no time elapsed yet the rate is unknown, so the current value holds.
   let projected: TargetTrajectory['projected'] = null
   if (tracker.deadline) {
     const elapsed = daysBetween(tracker.startDate, todayISO)
-    const made = current - start
-    const span = goal - start
-    const alreadyDone = span === 0 ? true : made / span >= 1
-    if (elapsed > 0 && made !== 0 && !alreadyDone) {
-      const ratePerDay = made / elapsed // signed: negative for decreasing goals
-      const remaining = goal - current
-      const daysToGoal = remaining / ratePerDay // same sign → positive
-      if (Number.isFinite(daysToGoal) && daysToGoal > 0) {
-        projected = {
-          value: goal,
-          date: isoAddDays(todayISO, Math.round(daysToGoal))
-        }
-      }
+    const totalSpan = daysBetween(tracker.startDate, tracker.deadline)
+    const ratePerDay = elapsed > 0 ? (current - start) / elapsed : 0
+    projected = {
+      value: start + ratePerDay * totalSpan,
+      date: tracker.deadline
     }
   }
 
