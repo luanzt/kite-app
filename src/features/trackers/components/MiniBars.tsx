@@ -16,16 +16,23 @@ export function MiniBars({
   values,
   scaleMax,
   color,
-  height = 40
+  height = 40,
+  maxBars = 12
 }: {
   values: number[]
   scaleMax: number
   color: string
   height?: number
+  maxBars?: number
 }) {
-  const fractions = normalizeBars(values, scaleMax)
+  const shown = values.slice(-maxBars)
+  const fractions = normalizeBars(shown, scaleMax)
   return (
-    <View className='flex-row items-end gap-[3px]' style={{ height }}>
+    <View
+      className='flex-row items-end gap-[3px] overflow-hidden'
+      // runtime: caller-driven pixel height, no class equivalent
+      style={{ height }}
+    >
       {fractions.map((f, i) => (
         <View
           key={i}
