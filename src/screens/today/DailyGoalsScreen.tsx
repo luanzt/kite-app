@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import Svg, { Circle } from 'react-native-svg'
 import {
   ChevronDown,
   Sunrise,
@@ -23,16 +22,13 @@ import {
   useEntries
 } from '@features/trackers/queries'
 import { toISODate, weekdayOf } from '@utils/date'
-import {
-  Icons,
-  hexA,
-  iconEmoji,
-  colorHex,
-  progressFill
-} from '@features/trackers/icons'
+import { Icons, hexA, iconEmoji, progressFill } from '@features/trackers/icons'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import { NewTrackerSheet } from '@features/trackers/components/NewTrackerSheet'
+import { TypeBadge } from '@features/trackers/components/TypeBadge'
+import { PaceBar } from '@features/trackers/components/PaceBar'
+import { cadenceLabel } from '@features/trackers/habitLabels'
 import type { RootStackParamList } from '@navigation/types'
 import type {
   Tracker,
@@ -63,6 +59,7 @@ import { fmtCompact, fmtValCompact } from '@features/trackers/detailFormat'
 import { LogEntryModal } from '@features/trackers/components/LogEntryModal'
 import { showLogSuccess } from '@features/trackers/components/LogSuccessToast'
 import { CalendarDayMenu } from '@features/trackers/components/CalendarDayMenu'
+import { Ring } from '@features/trackers/components/Ring'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
@@ -89,53 +86,6 @@ function isDueOnDate(t: Tracker, iso: string): boolean {
     return t.repeatDays.includes(weekdayOf(iso))
   }
   return true
-}
-
-/** Small circular progress ring (-90deg start). */
-function Ring({
-  fraction,
-  color,
-  size,
-  strokeWidth
-}: {
-  fraction: number
-  color: string
-  size: number
-  strokeWidth: number
-}) {
-  const theme = useThemeColors()
-  const r = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * r
-  const clamped = Math.max(0, Math.min(1, fraction))
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      // runtime: SVG transform, no className equivalent
-      style={{ transform: [{ rotate: '-90deg' }] }}
-    >
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke={theme.line}
-        strokeWidth={strokeWidth}
-      />
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        fill='none'
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeLinecap='round'
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference * (1 - clamped)}
-      />
-    </Svg>
-  )
 }
 
 const isMissedKind = (k: StreakStatus['kind']): boolean =>
@@ -444,6 +394,27 @@ function LogRow({
       : t('today.goal', { value: goalVal })
   }
 
+  // One sub-line for the new layout: cadence for good habits, the limit for bad
+  // habits, the goal/target line (subText) otherwise. Decreasing target gets ↓.
+  const isDecreasingTarget =
+    tracker.type === 'target' &&
+    tracker.startValue != null &&
+    tracker.startValue > (tracker.targetValue ?? 0)
+  const subLine =
+    tracker.type === 'habit'
+      ? isBad
+        ? t(LIMIT_KEY[tracker.period ?? 'daily'], {
+            value: fmtCompact(tracker.targetValue ?? 0)
+          })
+        : cadenceLabel(tracker, t)
+      : isDecreasingTarget
+      ? `↓ ${subText}`
+      : subText
+  // Progress bar (target) shown below the row, mirroring the Trackers card.
+  const showBar = tracker.type === 'target'
+  const barPercent = progress?.percent ?? 0
+  const barStatus: PaceStatus = progress?.paceStatus ?? 'none'
+
   const renderControl = () => {
     if (tracker.type === 'habit') {
       const period = tracker.period ?? 'daily'
@@ -598,72 +569,67 @@ function LogRow({
       onLongPress={
         tracker.type === 'habit' ? () => onOpenMenu(tracker) : undefined
       }
-      className='flex-row items-center gap-s3 border-t border-line px-s4 py-s3'
+      className='gap-s2 border-t border-line px-s4 py-s3'
     >
-      <View
-        className='items-center justify-center rounded-full h-[48px] w-[48px]'
-        // runtime: tint from user-chosen tracker.color
-        style={{ backgroundColor: hexA(tracker.color, 0.14) }}
-      >
-        <Typography className='text-[22px]'>
-          {iconEmoji(tracker.icon)}
-        </Typography>
-      </View>
-
-      <View className='flex-1 min-w-0'>
-        <Typography
-          numberOfLines={1}
-          className='text-[17px] font-bold text-ink'
+      <View className='flex-row items-center gap-s3'>
+        <View
+          className='h-[48px] w-[48px] items-center justify-center rounded-full'
+          // runtime: tint from user-chosen tracker.color
+          style={{ backgroundColor: hexA(tracker.color, 0.14) }}
         >
-          {tracker.name}
-        </Typography>
-        {isBad ? (
-          <View className='flex-row items-center gap-s2 mt-[2px]'>
-            <Icons.Ban size={13} color={AMBER} />
-            <Typography className='text-sm text-ink-2'>
-              {t(LIMIT_KEY[tracker.period ?? 'daily'], {
-                value: fmtCompact(tracker.targetValue ?? 0)
-              })}
-            </Typography>
-          </View>
-        ) : (
-          <View className='flex-row items-center gap-s2 mt-[2px]'>
-            <View
-              className='rounded-full h-2 w-2'
-              // runtime: user-chosen tracker.color
-              style={{ backgroundColor: colorHex(tracker.color) }}
-            />
-            <Typography className='text-sm text-ink-2'>{subText}</Typography>
-          </View>
-        )}
-        {row.status === 'missed' && !isBad ? (
-          // Missed today (attempts filled the goal but not enough Yes) — a muted
-          // encouragement line instead of the streak text.
-          <Typography className='text-sm text-ink-2 mt-[2px]'>
-            {t('today.missedEncourage')}
+          <Typography className='text-[22px]'>
+            {iconEmoji(tracker.icon)}
           </Typography>
-        ) : streak && streak.kind !== 'none' && streakText ? (
-          <View className='flex-row items-center gap-s1 mt-[2px]'>
-            {streakNegative ? (
-              // amber warning icon; the text stays muted (like the cadence line)
-              <Icons.Warn size={13} color={AMBER} />
-            ) : isBad && streak.kind === 'greatStart' ? (
-              <Icons.Check size={13} color={c.pace.on_track} />
-            ) : (
-              <Icons.Flame size={13} color={c.pace.on_track} />
-            )}
-            <Typography
-              className={`text-sm ${
-                streakNegative ? 'text-ink-2' : 'text-pace-on'
-              }`}
-            >
-              {streakText}
-            </Typography>
+        </View>
+
+        <View className='min-w-0 flex-1'>
+          <View className='flex-row items-center gap-s2'>
+            <TypeBadge type={tracker.type} />
+            {row.status === 'missed' && !isBad ? (
+              <Typography className='text-sm text-ink-2'>
+                {t('today.missedEncourage')}
+              </Typography>
+            ) : streak && streak.kind !== 'none' && streakText ? (
+              <View className='flex-row items-center gap-s1'>
+                {streakNegative ? (
+                  <Icons.Warn size={13} color={AMBER} />
+                ) : isBad && streak.kind === 'greatStart' ? (
+                  <Icons.Check size={13} color={c.pace.on_track} />
+                ) : (
+                  <Icons.Flame size={13} color={c.pace.on_track} />
+                )}
+                <Typography
+                  className={`text-sm font-semibold ${
+                    streakNegative ? 'text-ink-2' : 'text-pace-on'
+                  }`}
+                >
+                  {streakText}
+                </Typography>
+              </View>
+            ) : null}
           </View>
-        ) : null}
+
+          <Typography
+            numberOfLines={1}
+            className='mt-[3px] text-[17px] font-bold text-ink'
+          >
+            {tracker.name}
+          </Typography>
+          <Typography numberOfLines={1} className='mt-[1px] text-sm text-ink-3'>
+            {subLine}
+          </Typography>
+        </View>
+
+        {renderControl()}
       </View>
 
-      {renderControl()}
+      {showBar ? (
+        <View className='flex-row items-center gap-s2 pl-[60px]'>
+          <View className='flex-1'>
+            <PaceBar percent={barPercent} paceStatus={barStatus} height={7} />
+          </View>
+        </View>
+      ) : null}
     </Pressable>
   )
 }

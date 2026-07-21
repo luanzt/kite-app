@@ -1,5 +1,5 @@
 import { View, StyleSheet } from 'react-native'
-import Svg, { Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg'
+import Svg, { Rect, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import type { Tracker } from '@features/trackers/types'
@@ -7,6 +7,7 @@ import type { AverageBucketStats } from '@features/trackers/calculators/averageS
 import { fmtNum } from '@features/trackers/detailFormat'
 import { useThemeColors } from '@hooks/useThemeColors'
 import { progressFill } from '@features/trackers/icons'
+import { Ring } from './Ring'
 
 const RING_SIZE = 104
 const RING_STROKE = 8
@@ -18,50 +19,6 @@ const RING_STROKE = 8
 const styles = StyleSheet.create({
   gradient: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }
 })
-
-/** Thin progress ring (-90° start): pace-colored arc on a neutral track. */
-function Ring({
-  fraction,
-  color,
-  trackColor
-}: {
-  fraction: number
-  color: string
-  trackColor: string
-}) {
-  const r = (RING_SIZE - RING_STROKE) / 2
-  const circumference = 2 * Math.PI * r
-  const clamped = Math.max(0, Math.min(1, fraction))
-  return (
-    <Svg
-      width={RING_SIZE}
-      height={RING_SIZE}
-      viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-      // runtime: SVG transform, no className equivalent
-      style={{ transform: [{ rotate: '-90deg' }] }}
-    >
-      <Circle
-        cx={RING_SIZE / 2}
-        cy={RING_SIZE / 2}
-        r={r}
-        fill='none'
-        stroke={trackColor}
-        strokeWidth={RING_STROKE}
-      />
-      <Circle
-        cx={RING_SIZE / 2}
-        cy={RING_SIZE / 2}
-        r={r}
-        fill='none'
-        stroke={color}
-        strokeWidth={RING_STROKE}
-        strokeLinecap='round'
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference * (1 - clamped)}
-      />
-    </Svg>
-  )
-}
 
 /**
  * Average Detail hero — AchievementHero-styled brand-gradient card with the
@@ -139,7 +96,13 @@ export function AverageStatsRow({
 
         {/* average ring */}
         <View className='items-center justify-center'>
-          <Ring fraction={ringFraction} color={ringColor} trackColor={c.line} />
+          <Ring
+            fraction={ringFraction}
+            color={ringColor}
+            trackColor={c.line}
+            size={RING_SIZE}
+            strokeWidth={RING_STROKE}
+          />
           <View className='absolute items-center'>
             <Typography className='text-xs font-bold uppercase text-ink-3'>
               {t('detail.avgChartTitle')}

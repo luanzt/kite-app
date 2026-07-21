@@ -5,7 +5,8 @@ import type {
   Tracker,
   Entry,
   Milestone,
-  TrackerProgress
+  TrackerProgress,
+  PaceStatus
 } from '@features/trackers/types'
 import {
   calculateHabit,
@@ -18,14 +19,16 @@ import {
   periodTotal,
   periodUnitOf,
   habitBarStatus,
+  periodSessions,
   type PeriodUnit
 } from '@features/trackers/calculators/habitStats'
 import { useEntries, useMilestones } from '@features/trackers/queries'
 import { toISODate } from '@utils/date'
 import {
   Icons,
-  PACE_COLOR,
-  PACE_DOT_CLASS,
+  colorHex,
+  progressFill,
+  paceLabelKey,
   hexA,
   iconEmoji
 } from '@features/trackers/icons'
@@ -34,7 +37,12 @@ import {
   fmtCompact,
   fmtShortDate
 } from '@features/trackers/detailFormat'
+import { cadenceLabel } from '@features/trackers/habitLabels'
+import { useThemeColors } from '@hooks/useThemeColors'
 import { PaceBar } from './PaceBar'
+import { Ring } from './Ring'
+import { MiniBars } from './MiniBars'
+import { TypeBadge } from './TypeBadge'
 
 // Right-rail label naming the window the habit stat covers, per its cadence.
 const HABIT_WINDOW_LABEL: Record<PeriodUnit, string> = {
@@ -49,6 +57,14 @@ const UNIT_NOUN_KEY: Record<PeriodUnit, string> = {
   week: 'unit.week',
   month: 'unit.month',
   year: 'unit.year'
+}
+// Pace word → Tailwind text-color class (the word itself comes from the
+// existing i18n-keyed `paceLabelKey`).
+const PACE_TEXT_CLASS: Record<PaceStatus, string> = {
+  on_track: 'text-pace-on',
+  behind: 'text-pace-behind',
+  ahead: 'text-pace-ahead',
+  none: 'text-pace-none'
 }
 
 export function progressFor(
@@ -79,6 +95,7 @@ export function TrackerCard({
   onPress: () => void
 }) {
   const { t, i18n } = useTranslation()
+  const c = useThemeColors()
   // Each card loads its own data — TanStack Query caches per tracker and the
   // log/save mutations invalidate these keys, so the list stays live.
   const { data: entries = [] } = useEntries(tracker.id)
@@ -157,84 +174,148 @@ export function TrackerCard({
       : t('list.goal', { value: fmtCompact(p.goal) })
   }
 
-  // Habit keeps its streak/success context under the bar.
-  const habitSub =
-    tracker.type === 'habit' ? (
-      <View className='flex-row items-center gap-s2'>
-        <View className='flex-row items-center gap-s1'>
-          <Icons.Flame size={14} color={PACE_COLOR.on_track} />
-          <Typography className='text-sm text-ink-2'>{`${p.streak ?? 0} ${t(
-            UNIT_NOUN_KEY[periodUnitOf(tracker)],
-            { count: p.streak ?? 0 }
-          )}`}</Typography>
-        </View>
-        <Typography className='text-sm text-ink-3'>·</Typography>
-        <Typography className='text-sm text-ink-2'>{`${Math.round(
-          (p.successRate ?? 0) * 100
-        )}% ${t('detail.success')}`}</Typography>
-      </View>
-    ) : null
+  // Sub-line under the name: cadence for habits, limit for bad habits, goal/target
+  // for the rest. Decreasing target gets a ↓ prefix so its shrinking number reads.
+  const isDecreasingTarget =
+    tracker.type === 'target' &&
+    tracker.startValue != null &&
+    tracker.startValue > (tracker.targetValue ?? 0)
+  let subLine: string
+  if (tracker.type === 'habit') {
+    subLine = cadenceLabel(tracker, t)
+  } else if (tracker.type === 'average') {
+    subLine = t('today.targetIs', {
+      value: fmtCompact(tracker.targetValue ?? 0)
+    })
+  } else {
+    // target / project → the goal line, reusing the right-rail statLabel
+    subLine = isDecreasingTarget ? `↓ ${statLabel}` : statLabel
+  }
+  // Average sparkline series — compute ONCE here, reuse in the rail below.
+  const avgSessions =
+    tracker.type === 'average' ? periodSessions(tracker, entries, today) : null
 
   return (
     <Pressable onPress={onPress} className='active:opacity-90'>
-      <View className='flex-row items-center gap-s4 rounded-lg-k border border-line bg-surface p-s4 shadow-sm'>
-        {/* tile — emoji on a tint of the tracker's color */}
-        <View
-          className='h-[44px] w-[44px] items-center justify-center rounded-md-k'
-          // runtime: tint blended from the user-chosen tracker.color
-          style={{ backgroundColor: hexA(tracker.color, 0.14) }}
-        >
-          <Typography className='text-[22px]'>
-            {iconEmoji(tracker.icon)}
-          </Typography>
-        </View>
-
-        {/* main column */}
-        <View className='flex-1 min-w-0 gap-s2'>
-          <View className='flex-row items-center gap-s2'>
-            <View
-              className={`h-2 w-2 rounded-full ${PACE_DOT_CLASS[p.paceStatus]}`}
-            />
-            <Typography
-              numberOfLines={1}
-              className='flex-1 text-lg font-bold text-ink'
-            >
-              {tracker.name}
+      <View className='gap-s3 rounded-lg-k border border-line bg-surface p-s4 shadow-sm'>
+        {/* top row: tile · (badge + inline stat / name / sub-line) · rail */}
+        <View className='flex-row items-start gap-s3'>
+          <View
+            className='h-[46px] w-[46px] items-center justify-center rounded-md-k'
+            // runtime: tint blended from the user-chosen tracker.color
+            style={{ backgroundColor: hexA(tracker.color, 0.14) }}
+          >
+            <Typography className='text-[22px]'>
+              {iconEmoji(tracker.icon)}
             </Typography>
           </View>
 
-          <PaceBar percent={barPercent} paceStatus={barStatus} height={7} />
-
-          {habitSub}
-        </View>
-
-        {/* right rail — Strides-style stat */}
-        <View className='max-w-[112px] items-end gap-s1'>
-          <Typography
-            numberOfLines={1}
-            className={`text-[14px] font-extrabold ${
-              badOver ? 'text-pace-behind' : 'text-ink'
-            }`}
-          >
-            {isBadHabit ? (
-              // "/limit" always red (slash included) — it's a cap, not a goal
-              <>
-                {`${habitN}`}
-                <Typography className='text-[14px] font-extrabold text-pace-behind'>
-                  {`/${habitGoal}`}
+          <View className='min-w-0 flex-1'>
+            <View className='flex-row items-center gap-s2'>
+              <TypeBadge type={tracker.type} />
+              {tracker.type === 'habit' ? (
+                <View className='flex-row items-center gap-s1'>
+                  <Icons.Flame
+                    size={13}
+                    color={(p.streak ?? 0) > 0 ? c.pace.on_track : c.pace.none}
+                  />
+                  <Typography
+                    className={`text-sm font-semibold ${
+                      (p.streak ?? 0) > 0 ? 'text-pace-on' : 'text-ink-3'
+                    }`}
+                  >
+                    {`${p.streak ?? 0} ${t(
+                      UNIT_NOUN_KEY[periodUnitOf(tracker)],
+                      {
+                        count: p.streak ?? 0
+                      }
+                    )}`}
+                  </Typography>
+                </View>
+              ) : tracker.type === 'average' ? (
+                <Typography className='text-sm font-semibold text-ink-3'>
+                  {`${statValue} · ${statLabel}`}
                 </Typography>
-              </>
-            ) : (
-              statValue
-            )}
-          </Typography>
-          <Typography
-            numberOfLines={1}
-            className='text-right text-[10px] font-semibold text-ink-3'
-          >
-            {statLabel}
-          </Typography>
+              ) : (
+                // target / project → pace chip
+                <Typography
+                  className={`text-sm font-bold ${
+                    PACE_TEXT_CLASS[p.paceStatus]
+                  }`}
+                >
+                  {`${Math.round(p.percent * 100)}% · ${t(
+                    paceLabelKey(p.paceStatus)
+                  )}`}
+                </Typography>
+              )}
+            </View>
+
+            <Typography
+              numberOfLines={1}
+              className='mt-[5px] text-lg font-bold text-ink'
+            >
+              {tracker.name}
+            </Typography>
+            <Typography
+              numberOfLines={1}
+              className='mt-[1px] text-sm text-ink-3'
+            >
+              {subLine}
+            </Typography>
+          </View>
+
+          {/* rail: habit ring, average sparkline, else nothing */}
+          {tracker.type === 'habit' ? (
+            <View className='items-center justify-center'>
+              <Ring
+                fraction={barPercent}
+                color={
+                  isBadHabit
+                    ? c.pace.behind
+                    : progressFill(barStatus, c.pace, c.brand)
+                }
+                size={46}
+                strokeWidth={4.5}
+              />
+              <View className='absolute inset-0 items-center justify-center'>
+                <Typography
+                  className={`text-xs font-extrabold ${
+                    badOver ? 'text-pace-behind' : 'text-ink'
+                  }`}
+                >
+                  {isBadHabit ? (
+                    <>
+                      {`${habitN}`}
+                      <Typography className='text-xs font-extrabold text-pace-behind'>
+                        {`/${habitGoal}`}
+                      </Typography>
+                    </>
+                  ) : (
+                    `${habitN}/${habitGoal}`
+                  )}
+                </Typography>
+              </View>
+            </View>
+          ) : tracker.type === 'average' && avgSessions ? (
+            <MiniBars
+              values={avgSessions.bars.map((b) => b.count)}
+              scaleMax={avgSessions.scaleMax}
+              color={colorHex(tracker.color)}
+            />
+          ) : null}
         </View>
+
+        {/* below: target / project gradient bar with the current value */}
+        {tracker.type === 'target' || tracker.type === 'project' ? (
+          <View className='flex-row items-center gap-s2'>
+            <View className='flex-1'>
+              <PaceBar percent={barPercent} paceStatus={barStatus} height={8} />
+            </View>
+            <Typography className='text-sm font-extrabold text-ink'>
+              {statValue}
+            </Typography>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   )
