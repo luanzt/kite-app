@@ -42,6 +42,7 @@
     "missedEncourage": "You'll get it next time!",
     "allClear": "You're all caught up",
     "allClearBody": "Nothing left to log today. Beautiful work.",
+    "allClearBodyDay": "Everything's logged for this day. Nicely done.",
     "empty": "No goals yet",
     "emptyBody": "Create your first tracker to start building momentum.",
     "streakGreatStart": "Great start",
