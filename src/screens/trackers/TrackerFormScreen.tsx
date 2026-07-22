@@ -97,11 +97,11 @@ export function TrackerFormScreen({
   // Prefill source (create mode): a Template, or a QuickStart (structurally a
   // subset of Template — same required key/type/icon/color, fewer optionals).
   // Lookup is synchronous, so it seeds the useState initialisers directly.
-  const template = (templateKey
+  const template: Template | undefined = templateKey
     ? findTemplate(templateKey)
     : quickStartKey
     ? findQuickStart(quickStartKey)
-    : undefined) as Template | undefined
+    : undefined
 
   // The design's PERIOD_LABEL words. No dedicated i18n keys exist in the
   // handoff key list, so localise EN/VI inline from data.js PERIOD_LABEL.
