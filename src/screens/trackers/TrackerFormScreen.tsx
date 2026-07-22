@@ -20,7 +20,11 @@ import {
   iconKey,
   colorHex
 } from '@features/trackers/icons'
-import { findTemplate, templateDirection, type Template } from '@features/trackers/templates'
+import {
+  findTemplate,
+  templateDirection,
+  type Template
+} from '@features/trackers/templates'
 import { findQuickStart } from '@features/trackers/quickStarts'
 import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import { IconPickerModal } from '@features/trackers/components/IconPickerModal'

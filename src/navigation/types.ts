@@ -12,7 +12,12 @@ export type RootStackParamList = {
   Welcome: undefined
   MainTabs: undefined
   TrackerDetail: { trackerId: string }
-  TrackerForm: { trackerId?: string; type: TrackerType; templateKey?: string; quickStartKey?: string }
+  TrackerForm: {
+    trackerId?: string
+    type: TrackerType
+    templateKey?: string
+    quickStartKey?: string
+  }
   TrackerTypePicker: undefined
   TemplateCategory: { category: string }
   TemplateCategories: undefined
