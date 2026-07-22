@@ -86,3 +86,7 @@ export const QUICK_STARTS: QuickStart[] = [
     accumulation: 'latest'
   }
 ]
+
+export function findQuickStart(key: string): QuickStart | undefined {
+  return QUICK_STARTS.find((qs) => qs.key === key)
+}
