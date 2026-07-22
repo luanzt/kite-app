@@ -1,7 +1,6 @@
 import { ICONSET, defaultIcon } from '../iconSets'
 import { iconEmoji, iconKey } from '../icons'
-import { QUICK_STARTS } from '../quickStarts'
-import { allTemplates } from '../templates'
+import { allTemplates, quickStartTemplates } from '../templates'
 
 /** True if a string contains a UTF-16 surrogate (i.e. a non-BMP char/emoji). */
 function hasSurrogate(s: string): boolean {
@@ -42,10 +41,10 @@ describe('icon storage is ASCII-safe (no emoji persisted)', () => {
   })
 
   it('every quick-start icon keyword is ASCII and renders an emoji glyph', () => {
-    for (const qs of QUICK_STARTS) {
-      expect(hasSurrogate(qs.icon)).toBe(false)
+    for (const tpl of quickStartTemplates()) {
+      expect(hasSurrogate(tpl.icon)).toBe(false)
       // Display still produces a real (non-ASCII) glyph for the keyword.
-      expect(isGlyph(iconEmoji(qs.icon))).toBe(true)
+      expect(isGlyph(iconEmoji(tpl.icon))).toBe(true)
     }
   })
 

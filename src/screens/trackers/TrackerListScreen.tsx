@@ -6,13 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '@navigation/types'
-import { useTrackers, useSaveTracker } from '@features/trackers/queries'
-import { QUICK_STARTS, type QuickStart } from '@features/trackers/quickStarts'
+import { useTrackers } from '@features/trackers/queries'
+import { quickStartTemplates } from '@features/trackers/templates'
 import { TrackerCard } from '@features/trackers/components/TrackerCard'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import { NewTrackerSheet } from '@features/trackers/components/NewTrackerSheet'
-import { buildTracker } from '@features/trackers/factory'
 import { Icons, iconEmoji } from '@features/trackers/icons'
 import { useThemeColors } from '@hooks/useThemeColors'
 
@@ -24,7 +23,6 @@ export function TrackerListScreen() {
   const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const { data: trackers = [] } = useTrackers()
-  const save = useSaveTracker()
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const openSheet = () => setSheetOpen(true)
@@ -37,20 +35,8 @@ export function TrackerListScreen() {
     nav.navigate('TemplateCategories')
   }
 
-  const addQuickStart = (qs: QuickStart) => {
-    save.mutate(
-      buildTracker({
-        name: t(`quickStart.items.${qs.key}`),
-        type: qs.type,
-        icon: qs.icon,
-        color: qs.color,
-        unit: qs.unit ?? null,
-        targetValue: qs.targetValue ?? null,
-        accumulation: qs.accumulation ?? null,
-        period: qs.period ?? null
-      })
-    )
-  }
+  // Quick-starts are curated featured templates — open the prefilled form.
+  const quickStarts = quickStartTemplates()
 
   const header = (
     <View
@@ -89,20 +75,25 @@ export function TrackerListScreen() {
           </Typography>
 
           <View className='flex-row flex-wrap px-s4 gap-s3'>
-            {QUICK_STARTS.map((qs) => (
+            {quickStarts.map((tpl) => (
               <Pressable
-                key={qs.key}
-                onPress={() => addQuickStart(qs)}
+                key={tpl.key}
+                onPress={() =>
+                  nav.navigate('TrackerForm', {
+                    type: tpl.type,
+                    templateKey: tpl.key
+                  })
+                }
                 className='flex-row items-center gap-s2 rounded-md-k border border-line bg-surface active:bg-surface-2 w-[48%] py-[13px] px-[14px]'
               >
                 <Typography className='text-[20px]'>
-                  {iconEmoji(qs.icon)}
+                  {iconEmoji(tpl.icon)}
                 </Typography>
                 <Typography
                   className='flex-1 text-sm font-bold text-ink'
                   numberOfLines={1}
                 >
-                  {t(`quickStart.items.${qs.key}`)}
+                  {t(`template.items.${tpl.key}`)}
                 </Typography>
               </Pressable>
             ))}

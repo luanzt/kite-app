@@ -95,6 +95,7 @@ export function TrackerFormScreen({
 
   // Template pre-fill (create mode). Lookup is synchronous, so unlike `editing`
   // it can seed the useState initialisers directly — no hydrate effect needed.
+  // Quick-starts reuse this path: they navigate here with a `templateKey`.
   const template = templateKey ? findTemplate(templateKey) : undefined
 
   // The design's PERIOD_LABEL words. No dedicated i18n keys exist in the

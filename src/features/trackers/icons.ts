@@ -419,7 +419,7 @@ export function iconKey(value: string | null | undefined): string {
 
 /**
  * Resolve a tracker's `color` (a palette name like "cyan" / "blue", or a raw
- * "#rrggbb" hex) to a hex string. Trackers store named colors (quickStarts /
+ * "#rrggbb" hex) to a hex string. Trackers store named colors (templates /
  * buildTracker), so tile tints and pace dots need this to produce valid hex.
  */
 const COLOR_HEX: Record<string, string> = {

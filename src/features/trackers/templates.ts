@@ -1460,6 +1460,28 @@ export function findTemplate(key: string): Template | undefined {
   return allTemplates().find((t) => t.key === key)
 }
 
+/** Curated featured templates shown as one-tap quick-starts on the empty
+ *  Trackers state. Quick-starts are just templates — their definition lives in
+ *  TEMPLATE_CATEGORIES (single source of truth); here we only pick which ones.
+ *  Balanced across types (4 habit / 2 target / 2 average) and categories; no
+ *  `project` (needs milestones, unsuitable for one-tap). */
+export const QUICK_START_KEYS = [
+  'drinkWater',
+  'exercise',
+  'saveMoney',
+  'read',
+  'sleep',
+  'meditate',
+  'steps',
+  'weight'
+] as const
+
+export function quickStartTemplates(): Template[] {
+  return QUICK_START_KEYS.map((k) => findTemplate(k)).filter(
+    (t): t is Template => t != null
+  )
+}
+
 export function categoryByKey(key: string): TemplateCategory | undefined {
   return TEMPLATE_CATEGORIES.find((c) => c.key === key)
 }

@@ -94,10 +94,6 @@
     "goal": "Goal {{value}}",
     "due": "Due {{date}}"
   },
-  "quickStart": {
-    "heading": "Start with a goal",
-    "items": { "water": "Drink water", "exercise": "Exercise", "save": "Save money", "read": "Read books", "sleep": "Sleep well", "meditate": "Meditate", "steps": "Walk", "weight": "Track weight" }
-  },
   "types": { "habit": "Habit", "target": "Target", "average": "Average", "project": "Project" },
   "type": {
     "title": "What do you want to track?",
