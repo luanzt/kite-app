@@ -1,6 +1,6 @@
 import { Pressable } from 'react-native'
 import { Popover } from 'heroui-native'
-import { CircleHelp } from 'lucide-react-native'
+import { BadgeInfo } from 'lucide-react-native'
 import { useThemeColors } from '@hooks/useThemeColors'
 
 /**
@@ -21,12 +21,12 @@ export function InfoTooltip({
       {/* asChild over a real Pressable — the proven trigger pattern in this app
           (see DateField). A bare View child does not reliably wire press +
           measure() on the New Architecture, leaving triggerPosition null so the
-          popover content never mounts. The lucide CircleHelp IS the circle (a
-          ?-in-a-ring), so the Pressable carries no border/bg of its own — that
+          popover content never mounts. The lucide BadgeInfo IS the badge (an
+          i-in-a-shield), so the Pressable carries no border/bg of its own — that
           would double the ring. */}
       <Popover.Trigger asChild>
         <Pressable className='h-6 w-6 items-center justify-center active:opacity-70'>
-          <CircleHelp size={20} color={c.ink3} />
+          <BadgeInfo size={20} color={c.ink} />
         </Pressable>
       </Popover.Trigger>
       <Popover.Portal>
