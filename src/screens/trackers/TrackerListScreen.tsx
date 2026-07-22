@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '@navigation/types'
 import { useTrackers } from '@features/trackers/queries'
-import { QUICK_STARTS, type QuickStart } from '@features/trackers/quickStarts'
+import { quickStartTemplates } from '@features/trackers/templates'
 import { TrackerCard } from '@features/trackers/components/TrackerCard'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
@@ -35,8 +35,8 @@ export function TrackerListScreen() {
     nav.navigate('TemplateCategories')
   }
 
-  const openQuickStart = (qs: QuickStart) =>
-    nav.navigate('TrackerForm', { type: qs.type, quickStartKey: qs.key })
+  // Quick-starts are curated featured templates — open the prefilled form.
+  const quickStarts = quickStartTemplates()
 
   const header = (
     <View
@@ -75,20 +75,25 @@ export function TrackerListScreen() {
           </Typography>
 
           <View className='flex-row flex-wrap px-s4 gap-s3'>
-            {QUICK_STARTS.map((qs) => (
+            {quickStarts.map((tpl) => (
               <Pressable
-                key={qs.key}
-                onPress={() => openQuickStart(qs)}
+                key={tpl.key}
+                onPress={() =>
+                  nav.navigate('TrackerForm', {
+                    type: tpl.type,
+                    templateKey: tpl.key
+                  })
+                }
                 className='flex-row items-center gap-s2 rounded-md-k border border-line bg-surface active:bg-surface-2 w-[48%] py-[13px] px-[14px]'
               >
                 <Typography className='text-[20px]'>
-                  {iconEmoji(qs.icon)}
+                  {iconEmoji(tpl.icon)}
                 </Typography>
                 <Typography
                   className='flex-1 text-sm font-bold text-ink'
                   numberOfLines={1}
                 >
-                  {t(`quickStart.items.${qs.key}`)}
+                  {t(`template.items.${tpl.key}`)}
                 </Typography>
               </Pressable>
             ))}
