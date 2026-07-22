@@ -20,7 +20,8 @@ import {
   iconKey,
   colorHex
 } from '@features/trackers/icons'
-import { findTemplate, templateDirection } from '@features/trackers/templates'
+import { findTemplate, templateDirection, type Template } from '@features/trackers/templates'
+import { findQuickStart } from '@features/trackers/quickStarts'
 import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import { IconPickerModal } from '@features/trackers/components/IconPickerModal'
 import { ColorPickerModal } from '@features/trackers/components/ColorPickerModal'
@@ -83,7 +84,7 @@ export function TrackerFormScreen({
   route,
   navigation
 }: RootStackProps<'TrackerForm'>) {
-  const { type, trackerId, templateKey } = route.params
+  const { type, trackerId, templateKey, quickStartKey } = route.params
   const { t } = useTranslation()
   const alert = useAlert()
   const c = useThemeColors()
@@ -93,9 +94,14 @@ export function TrackerFormScreen({
   const language = useAppStore((s) => s.language)
   const { data: editing } = useTracker(trackerId ?? '')
 
-  // Template pre-fill (create mode). Lookup is synchronous, so unlike `editing`
-  // it can seed the useState initialisers directly — no hydrate effect needed.
-  const template = templateKey ? findTemplate(templateKey) : undefined
+  // Prefill source (create mode): a Template, or a QuickStart (structurally a
+  // subset of Template — same required key/type/icon/color, fewer optionals).
+  // Lookup is synchronous, so it seeds the useState initialisers directly.
+  const template = (templateKey
+    ? findTemplate(templateKey)
+    : quickStartKey
+    ? findQuickStart(quickStartKey)
+    : undefined) as Template | undefined
 
   // The design's PERIOD_LABEL words. No dedicated i18n keys exist in the
   // handoff key list, so localise EN/VI inline from data.js PERIOD_LABEL.
@@ -111,7 +117,12 @@ export function TrackerFormScreen({
 
   // Controlled fields — initialised from the editing tracker when present.
   const [name, setName] = useState(
-    editing?.name ?? (template ? t(`template.items.${template.key}`) : '')
+    editing?.name ??
+      (quickStartKey
+        ? t(`quickStart.items.${quickStartKey}`)
+        : template
+        ? t(`template.items.${template.key}`)
+        : '')
   )
   // Hold the icon as its ASCII keyword (e.g. "lotus"). Stored values are
   // keywords; legacy/raw-emoji values are normalised via iconKey(). Keywords
