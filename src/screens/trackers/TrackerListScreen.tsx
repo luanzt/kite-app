@@ -6,13 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '@navigation/types'
-import { useTrackers, useSaveTracker } from '@features/trackers/queries'
+import { useTrackers } from '@features/trackers/queries'
 import { QUICK_STARTS, type QuickStart } from '@features/trackers/quickStarts'
 import { TrackerCard } from '@features/trackers/components/TrackerCard'
 import { NoData } from '@features/trackers/components/NoData'
 import { CreateButton } from '@features/trackers/components/CreateButton'
 import { NewTrackerSheet } from '@features/trackers/components/NewTrackerSheet'
-import { buildTracker } from '@features/trackers/factory'
 import { Icons, iconEmoji } from '@features/trackers/icons'
 import { useThemeColors } from '@hooks/useThemeColors'
 
@@ -24,7 +23,6 @@ export function TrackerListScreen() {
   const c = useThemeColors()
   const insets = useSafeAreaInsets()
   const { data: trackers = [] } = useTrackers()
-  const save = useSaveTracker()
 
   const [sheetOpen, setSheetOpen] = useState(false)
   const openSheet = () => setSheetOpen(true)
@@ -37,20 +35,8 @@ export function TrackerListScreen() {
     nav.navigate('TemplateCategories')
   }
 
-  const addQuickStart = (qs: QuickStart) => {
-    save.mutate(
-      buildTracker({
-        name: t(`quickStart.items.${qs.key}`),
-        type: qs.type,
-        icon: qs.icon,
-        color: qs.color,
-        unit: qs.unit ?? null,
-        targetValue: qs.targetValue ?? null,
-        accumulation: qs.accumulation ?? null,
-        period: qs.period ?? null
-      })
-    )
-  }
+  const openQuickStart = (qs: QuickStart) =>
+    nav.navigate('TrackerForm', { type: qs.type, quickStartKey: qs.key })
 
   const header = (
     <View
@@ -92,7 +78,7 @@ export function TrackerListScreen() {
             {QUICK_STARTS.map((qs) => (
               <Pressable
                 key={qs.key}
-                onPress={() => addQuickStart(qs)}
+                onPress={() => openQuickStart(qs)}
                 className='flex-row items-center gap-s2 rounded-md-k border border-line bg-surface active:bg-surface-2 w-[48%] py-[13px] px-[14px]'
               >
                 <Typography className='text-[20px]'>
