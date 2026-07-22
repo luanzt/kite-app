@@ -3,29 +3,28 @@ import { BottomSheetScrollView } from '@gorhom/bottom-sheet'
 import { BottomSheet, Typography } from 'heroui-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { iconEmoji } from '@features/trackers/icons'
 
 type Props = {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  /** Full keyword list to choose from (a type's ICONSET). */
-  icons: string[]
+  /** Full palette to choose from (hex strings). */
+  colors: string[]
   selected: string
-  onSelect: (icon: string) => void
+  onSelect: (color: string) => void
 }
 
 /**
- * Full-grid icon chooser in a HeroUI BottomSheet — opened from the form's
- * "More" tile when a type has more icons than the 2-row inline preview shows.
- * Tapping a tile selects it and closes the sheet.
+ * Full-grid color chooser in a HeroUI BottomSheet — opened from the form's
+ * "More" swatch when the palette has more colors than the single-row preview
+ * shows. Tapping a swatch selects it and closes the sheet.
  *
- * Uses gorhom's scrollable inside a fixed-height HeroUI content container so
- * the grid owns the vertical scroll gesture.
+ * Mirrors IconPickerModal: gorhom's scrollable inside a fixed-height HeroUI
+ * content container so the grid owns the vertical scroll gesture.
  */
-export function IconPickerModal({
+export function ColorPickerModal({
   isOpen,
   onOpenChange,
-  icons,
+  colors,
   selected,
   onSelect
 }: Props) {
@@ -37,7 +36,7 @@ export function IconPickerModal({
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content
-          snapPoints={['70%']}
+          snapPoints={['55%']}
           enableOverDrag={false}
           enableDynamicSizing={false}
           contentContainerClassName='h-full px-0 pt-0'
@@ -45,32 +44,34 @@ export function IconPickerModal({
         >
           <View className='px-s5 pb-s2 pt-s4'>
             <Typography className='text-lg font-bold text-ink'>
-              {t('form.icon')}
+              {t('form.color')}
             </Typography>
           </View>
           <BottomSheetScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} // safe-area, runtime
           >
-            <View className='flex-row flex-wrap'>
-              {icons.map((ic) => {
-                const sel = ic === selected
+            <View className='flex-row flex-wrap px-s3'>
+              {colors.map((swatch) => {
+                const sel = swatch === selected
                 return (
-                  <View key={ic} className='w-[16.66%] items-center py-s1'>
+                  <View key={swatch} className='w-[20%] items-center py-s2'>
                     <Pressable
                       onPress={() => {
-                        onSelect(ic)
+                        onSelect(swatch)
                         onOpenChange(false)
                       }}
-                      className={`h-[46px] w-[46px] items-center justify-center rounded-full border ${
-                        sel
-                          ? 'border-brand bg-brand-weak'
-                          : 'border-line bg-surface'
+                      className={`h-11 w-11 items-center justify-center rounded-full border-2 ${
+                        sel ? 'border-ink' : 'border-transparent'
                       }`}
                     >
-                      <Typography className='text-[22px]'>
-                        {iconEmoji(ic)}
-                      </Typography>
+                      <View
+                        className={`h-full w-full rounded-full ${
+                          sel ? 'border border-surface' : ''
+                        }`}
+                        // runtime: palette color, not expressible as a class
+                        style={{ backgroundColor: swatch }}
+                      />
                     </Pressable>
                   </View>
                 )

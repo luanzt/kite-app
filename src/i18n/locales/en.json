@@ -46,8 +46,8 @@
     "empty": "No goals yet",
     "emptyBody": "Create your first tracker to start building momentum.",
     "streakGreatStart": "Great start",
-    "streakOngoing": "Streak: {{count}} {{unit}}",
-    "streakEnded": "{{count}} {{unit}} streak",
+    "streakOngoing": "{{count}}-{{unit}} streak",
+    "streakEnded": "{{count}}-{{unit}} streak",
     "missedInARow": "Missed {{count}} {{unit}} in a row",
     "missedYesterday": "Missed yesterday",
     "missedLastTime": "Missed last time",
@@ -69,7 +69,7 @@
     "windowYear": "This year",
     "cleanStart": "Clean so far {{window}}",
     "cleanOngoing": "{{count}} {{unit}} clean",
-    "cleanEnded": "{{count}}-{{unit}} clean run ended"
+    "cleanEnded": "{{count}}-{{unit}} clean streak ended"
   },
   "unit": {
     "day_one": "day", "day_other": "days",

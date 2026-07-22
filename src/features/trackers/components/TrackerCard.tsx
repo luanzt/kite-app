@@ -204,7 +204,7 @@ export function TrackerCard({
         {/* top row: tile · (badge + inline stat / name / sub-line) · rail */}
         <View className='flex-row items-start gap-s3'>
           <View
-            className='h-[46px] w-[46px] items-center justify-center rounded-md-k'
+            className='h-[46px] w-[46px] items-center justify-center rounded-full'
             // runtime: tint blended from the user-chosen tracker.color
             style={{ backgroundColor: hexA(tracker.color, 0.14) }}
           >

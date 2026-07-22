@@ -124,11 +124,12 @@ const MISSED_LAST_KEY: Record<PeriodUnit, string> = {
 }
 
 /**
- * The streak/clean line, worded for the habit's cadence and pluralized. Good
- * habits read "Streak: 2 months" / "Missed 3 weeks in a row"; bad habits read
- * "5 days clean" / "Clean so far this week". Returns '' when there's nothing to
- * show. `unit` count-plurals the noun; adjectival forms ("2 day streak") force
- * the singular.
+ * The streak/clean line, worded for the habit's cadence. The "streak" copy is
+ * an adjectival compound — hyphen + singular noun ("2-day streak", "2-month
+ * streak"); the "clean" and "missed N in a row" copy read as natural plural
+ * sentences ("3 days clean", "Missed 3 weeks in a row"). Good habits read
+ * "2-day streak" / "Missed 3 weeks in a row"; bad habits read "3 days clean" /
+ * "Clean so far this week". Returns '' when there's nothing to show.
  */
 function streakLine(
   t: TFunc,
@@ -155,7 +156,7 @@ function streakLine(
     case 'greatStart':
       return t('today.streakGreatStart')
     case 'streakOngoing':
-      return t('today.streakOngoing', { count: n, unit: plural })
+      return t('today.streakOngoing', { count: n, unit: singular })
     case 'streakEnded':
       return t('today.streakEnded', { count: n, unit: singular })
     case 'missedDays':

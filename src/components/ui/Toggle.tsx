@@ -12,7 +12,7 @@ export function Toggle({
     <Pressable
       onPress={() => onChange(!value)}
       className={`h-8 w-[52px] justify-center rounded-full p-[3px] ${
-        value ? 'bg-brand' : 'bg-surface-2'
+        value ? 'bg-brand' : 'bg-line-strong'
       }`}
     >
       <View

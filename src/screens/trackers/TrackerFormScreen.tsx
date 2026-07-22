@@ -23,6 +23,7 @@ import {
 import { findTemplate, templateDirection } from '@features/trackers/templates'
 import { ICONSET, defaultIcon } from '@features/trackers/iconSets'
 import { IconPickerModal } from '@features/trackers/components/IconPickerModal'
+import { ColorPickerModal } from '@features/trackers/components/ColorPickerModal'
 import { useThemeColors } from '@hooks/useThemeColors'
 import {
   DateField,
@@ -51,7 +52,7 @@ import type {
   Tracker
 } from '@features/trackers/types'
 
-/** Tracker color palette (mirrors COLORS in data.js). */
+/** Tracker color palette — 20 swatches spanning the hue wheel + neutrals. */
 const COLORS = [
   '#2e7d5b',
   '#2456b5',
@@ -61,7 +62,18 @@ const COLORS = [
   '#0d9488',
   '#e0457a',
   '#6366f1',
-  '#6b7280'
+  '#6b7280',
+  '#16a34a',
+  '#0ea5e9',
+  '#06b6d4',
+  '#84cc16',
+  '#eab308',
+  '#f59e0b',
+  '#f97316',
+  '#dc2626',
+  '#d946ef',
+  '#a855f7',
+  '#b45309'
 ]
 
 /** Rolling-average preset windows (days) — Strides-style quick picks. */
@@ -205,17 +217,28 @@ export function TrackerFormScreen({
   }, [editing])
 
   const icons = ICONSET[type] ?? ICONSET.target
-  // Icon picker: show ~2 rows inline (11 tiles + a "More" tile); the full set
+  // Icon picker: a single inline row (6 tiles + a "More" tile); the full set
   // opens in a sheet. Keep the selected icon visible inline even when deep in
   // the list.
   const [iconModal, setIconModal] = useState(false)
-  const INLINE_ICONS = 11
-  const showMoreIcons = icons.length > INLINE_ICONS + 1
+  const INLINE_ICONS = 6
+  const showMoreIcons = icons.length > INLINE_ICONS
   const inlineIcons = !showMoreIcons
     ? icons
     : icons.slice(0, INLINE_ICONS).includes(icon)
     ? icons.slice(0, INLINE_ICONS)
     : [icon, ...icons.slice(0, INLINE_ICONS - 1)]
+
+  // Color picker: same single-row-plus-More pattern (7 swatches + a "More"
+  // swatch), full palette opens in a sheet. Keep the selected color visible.
+  const [colorModal, setColorModal] = useState(false)
+  const INLINE_COLORS = 7
+  const showMoreColors = COLORS.length > INLINE_COLORS
+  const inlineColors = !showMoreColors
+    ? COLORS
+    : COLORS.slice(0, INLINE_COLORS).includes(color)
+    ? COLORS.slice(0, INLINE_COLORS)
+    : [color, ...COLORS.slice(0, INLINE_COLORS - 1)]
 
   const onSave = () => {
     const isHabit = type === 'habit'
@@ -370,7 +393,7 @@ export function TrackerFormScreen({
                 <Pressable
                   key={ic}
                   onPress={() => setIcon(ic)}
-                  className={`h-[46px] w-[46px] items-center justify-center rounded-md-k border ${
+                  className={`h-[46px] w-[46px] items-center justify-center rounded-full border ${
                     sel
                       ? 'border-brand bg-brand-weak'
                       : 'border-line bg-surface'
@@ -385,7 +408,7 @@ export function TrackerFormScreen({
             {showMoreIcons ? (
               <Pressable
                 onPress={() => setIconModal(true)}
-                className='h-[46px] w-[46px] items-center justify-center rounded-md-k border border-line bg-surface active:opacity-80'
+                className='h-[46px] w-[46px] items-center justify-center rounded-full border border-line bg-surface active:opacity-80'
               >
                 <Ellipsis size={22} color={c.ink2} />
               </Pressable>
@@ -396,8 +419,8 @@ export function TrackerFormScreen({
         {/* color picker */}
         <View className='gap-s2'>
           <FieldLabel>{t('form.color')}</FieldLabel>
-          <View className='flex-row flex-wrap gap-[10px]'>
-            {COLORS.map((swatch) => {
+          <View className='flex-row flex-wrap items-center gap-[10px]'>
+            {inlineColors.map((swatch) => {
               const sel = swatch === color
               return (
                 <Pressable
@@ -419,6 +442,14 @@ export function TrackerFormScreen({
                 </Pressable>
               )
             })}
+            {showMoreColors ? (
+              <Pressable
+                onPress={() => setColorModal(true)}
+                className='h-9 w-9 items-center justify-center rounded-full border border-line bg-surface active:opacity-80'
+              >
+                <Ellipsis size={20} color={c.ink2} />
+              </Pressable>
+            ) : null}
           </View>
         </View>
 
@@ -713,11 +744,16 @@ export function TrackerFormScreen({
           <>
             {/* bad habit toggle — targetValue becomes a LIMIT (0 = never) */}
             <View className='flex-row items-center gap-s3'>
-              <FieldLabel>{t('form.badHabit')}</FieldLabel>
-              <InfoTooltip
-                title={t('form.helpTitle')}
-                description={t('form.badHabitHelp')}
-              />
+              <FieldLabelRow
+                trailing={
+                  <InfoTooltip
+                    title={t('form.helpTitle')}
+                    description={t('form.badHabitHelp')}
+                  />
+                }
+              >
+                {t('form.badHabit')}
+              </FieldLabelRow>
               <Toggle
                 value={dir === 'bad'}
                 onChange={(v) => setDir(v ? 'bad' : 'good')}
@@ -843,6 +879,14 @@ export function TrackerFormScreen({
         icons={icons}
         selected={icon}
         onSelect={setIcon}
+      />
+
+      <ColorPickerModal
+        isOpen={colorModal}
+        onOpenChange={setColorModal}
+        colors={COLORS}
+        selected={color}
+        onSelect={setColor}
       />
     </View>
   )
