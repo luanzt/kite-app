@@ -306,6 +306,7 @@ export function TrackerCard({
               values={avgSessions.bars.map((b) => b.count)}
               scaleMax={avgSessions.scaleMax}
               color={colorHex(tracker.color)}
+              maxBars={7}
             />
           ) : null}
         </View>

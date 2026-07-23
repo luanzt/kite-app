@@ -6,6 +6,7 @@ import type { RootStackProps } from '@navigation/types'
 import type { TrackerType } from '@features/trackers/types'
 import { Icons, hexA, TYPE_ICON, TYPE_COLOR } from '@features/trackers/icons'
 import { useThemeColors } from '@hooks/useThemeColors'
+import { env } from '@config/env'
 
 type TypeMeta = {
   k: TrackerType
@@ -16,7 +17,9 @@ const TYPES: TypeMeta[] = [
   { k: 'habit', tag: 'tagHabit' },
   { k: 'target', tag: 'tagTarget' },
   { k: 'average', tag: 'tagAverage' },
-  { k: 'project', tag: 'tagProject' }
+  // Project is still WIP (no milestone editor in the form yet), so it's only
+  // offered in the development build.
+  ...(env.isDev ? [{ k: 'project', tag: 'tagProject' } as TypeMeta] : [])
 ]
 
 export function TrackerTypePickerScreen({

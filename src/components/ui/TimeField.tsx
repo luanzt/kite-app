@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { Typography, BottomSheet, Button, useBottomSheet } from 'heroui-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -87,10 +87,21 @@ function TimeSheet({
   // be an explicit Light/Dark override that diverges from useColorScheme().
   const defaultStyles = useDefaultStyles(c.isDark ? 'dark' : 'light')
   const [draft, setDraft] = useState<Date>(() => fromHHMM(value || '18:00'))
-  // react-native-ui-datepicker fires a spurious onChange on mount with the
-  // time reset to midnight, which would clobber our correct initial draft.
-  // Drop that first callback; honour every change after the user interacts.
+  // react-native-ui-datepicker's hour/minute wheels each fire a spurious
+  // onChange while they settle to their initial scroll position on mount. The
+  // minute wheel's settling callback can arrive with the minute reset to 0,
+  // which would clobber a non-zero initial draft (e.g. 10:31 → 10:00). The
+  // number of these callbacks is layout-timing dependent, so instead of
+  // dropping a fixed count we ignore every callback during a short settle
+  // window after mount — the sheet is still animating open then, so the user
+  // can't have touched the wheel yet, and real changes always land afterwards.
   const ready = useRef(false)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      ready.current = true
+    }, 400)
+    return () => clearTimeout(id)
+  }, [])
 
   const confirm = () => {
     onChange(toHHMM(draft))
@@ -103,11 +114,8 @@ function TimeSheet({
         mode='single'
         date={draft}
         onChange={({ date }: { date: DateType }) => {
-          // Skip the spurious mount-time callback (see `ready` above).
-          if (!ready.current) {
-            ready.current = true
-            return
-          }
+          // Ignore the spurious mount-settle callbacks (see `ready` above).
+          if (!ready.current) return
           if (date instanceof Date) setDraft(date)
         }}
         timePicker
