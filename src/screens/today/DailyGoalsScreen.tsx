@@ -574,11 +574,11 @@ function LogRow({
       onLongPress={
         tracker.type === 'habit' ? () => onOpenMenu(tracker) : undefined
       }
-      className='gap-s2 border-t border-line px-s4 py-s3'
+      className='gap-s2 border-t border-line px-s2 py-s3'
     >
       <View className='flex-row items-center gap-s3'>
         <View
-          className='h-[48px] w-[48px] items-center justify-center rounded-full'
+          className='h-[40px] w-[40px] items-center justify-center rounded-full'
           // runtime: tint from user-chosen tracker.color
           style={{ backgroundColor: hexA(tracker.color, 0.14) }}
         >
@@ -604,7 +604,7 @@ function LogRow({
                   <Icons.Flame size={13} color={c.pace.on_track} />
                 )}
                 <Typography
-                  className={`text-xs ${
+                  className={`text-xs font-medium ${
                     streakNegative ? 'text-ink-2' : 'text-pace-on'
                   }`}
                 >
@@ -629,7 +629,7 @@ function LogRow({
       </View>
 
       {showBar ? (
-        <View className='flex-row items-center gap-s2 pl-[60px]'>
+        <View className='flex-row items-center gap-s2 pl-[52px]'>
           <View className='flex-1'>
             <PaceBar percent={barPercent} paceStatus={barStatus} height={7} />
           </View>

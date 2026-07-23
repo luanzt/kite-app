@@ -67,9 +67,9 @@
     "windowWeek": "Tuần này",
     "windowMonth": "Tháng này",
     "windowYear": "Năm nay",
-    "cleanStart": "{{window}} vẫn chưa vi phạm",
+    "cleanStart": "{{window}} chưa vi phạm",
     "cleanOngoing": "{{count}} {{unit}} không vi phạm",
-    "cleanEnded": "Chuỗi {{count}} {{unit}} không vi phạm đã kết thúc"
+    "cleanEnded": "Chuỗi {{count}} {{unit}} đã bị ngắt"
   },
   "unit": {
     "day_one": "ngày", "day_other": "ngày",

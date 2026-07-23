@@ -19,7 +19,7 @@ export function TypeBadge({ type }: { type: TrackerType }) {
       style={{ backgroundColor: hexA(hue, 0.13) }}
     >
       <Typography
-        className='text-[10.5px] font-extrabold uppercase tracking-wide'
+        className='text-[9.5px] font-extrabold uppercase tracking-wide'
         // runtime: per-type identity color, no class equivalent
         style={{ color: hue }}
       >
