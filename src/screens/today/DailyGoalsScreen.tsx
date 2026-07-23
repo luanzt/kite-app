@@ -591,7 +591,7 @@ function LogRow({
           <View className='flex-row items-center gap-s2'>
             <TypeBadge type={tracker.type} />
             {row.status === 'missed' && !isBad ? (
-              <Typography className='text-sm text-ink-2'>
+              <Typography className='text-xs text-ink-2'>
                 {t('today.missedEncourage')}
               </Typography>
             ) : streak && streak.kind !== 'none' && streakText ? (
@@ -604,7 +604,7 @@ function LogRow({
                   <Icons.Flame size={13} color={c.pace.on_track} />
                 )}
                 <Typography
-                  className={`text-sm font-semibold ${
+                  className={`text-xs ${
                     streakNegative ? 'text-ink-2' : 'text-pace-on'
                   }`}
                 >

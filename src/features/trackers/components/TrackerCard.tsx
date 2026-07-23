@@ -223,7 +223,7 @@ export function TrackerCard({
                     color={(p.streak ?? 0) > 0 ? c.pace.on_track : c.pace.none}
                   />
                   <Typography
-                    className={`text-sm font-semibold ${
+                    className={`text-xs ${
                       (p.streak ?? 0) > 0 ? 'text-pace-on' : 'text-ink-3'
                     }`}
                   >
@@ -236,15 +236,13 @@ export function TrackerCard({
                   </Typography>
                 </View>
               ) : tracker.type === 'average' ? (
-                <Typography className='text-sm font-semibold text-ink-3'>
+                <Typography className='text-xs text-ink-3'>
                   {`${statValue} · ${statLabel}`}
                 </Typography>
               ) : (
                 // target / project → pace chip
                 <Typography
-                  className={`text-sm font-bold ${
-                    PACE_TEXT_CLASS[p.paceStatus]
-                  }`}
+                  className={`text-xs ${PACE_TEXT_CLASS[p.paceStatus]}`}
                 >
                   {`${Math.round(p.percent * 100)}% · ${t(
                     paceLabelKey(p.paceStatus)
