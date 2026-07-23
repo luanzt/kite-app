@@ -9,8 +9,8 @@ import { useThemeColors } from '@hooks/useThemeColors'
 import { progressFill } from '@features/trackers/icons'
 import { Ring } from './Ring'
 
-const RING_SIZE = 104
-const RING_STROKE = 8
+const RING_SIZE = 132
+const RING_STROKE = 9
 
 /**
  * Gradient backdrop, same construction as AchievementHero: an absolutely
