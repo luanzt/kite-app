@@ -200,11 +200,11 @@ export function TrackerCard({
 
   return (
     <Pressable onPress={onPress} className='active:opacity-90'>
-      <View className='gap-s3 rounded-lg-k border border-line bg-surface p-s4 shadow-sm'>
+      <View className='gap-s3 rounded-lg-k border border-line bg-surface px-s2 py-s4 shadow-sm'>
         {/* top row: tile · (badge + inline stat / name / sub-line) · rail */}
         <View className='flex-row items-start gap-s3'>
           <View
-            className='h-[46px] w-[46px] items-center justify-center rounded-full'
+            className='h-[40px] w-[40px] items-center justify-center rounded-full'
             // runtime: tint blended from the user-chosen tracker.color
             style={{ backgroundColor: hexA(tracker.color, 0.14) }}
           >
@@ -223,7 +223,7 @@ export function TrackerCard({
                     color={(p.streak ?? 0) > 0 ? c.pace.on_track : c.pace.none}
                   />
                   <Typography
-                    className={`text-xs ${
+                    className={`text-xs font-medium ${
                       (p.streak ?? 0) > 0 ? 'text-pace-on' : 'text-ink-3'
                     }`}
                   >
@@ -236,13 +236,13 @@ export function TrackerCard({
                   </Typography>
                 </View>
               ) : tracker.type === 'average' ? (
-                <Typography className='text-xs text-ink-3'>
+                <Typography className='text-xs font-medium text-ink-3'>
                   {`${statValue} · ${statLabel}`}
                 </Typography>
               ) : (
                 // target / project → pace chip
                 <Typography
-                  className={`text-xs ${PACE_TEXT_CLASS[p.paceStatus]}`}
+                  className={`text-xs font-medium ${PACE_TEXT_CLASS[p.paceStatus]}`}
                 >
                   {`${Math.round(p.percent * 100)}% · ${t(
                     paceLabelKey(p.paceStatus)
