@@ -118,7 +118,15 @@ export function HabitChartsTab({
       month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 }
     )
 
-  const onLogToday = () =>
+  const onLogToday = () => {
+    // Bad habit: a bare tap must never silently record a slip — open today's
+    // day menu so the user explicitly picks "I slipped" / "stayed clean"
+    // (mirrors the calendar's bad-habit tap behaviour). Good habits keep the
+    // fast path: one tap logs "done" for today.
+    if (tracker.direction === 'bad') {
+      setMenuDate(today)
+      return
+    }
     log.mutate(
       {
         id: uuid(),
@@ -132,6 +140,7 @@ export function HabitChartsTab({
         onSuccess: () => showLogSuccess(toast, t('toast.logSuccess'))
       }
     )
+  }
 
   const onLogDay = (iso: string) =>
     log.mutate(
