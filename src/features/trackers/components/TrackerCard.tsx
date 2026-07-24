@@ -259,7 +259,7 @@ export function TrackerCard({
             </Typography>
             <Typography
               numberOfLines={1}
-              className='mt-[1px] text-sm text-ink-3'
+              className='mt-[1px] text-xs text-ink-3'
             >
               {subLine}
             </Typography>
@@ -300,12 +300,14 @@ export function TrackerCard({
               </View>
             </View>
           ) : tracker.type === 'average' && avgSessions ? (
-            <MiniBars
-              values={avgSessions.bars.map((b) => b.count)}
-              scaleMax={avgSessions.scaleMax}
-              color={colorHex(tracker.color)}
-              maxBars={7}
-            />
+            <View className='self-center'>
+              <MiniBars
+                values={avgSessions.bars.map((b) => b.count)}
+                scaleMax={avgSessions.scaleMax}
+                color={colorHex(tracker.color)}
+                maxBars={7}
+              />
+            </View>
           ) : null}
         </View>
 
