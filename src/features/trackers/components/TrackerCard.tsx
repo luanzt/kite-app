@@ -259,7 +259,7 @@ export function TrackerCard({
             </Typography>
             <Typography
               numberOfLines={1}
-              className='mt-[1px] text-sm text-ink-3'
+              className='mt-[1px] text-xs text-ink-3'
             >
               {subLine}
             </Typography>
