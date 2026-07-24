@@ -300,12 +300,14 @@ export function TrackerCard({
               </View>
             </View>
           ) : tracker.type === 'average' && avgSessions ? (
-            <MiniBars
-              values={avgSessions.bars.map((b) => b.count)}
-              scaleMax={avgSessions.scaleMax}
-              color={colorHex(tracker.color)}
-              maxBars={7}
-            />
+            <View className='self-center'>
+              <MiniBars
+                values={avgSessions.bars.map((b) => b.count)}
+                scaleMax={avgSessions.scaleMax}
+                color={colorHex(tracker.color)}
+                maxBars={7}
+              />
+            </View>
           ) : null}
         </View>
 
