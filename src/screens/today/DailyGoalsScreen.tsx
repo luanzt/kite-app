@@ -557,7 +557,7 @@ function LogRow({
         </Typography>
         {paceLine ? (
           <Typography
-            className={`text-sm font-semibold ${PACE_TEXT_CLASS[paceStatus]}`}
+            className={`text-xs font-semibold ${PACE_TEXT_CLASS[paceStatus]}`}
           >
             {paceLine}
           </Typography>
