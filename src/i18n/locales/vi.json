@@ -47,7 +47,7 @@
     "emptyBody": "Tạo mục tiêu đầu tiên để bắt đầu và duy trì động lực.",
     "streakGreatStart": "Khởi đầu tốt",
     "streakOngoing": "Chuỗi: {{count}} {{unit}}",
-    "streakEnded": "Chuỗi {{count}} {{unit}} đã kết thúc",
+    "streakEnded": "Chuỗi {{count}} {{unit}}",
     "missedInARow": "Lỡ {{count}} {{unit}} liên tiếp",
     "missedYesterday": "Lỡ hôm qua",
     "missedLastTime": "Lỡ lần trước",
