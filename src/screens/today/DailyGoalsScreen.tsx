@@ -234,9 +234,9 @@ function DayPill({
   locale: string
   onSelect: (iso: string) => void
 }) {
-  // vi's "short" month is "Tháng 7" (too long for the pill) — abbreviate to "TH 7"
+  // vi's "short" month is "Tháng 7" (too long for the pill) — abbreviate to "Thg 7"
   const mon = locale.startsWith('vi')
-    ? `TH ${Number(day.iso.slice(5, 7))}`
+    ? `Thg ${Number(day.iso.slice(5, 7))}`
     : new Date(`${day.iso}T00:00:00`)
         .toLocaleDateString(locale, { month: 'short' })
         .toUpperCase()
